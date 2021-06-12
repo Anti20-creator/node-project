@@ -40,7 +40,7 @@ describe('Basic API testing', () => {
             .send({
                 name: "Teszt fiók",
                 password: "jelsasdsd",
-                email: "test3@gmail.com",
+                email: "test4@gmail.com",
                 restaurantName: "Anti Co."
             })
 
@@ -77,6 +77,9 @@ describe('Basic API testing', () => {
                         email: "user2@gmail.com",
                         secretPin: secretPin
                     }).then(async (data) => {
+                        if(!data.body.success){
+                            console.log(data.body.message)
+                        }
                         assert.equal(data.body.success, true)
                         const wait2 = await Restaurant.findOne({}, {}, {}, (err, data) => {
                             console.log(data.employees)
