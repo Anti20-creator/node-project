@@ -16,6 +16,10 @@ const Restaurant = new mongoose.Schema({
     employees: {
         type: Array,
         required: true
+    },
+    secretPin: {
+        type: String,
+        required: true
     }
 })
 

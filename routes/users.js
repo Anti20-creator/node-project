@@ -2,6 +2,7 @@ const mongoose    = require('mongoose')
 const express     = require('express')
 const router      = express.Router()
 const UserModel   = require('../models/UserModel')
+const Restaurant  = require('../models/RestaurantModel')
 
 router.post('/register-admin', (req, res) => {
 
@@ -45,18 +46,28 @@ router.post('/register-admin', (req, res) => {
     })
 })
 
-router.post('/register-employee/:id', (req, res) => {
+router.post('/register-employee/:id', async (req, res) => {
     const {name, email, password, secretPin} = req.body
 
     const restaurantId = req.params.id
+    console.log('ID:', restaurantId)
     let restaurantName = null
+    let restaurantsPin = null
 
-    const restaurant = UserModel.findById(restaurantId)
+    const restaurant = await Restaurant.findById(restaurantId,function (err, data)  {
+        console.log('FINDBYID:', data)
+        restaurantsPin = data.secretPin
+    })
 
     if(!restaurant){
         res.status(400).send({
             success: false,
             message: "Restaurant doesn't exist with the given id."
+        })
+    }else if(restaurantsPin != secretPin){
+        res.status(400).send({
+            success: false,
+            message: `The secret PIN doesn't match ${secretPin} != ${restaurantsPin}`
         })
     }else{
         restaurantName = restaurant.restaurantName
@@ -69,6 +80,7 @@ router.post('/register-employee/:id', (req, res) => {
             restaurantId: restaurantId,
             isAdmin: false
         })
+
 
         newUser.validate().then(() => {
             newUser.save((err) => {
@@ -85,8 +97,7 @@ router.post('/register-employee/:id', (req, res) => {
                     })
                 }
             }).then(() => console.log('Job completed'))
-        })
-            /*.catch((err) => {
+        }).catch((err) => {
             const {email, fullName, password, restaurantName} = err.errors
             res.send({
                 success: false,
@@ -101,7 +112,7 @@ router.post('/register-employee/:id', (req, res) => {
             if(err){
 
             }
-        })*/
+        })
 
         /*res.send({
             success: false,

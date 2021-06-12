@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const Restaurant = require('./RestaurantModel')
 const bcrypt = require('bcrypt')
+const crypto = require('crypto')
 
 const User = new mongoose.Schema({
     email: {
@@ -78,11 +79,13 @@ User.post('save', async function(doc, next) {
     console.log('User created:', doc)
 
     if(doc.isAdmin){
+
         const restaurant = new Restaurant({
             ownerId: doc._id,
             ownerEmail: doc.email,
             restaurantName: doc.restaurantName,
-            employees: []
+            employees: [],
+            secretPin: crypto.randomBytes(5).toString('hex')
         })
 
         await restaurant.save()
