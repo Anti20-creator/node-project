@@ -92,14 +92,10 @@ User.post('save', async function(doc, next) {
 
         let id = null
         await Restaurant.findOne({ownerId: doc._id}, (err, data) => {
-            console.log('FIND:', data)
             id = data._id
         })
-        console.log('ID:', id)
 
         doc.restaurantId = id
-
-        console.log('DOC:', doc)
 
         await mongoose.model('User', User).findByIdAndUpdate(doc._id, {
             $set: {
@@ -115,16 +111,17 @@ User.post('save', async function(doc, next) {
 
     }else{
 
-        Restaurant.findByIdAndUpdate(doc.restaurantId, {
-            $push: {
+        //console.log('THIS IS GOING')
+        await Restaurant.findByIdAndUpdate(doc.restaurantId, {
+            $addToSet: {
                 employees: doc._id
             }
         }, (err, data) => {
-            console.log(err)
-            console.log(data)
+            console.log('Updated:', data)
         })
 
     }
+
     next()
 })
 

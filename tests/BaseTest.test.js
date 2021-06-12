@@ -23,12 +23,12 @@ describe('Basic API testing', () => {
             useCreateIndex: true,
             useUnifiedTopology: true,
             useFindAndModify: false
+        }).then(async() => {
+            const req = await UserModel.deleteMany()
+                .then(async() => {
+                    const req2 = await Restaurant.deleteMany()
+                })
         })
-
-        const req = await UserModel.deleteMany()
-        const req2 = await Restaurant.deleteMany()
-
-        console.log(connected.models)
     })
 
 
@@ -40,10 +40,9 @@ describe('Basic API testing', () => {
             .send({
                 name: "Teszt fiók",
                 password: "jelsasdsd",
-                email: "test4@gmail.com",
+                email: "owner@gmail.com",
                 restaurantName: "Anti Co."
             })
-
 
         assert.equal(result.body.success, true)
         assert.equal(true, true)
@@ -88,6 +87,18 @@ describe('Basic API testing', () => {
                     })
             })
 
+    })
+
+    it('Sending test emails', async() => {
+
+        const result = await request(app)
+            .post('/api/users/send-invite')
+            .send({
+                ownerEmail: 'owner@gmail.com',
+                emailTo: 'amtmannkristof@gmail.com'
+            }).then(result => {
+                assert.equal(result.body.success, true)
+            })
     })
 })
 

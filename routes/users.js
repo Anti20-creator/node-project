@@ -1,5 +1,6 @@
 const mongoose    = require('mongoose')
 const express     = require('express')
+const nodemailer  = require('nodemailer')
 const router      = express.Router()
 const UserModel   = require('../models/UserModel')
 const Restaurant  = require('../models/RestaurantModel')
@@ -50,12 +51,10 @@ router.post('/register-employee/:id', async (req, res) => {
     const {name, email, password, secretPin} = req.body
 
     const restaurantId = req.params.id
-    console.log('ID:', restaurantId)
     let restaurantName = null
     let restaurantsPin = null
 
     const restaurant = await Restaurant.findById(restaurantId,function (err, data)  {
-        console.log('FINDBYID:', data)
         restaurantsPin = data.secretPin
     })
 
@@ -85,7 +84,6 @@ router.post('/register-employee/:id', async (req, res) => {
         newUser.validate().then(() => {
             newUser.save((err) => {
                 if (err) {
-                    console.log(err)
                     res.status(400).send({
                         success: false,
                         message: "User already exists with the given email!"
@@ -109,17 +107,66 @@ router.post('/register-employee/:id', async (req, res) => {
                     {restaurantName: restaurantName ? restaurantName.message : ''}
                 ]
             })
-            if(err){
-
-            }
         })
 
-        /*res.send({
-            success: false,
-            message: "User not created!"
-        })*/
     }
 
+})
+
+/*
+* Refresh and access token should contain ownerEmail, this must be modified in the future.
+* */
+router.post('/send-invite', async (req, res) => {
+    
+    const {ownerEmail, emailTo} = req.body
+
+    let restaurantId = null
+    let secretPin    = null
+
+    const restaurant = await Restaurant.findOne({ownerEmail: ownerEmail}, (err, data) => {
+        if(err){
+            console.log(err)
+            res.status(400).send({
+                success: false,
+                message: "No restaurant found with the given information!"
+            })
+        }else{
+            console.log(data)
+            restaurantId = data._id
+            secretPin    = data.secretPin
+        }
+    })
+
+
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: process.env.NODEMAILER_USER, // generated ethereal user
+            pass: process.env.NODEMAILER_PWD, // generated ethereal password
+        },
+    });
+
+    const info = await transporter.sendMail({
+        from: 'Anti - b264lke@gmail.com',
+        to: emailTo,
+        subject: 'Inviting to Restaurant',
+        html: `<h1>Invitation</h1>
+                <a href="frontend.com/invite/${restaurantId}">Click here to join</a>
+                Secret PIN code to join: ${secretPin}`
+    }, (err, data) => {
+        console.log(err)
+        if(err){
+            res.status(400).send({
+                success: false,
+                message: "Failed to send invite!"
+            })
+        }else{
+            res.status(400).send({
+                success: true,
+                message: "Invitation sent!"
+            })
+        }
+    })
 })
 
 module.exports = router
