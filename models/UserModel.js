@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const Restaurant = require('./RestaurantModel')
+const bcrypt = require('bcrypt')
 
 const User = new mongoose.Schema({
     email: {
@@ -29,9 +30,9 @@ const User = new mongoose.Schema({
         required: true,
         validate: {
             validator: function(password) {
-                return password.length > 5 && password.length < 13
+                return password.length > 5
             },
-            message: "Your email should be 6-12 characters long!"
+            message: "Your email should be longer than 5 characters!"
         }
     },
     restaurantName: {
@@ -54,10 +55,26 @@ const User = new mongoose.Schema({
 })
 
 /*
+* We need to store user's password as a hash
+* @library used for that: bcrypt
+* */
+
+User.pre('save', function async(next) {
+    try {
+        const salt = bcrypt.genSaltSync(10)
+        this.password = bcrypt.hashSync(this.password, salt)
+        next()
+    } catch(err) {
+        next(err)
+    }
+})
+
+
+/*
 * If user creation is successful, then we need to add a new restaurant for the owner.
 * If the user isn't an admin then we have to add him to the assigned restaurant.
 * */
-User.post('save', async(doc, next) => {
+User.post('save', async function(doc, next) {
     console.log('User created:', doc)
 
     if(doc.isAdmin){
@@ -105,7 +122,6 @@ User.post('save', async(doc, next) => {
         })
 
     }
-
     next()
 })
 
