@@ -125,4 +125,8 @@ User.post('save', async function(doc, next) {
     next()
 })
 
+User.methods.comparePassword = function(plainPass) {
+    return bcrypt.compareSync(plainPass, this.password)
+}
+
 module.exports = mongoose.model('User', User)

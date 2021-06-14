@@ -1,6 +1,7 @@
 const mongoose    = require('mongoose')
 const express     = require('express')
 const nodemailer  = require('nodemailer')
+const jwt         = require('jsonwebtoken')
 const router      = express.Router()
 const UserModel   = require('../models/UserModel')
 const Restaurant  = require('../models/RestaurantModel')
@@ -63,7 +64,7 @@ router.post('/register-employee/:id', async (req, res) => {
             success: false,
             message: "Restaurant doesn't exist with the given id."
         })
-    }else if(restaurantsPin != secretPin){
+    }else if(restaurantsPin !== secretPin){
         res.status(400).send({
             success: false,
             message: `The secret PIN doesn't match ${secretPin} != ${restaurantsPin}`
@@ -166,6 +167,36 @@ router.post('/send-invite', async (req, res) => {
                 message: "Invitation sent!"
             })
         }
+    })
+})
+
+router.post('/login', async(req, res) => {
+
+    const {email, password} = req.body
+    let userData = null
+
+    const user = UserModel.findOne({email: email}, (err, data) => {
+        console.log(data)
+        if(!err) {
+            userData = data
+            const token = jwt.sign({
+                userId: data._id,
+                isAdmin: data.isAdmin,
+                restaurant: data.restaurantId
+            }, process.env.TOKEN_SECRET)
+            res.cookie('authorization', 'Bearer '.concat(token))
+            res.status(200).send({
+                success: true,
+                message: "User has logged in!",
+                token: token
+            })
+        }else{
+            res.status(400).send({
+                success: false,
+                message: "Authentication failed!"
+            })
+        }
+
     })
 })
 
