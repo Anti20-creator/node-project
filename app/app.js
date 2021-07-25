@@ -2,9 +2,27 @@ const express = require('express')
 const app = express()
 const bodyparser = require('body-parser')
 const mongoose = require('mongoose')
+const cors = require('cors')
+const cookieParser = require('cookie-parser')
 require('dotenv').config()
 const users = require('../routes/users')
 app.use(bodyparser.json())
+app.use(cookieParser())
+
+const corsConfig = {
+    origin: true,
+    credentials: true
+}
+app.use(cors(corsConfig))
+app.options('*', cors(corsConfig))
+
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "http://192.168.31.160:3000")
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+    next()
+})
 
 /* Connecting to MongoDB Database */
 mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true, useFindAndModify: false}, (data) => {
@@ -13,7 +31,6 @@ mongoose.connect(process.env.MONGODB_URI, {useNewUrlParser: true, useUnifiedTopo
 mongoose.connection.on('error', (error) => {
     console.log('Error while connecting to DB...')
 })
-
 
 app.use('/api/users', users)
 
