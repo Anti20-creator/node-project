@@ -20,10 +20,6 @@ const Restaurant = new mongoose.Schema({
     secretPin: {
         type: String,
         required: true
-    },
-    layout: {
-        type: Array,
-        required: false
     }
 })
 

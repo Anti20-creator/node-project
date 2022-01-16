@@ -3,7 +3,8 @@ const express      = require('express')
 const router       = express.Router()
 const Httpresponse = require('../utils/ErrorCreator')
 const Appointment  = require('../models/AppointmentModel')
-const {sendMail}  = require('../utils/EmailSender')
+const Table        = require('../models/TableModel')
+const {sendMail}   = require('../utils/EmailSender')
 
 function createPin() {
     const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -25,6 +26,24 @@ router.post('/book', async(req, res) => {
             return Httpresponse.BadRequest(res, "Missing parameters!")
         }
 
+        // We have to check that given table exists
+        const table = Table.findOne({
+            RestaurantId: restaurantId,
+            TableId: tableId
+        })
+        if(!table) {
+            return Httpresponse.BadRequest(res, "No table found with given parameters!")
+        }
+
+        const givenDate = new Date(date);
+        givenDate.setUTCHours(0, 0, 0, 0)
+
+        const now = new Date();
+        now.setUTCHours(0, 0, 0, 0)
+        if(givenDate.getDate() == now.getDate() && table.inLiveUse) {
+            return Httpresponse.BadRequest(res, "This table is in use at the time!")
+        }
+
         // In normal case we set start date to 0:00 and end date next day 0:00, so we are searching in a 24h period
         let startDate = new Date(date);
         startDate.setUTCHours(0, 0, 0, 0);
@@ -40,7 +59,6 @@ router.post('/book', async(req, res) => {
 
         // If guests want to book for an early date, then we modify both start and end time to perform a better search.
         if(new Date(date) - new Date(startDate) <= 18_000_000) {
-            console.log('lefut')
             startDate.setDate(new Date(date).getDate() - 1);
             startDate.setUTCHours(18, 0, 0, 0);
             endDate.setDate(new Date(date).getDate());

@@ -2,15 +2,23 @@ const express = require('express')
 const app = express()
 const mongoose = require('mongoose')
 const bodyparser = require('body-parser')
+
 const users = require('../routers/users')
+const appointments = require('../routers/appointment')
+
 require('dotenv').config()
 require('mocha')
 app.use(bodyparser.json())
 const request = require('supertest')
 const assert = require('assert')
-const UserModel   = require('../models/UserModel')
+
+const User        = require('../models/UserModel')
 const Restaurant  = require('../models/RestaurantModel')
+const Table       = require('../models/TableModel')
+const Appointment = require('../models/AppointmentModel')
+
 app.use('/api/users', users)
+app.use('/api/appointments/', appointments)
 
 describe('Basic API testing', () => {
     let restaurantId = null
@@ -24,10 +32,10 @@ describe('Basic API testing', () => {
             useUnifiedTopology: true,
             useFindAndModify: false
         }).then(async() => {
-            const req = await UserModel.deleteMany()
-                .then(async() => {
-                    const req2 = await Restaurant.deleteMany()
-                })
+            await User.deleteMany({}).exec()
+            await Restaurant.deleteMany({}).exec()
+            await Table.deleteMany({}).exec()
+            await Appointment.deleteMany({}).exec()
         })
     })
 
@@ -45,10 +53,12 @@ describe('Basic API testing', () => {
             })
 
         assert.equal(result.body.success, true)
-        assert.equal(true, true)
+
+        const users = await User.countDocuments({}).exec();
+        assert.equal(users, 1)
     })
 
-    it('Adding employees to the restaurant', async() => {
+    /*it('Adding employees to the restaurant', async() => {
         console.log('Adding employees')
 
         const wait = await Restaurant.findOne({}, {}, {}, (err, data) => {
@@ -99,7 +109,7 @@ describe('Basic API testing', () => {
             }).then(result => {
                 assert.equal(result.body.success, true)
             })
-    })
+    })*/
 })
 
 /*after(async() => {
