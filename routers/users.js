@@ -73,12 +73,12 @@ router.post('/register-employee/:id', async (req, res) => {
         })
 
 
-        newUser.validate().then(() => {
-            newUser.save((err) => {
+        await newUser.validate().then(async () => {
+            await newUser.save((err) => {
                 if (err) {
-                    Httpresponse.Conflict(res, "User already exists with the given email!")
+                    return Httpresponse.Conflict(res, "User already exists with the given email!")
                 } else {
-                    Httpresponse.Created(res, "User has been added!")
+                    return Httpresponse.Created(res, "User has been added!")
                 }
             }).then(() => console.log('Job completed'))
         }).catch((err) => {

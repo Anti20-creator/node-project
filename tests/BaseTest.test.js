@@ -71,11 +71,11 @@ describe('Basic API testing', () => {
                     password: "asdadsa",
                     email: `user${i+1}@gmail.com`,
                     secretPin: restaurant.secretPin
-                })
+                }).then(() => console.log('ok'))
         }
 
-        const employees = User.find({isAdmin: false}).exec();
-        assert.equal(employees.length, 5)
+        const employees = await User.countDocuments({isAdmin: false}).exec();
+        assert.equal(employees, 5)
 
     })
 
@@ -86,9 +86,24 @@ describe('Basic API testing', () => {
             .send({
                 ownerEmail: 'owner@gmail.com',
                 emailTo: 'amtmannkristof@gmail.com'
-            }).then(result => {
-                assert.equal(result.body.success, true)
             })
+
+        assert.equal(true, true)
+    })
+
+    it('Adding tables to restaurant', async() => {
+        const restaurant = await Restaurant.findOne({}).exec()
+
+        for(let i = 0; i < 12; ++i) {
+            const table = new Table({
+                RestaurantId: restaurant._id,
+                liveOrders: []
+            })
+            await table.save()
+        }
+
+        const tables = await Table.find({RestaurantId: restaurant._id}).exec()
+        assert.equal(tables.length, 12)
     })
 })
 

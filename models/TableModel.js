@@ -17,15 +17,17 @@ const OrderModel = new mongoose.Schema({
 
 const TableModel = new mongoose.Schema({
     RestaurantId: {
-        type: Number,
+        type: String,
         required: true
     },
-    liveOrders: {
-        type: OrderModel
-    },
+    liveOrders: [{
+        type: OrderModel,
+        default: []
+    }],
     inLiveUse: {
         type: Boolean,
-        required: true
+        required: true,
+        default: false
     }
 })
 
