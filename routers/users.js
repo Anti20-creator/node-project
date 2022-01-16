@@ -8,6 +8,7 @@ const Restaurant   = require('../models/RestaurantModel')
 const Httpresponse = require('../utils/ErrorCreator')
 const Tokens       = require('../utils/TokenFunctions')
 const {authenticateRefreshToken, authenticateAccessToken} = require("../middlewares/auth");
+const {sendMail} = require("../utils/EmailSender");
 
 router.post('/register-admin', (req, res) => {
 
@@ -120,7 +121,11 @@ router.post('/send-invite', async (req, res) => {
         }
     })
 
-
+    await sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
+                <a href="frontend.com/invite/${restaurantId}">Click here to join</a>
+                Secret PIN code to join: ${secretPin}`, res)
+    return Httpresponse.OK(res, "User invited!")
+    /*
     let transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
@@ -146,7 +151,7 @@ router.post('/send-invite', async (req, res) => {
         }else{
             Httpresponse.OK(res, "Invitation sent!")
         }
-    })
+    })*/
 })
 
 router.post('/login', async(req, res) => {
