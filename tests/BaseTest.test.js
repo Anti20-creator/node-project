@@ -58,44 +58,24 @@ describe('Basic API testing', () => {
         assert.equal(users, 1)
     })
 
-    /*it('Adding employees to the restaurant', async() => {
-        console.log('Adding employees')
+    it('Adding employees to the restaurant', async() => {
 
-        const wait = await Restaurant.findOne({}, {}, {}, (err, data) => {
-            console.log('FOUND:', data)
-            restaurantId = data._id
-            secretPin = data.secretPin
-        })
+        const restaurant = await Restaurant.findOne({}).exec();
 
-        const result = await request(app)
-            .post('/api/users/register-employee/' + restaurantId)
-            .set('Content-Type', 'application/json')
-            .send({
-                name: "Alkalmazott",
-                password: "asdadsa",
-                email: "user@gmail.com",
-                secretPin: secretPin
-            }).then(async (gettedData) => {
-                assert.equal(gettedData.body.success, true)
-                const result2 = await request(app)
-                    .post('/api/users/register-employee/' + restaurantId)
-                    .set('Content-Type', 'application/json')
-                    .send({
-                        name: "Alkalmazott2",
-                        password: "asdadsa",
-                        email: "user2@gmail.com",
-                        secretPin: secretPin
-                    }).then(async (data) => {
-                        if(!data.body.success){
-                            console.log(data.body.message)
-                        }
-                        assert.equal(data.body.success, true)
-                        const wait2 = await Restaurant.findOne({}, {}, {}, (err, data) => {
-                            console.log(data.employees)
-                            assert.equal(data.employees.length, 2)
-                        })
-                    })
-            })
+        for (let i = 0; i < 5; i++) {
+            await request(app)
+                .post('/api/users/register-employee/' + restaurant._id)
+                .set('Content-Type', 'application/json')
+                .send({
+                    name: `Alkalmazott${i+1}`,
+                    password: "asdadsa",
+                    email: `user${i+1}@gmail.com`,
+                    secretPin: restaurant.secretPin
+                })
+        }
+
+        const employees = User.find({isAdmin: false}).exec();
+        assert.equal(employees.length, 5)
 
     })
 
@@ -109,7 +89,7 @@ describe('Basic API testing', () => {
             }).then(result => {
                 assert.equal(result.body.success, true)
             })
-    })*/
+    })
 })
 
 /*after(async() => {
