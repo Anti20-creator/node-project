@@ -21,9 +21,14 @@ class Tokens {
 
     static validateAccessToken(req) {
 
-        const token = req.cookies['Authorization'].split(' ')[1]
+        let token = req.cookies['Authorization']
+        if(token){
+            token = token.split(' ')[1]
+        }else{
+            return false;
+        }
 
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
             if(err) {
                 return false
             }else{
@@ -33,10 +38,15 @@ class Tokens {
     }
 
     static validateRefreshToken(req) {
+        let token = req.cookies['Refresh-token']
 
-        const token = req.cookies['Refresh-token'].split(' ')[1]
+        if(token){
+            token = token.split(' ')[1]
+        }else{
+            return false;
+        }
 
-        jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
+        return jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
             if(err) {
                 return false
             }else{

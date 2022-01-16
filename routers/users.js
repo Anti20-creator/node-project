@@ -7,6 +7,7 @@ const UserModel    = require('../models/UserModel')
 const Restaurant   = require('../models/RestaurantModel')
 const Httpresponse = require('../utils/ErrorCreator')
 const Tokens       = require('../utils/TokenFunctions')
+const {authenticateRefreshToken, authenticateAccessToken} = require("../middlewares/auth");
 
 router.post('/register-admin', (req, res) => {
 
@@ -125,7 +126,7 @@ router.post('/send-invite', async (req, res) => {
         auth: {
             user: process.env.NODEMAILER_USER, // generated ethereal user
             pass: process.env.NODEMAILER_PWD, // generated ethereal password
-        },
+        }
     });
 
     const info = await transporter.sendMail({
@@ -179,44 +180,36 @@ router.post('/login', async(req, res) => {
     })
 })
 
-router.get('/getdata', async(req, res) => {
+router.get('/getdata', authenticateAccessToken, async(req, res) => {
 
-    const decoded = Tokens.validateRefreshToken(req)
+    const user = req.user
 
-    if(!decoded) {
-        Httpresponse.Unauthorized(res, "Not Authorized!")
-    }else{
-        UserModel.findOne({_id: decoded.userId}, (err, data) => {
-            if(err){
-                Httpresponse.Unauthorized(res, err)
-            }else{
-                res.status(200).send({
-                    email: data.email
-                })
-            }
-        })
-    }
+    UserModel.findOne({_id: user.userId}, (err, data) => {
+        if(err){
+            Httpresponse.Unauthorized(res, err)
+        }else{
+            res.status(200).send({
+                email: data.email
+            })
+        }
+    })
 })
 
-router.post('/refresh-token', async(req, res) => {
+router.post('/refresh-token', authenticateRefreshToken, async(req, res) => {
 
-    const decoded = Tokens.validateRefreshToken(req)
+    const user = req.user;
 
-    if(!decoded){
-            Httpresponse.Unauthorized(res, err)
-    }else{
-        UserModel.findOne({_id: decoded.userId}, (err, data) => {
-            if(err){
-                Httpresponse.Unauthorized(res, "Failed to refresh token")
-            }else{
+    UserModel.findOne({_id: user.userId}, (err, data) => {
+        if(err){
+            Httpresponse.Unauthorized(res, "Failed to refresh token")
+        }else{
 
-                const accessToken = Tokens.generateAccessToken(data)
+            const accessToken = Tokens.generateAccessToken(data)
 
-                res.cookie('Authorization', 'Bearer '.concat(accessToken), {httpOnly: false, sameSite: 'none', path: '/', secure: true})
-                Httpresponse.OK(res, accessToken)
-            }
-        })
-    }
+            res.cookie('Authorization', 'Bearer '.concat(accessToken), {httpOnly: false, sameSite: 'none', path: '/', secure: true})
+            Httpresponse.OK(res, accessToken)
+        }
+    })
 })
 
 

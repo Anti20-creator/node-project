@@ -18,6 +18,13 @@ class HttpResponse {
         })
     }
 
+    static BadRequest(res, message) {
+        res.status(400).send({
+            success: true,
+            message: message
+        })
+    }
+
     static Unauthorized(res, message) {
         res.status(401).send({
             success: false,
@@ -47,7 +54,6 @@ class HttpResponse {
         })
     }
 
-    static
 }
 
 module.exports = HttpResponse

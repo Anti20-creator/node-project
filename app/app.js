@@ -5,7 +5,11 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
 require('dotenv').config()
-const users = require('../routes/users')
+
+/* Importing routers */
+const users = require('../routers/users')
+const appointment = require('../routers/appointment')
+
 app.use(bodyparser.json())
 app.use(cookieParser())
 
@@ -33,5 +37,6 @@ mongoose.connection.on('error', (error) => {
 })
 
 app.use('/api/users', users)
+app.use('/api/appointments', appointment)
 
 module.exports = app
