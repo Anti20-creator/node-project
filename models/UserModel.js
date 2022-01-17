@@ -76,7 +76,6 @@ User.pre('save', function async(next) {
 * If the user isn't an admin then we have to add him to the assigned restaurant.
 * */
 User.post('save', async function(doc, next) {
-    console.log('User created:', doc)
 
     if(doc.isAdmin){
 
@@ -103,9 +102,6 @@ User.post('save', async function(doc, next) {
             }
         }, {
             new: true
-        }, (err, data) => {
-            if(err) console.log(err)
-            console.log(data)
         })
 
 
@@ -116,8 +112,6 @@ User.post('save', async function(doc, next) {
             $addToSet: {
                 employees: doc._id
             }
-        }, (err, data) => {
-            console.log('Updated:', data)
         })
 
     }

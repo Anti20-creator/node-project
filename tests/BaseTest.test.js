@@ -20,12 +20,26 @@ const Appointment = require('../models/AppointmentModel')
 app.use('/api/users', users)
 app.use('/api/appointments/', appointments)
 
+async function registerEmployee(data) {
+    await request(app)
+        .post('/api/users/register-employee/' + data.id)
+        .set('Content-Type', 'application/json')
+        .send({
+            name: `Alkalmazott${data.count}`,
+            password: "asdadsa",
+            email: `user${data.count}@gmail.com`,
+            secretPin: data.secretPin
+        })
+        .expect((res) => {
+            assert.equal(res.body.success, true)
+        })
+}
+
 describe('Basic API testing', () => {
     let restaurantId = null
     let secretPin = null
     //creating the server connection before test cases
     before(async function() {
-        console.log(process.env.MONGODB_URI)
         const connected = await mongoose.connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
             useCreateIndex: true,
@@ -41,8 +55,7 @@ describe('Basic API testing', () => {
 
 
     it('Adding admin to database', async() => {
-        console.log('Adding admin')
-        const result = await request(app)
+        await request(app)
             .post('/api/users/register-admin')
             .set('Content-Type', 'application/json')
             .send({
@@ -50,9 +63,10 @@ describe('Basic API testing', () => {
                 password: "jelsasdsd",
                 email: "owner@gmail.com",
                 restaurantName: "Anti Co."
+            }).then((result) => {
+                assert.equal(result.body.success, true)
             })
 
-        assert.equal(result.body.success, true)
 
         const users = await User.countDocuments({}).exec();
         assert.equal(users, 1)
@@ -63,15 +77,11 @@ describe('Basic API testing', () => {
         const restaurant = await Restaurant.findOne({}).exec();
 
         for (let i = 0; i < 5; i++) {
-            await request(app)
-                .post('/api/users/register-employee/' + restaurant._id)
-                .set('Content-Type', 'application/json')
-                .send({
-                    name: `Alkalmazott${i+1}`,
-                    password: "asdadsa",
-                    email: `user${i+1}@gmail.com`,
-                    secretPin: restaurant.secretPin
-                }).then(() => console.log('ok'))
+            await registerEmployee({
+                id: restaurant._id,
+                count: i+1,
+                secretPin: restaurant.secretPin
+            })
         }
 
         const employees = await User.countDocuments({isAdmin: false}).exec();
@@ -102,8 +112,8 @@ describe('Basic API testing', () => {
             await table.save()
         }
 
-        const tables = await Table.find({RestaurantId: restaurant._id}).exec()
-        assert.equal(tables.length, 12)
+        const tables = await Table.countDocuments({RestaurantId: restaurant._id}).exec()
+        assert.equal(tables, 12)
     })
 })
 

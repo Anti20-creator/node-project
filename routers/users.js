@@ -10,7 +10,7 @@ const Tokens       = require('../utils/TokenFunctions')
 const {authenticateRefreshToken, authenticateAccessToken} = require("../middlewares/auth");
 const {sendMail} = require("../utils/EmailSender");
 
-router.post('/register-admin', (req, res) => {
+router.post('/register-admin', async (req, res) => {
 
     const {name, email, password, restaurantName} = req.body
 
@@ -23,12 +23,32 @@ router.post('/register-admin', (req, res) => {
         isAdmin: true
     })
 
-    newUser.validate().then(() => {
-        newUser.save((err) => {
+    await newUser.validate()
+        .catch((err) => {
+            const {email, fullName, password, restaurantName} = err.errors
+            const errors = [
+                {email: email ? email.message : ''},
+                {fullName: fullName ? fullName.message : ''},
+                {password: password ? password.message : ''},
+                {restaurantName: restaurantName ? restaurantName.message : ''}
+            ]
+            return Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
+        })
+
+    await newUser.save((err) => {
+        if(err){
+            return Httpresponse.Conflict(res, "User already exists with the given email!")
+        }else{
+            return Httpresponse.Created(res, "User has been added!")
+        }
+    })
+
+    /*await newUser.validate().then(async () => {
+        await newUser.save((err, doc) => {
             if(err){
-                Httpresponse.Conflict(res, "User already exists with the given email!")
+                return Httpresponse.Conflict(res, "User already exists with the given email!")
             }else{
-                Httpresponse.Created(res, "User has been added!")
+                return Httpresponse.Created(res, "User has been added!")
             }
         })
     }).catch((err) => {
@@ -39,8 +59,8 @@ router.post('/register-admin', (req, res) => {
             {password: password ? password.message : ''},
             {restaurantName: restaurantName ? restaurantName.message : ''}
         ]
-        Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
-    })
+        return Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
+    })*/
 })
 
 router.post('/register-employee/:id', async (req, res) => {
@@ -73,8 +93,27 @@ router.post('/register-employee/:id', async (req, res) => {
             isAdmin: false
         })
 
+        await newUser.validate().catch((err) => {
+            const {email, fullName, password, restaurantName} = err.errors
+            const errors = [
+                {email: email ? email.message : ''},
+                {fullName: fullName ? fullName.message : ''},
+                {password: password ? password.message : ''},
+                {restaurantName: restaurantName ? restaurantName.message : ''}
+            ]
+            Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
+        })
 
-        await newUser.validate().then(async () => {
+        await newUser.save((err) => {
+            if (err) {
+                return Httpresponse.Conflict(res, "User already exists with the given email!")
+            } else {
+                return Httpresponse.Created(res, "User has been added!")
+            }
+        }).then(() => console.log('Job completed'))
+
+
+        /*await newUser.validate().then(async () => {
             await newUser.save((err) => {
                 if (err) {
                     return Httpresponse.Conflict(res, "User already exists with the given email!")
@@ -91,7 +130,7 @@ router.post('/register-employee/:id', async (req, res) => {
                 {restaurantName: restaurantName ? restaurantName.message : ''}
             ]
             Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
-        })
+        })*/
 
     }
 
@@ -121,37 +160,16 @@ router.post('/send-invite', async (req, res) => {
         }
     })
 
-    await sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
+    const emailSuccess = await sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
                 <a href="frontend.com/invite/${restaurantId}">Click here to join</a>
                 Secret PIN code to join: ${secretPin}`, res)
-    return Httpresponse.OK(res, "User invited!")
-    /*
-    let transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.NODEMAILER_USER, // generated ethereal user
-            pass: process.env.NODEMAILER_PWD, // generated ethereal password
-        }
-    });
 
-    const info = await transporter.sendMail({
-        from: 'Anti - b264lke@gmail.com',
-        to: emailTo,
-        subject: 'Inviting to Restaurant',
-        html: `<h1>Invitation</h1>
-                <a href="frontend.com/invite/${restaurantId}">Click here to join</a>
-                Secret PIN code to join: ${secretPin}`
-    }, (err, data) => {
-        console.log(err)
-        if(err){
-            res.status(400).send({
-                success: false,
-                message: "Failed to send invite!"
-            })
-        }else{
-            Httpresponse.OK(res, "Invitation sent!")
-        }
-    })*/
+    if(emailSuccess) {
+        return Httpresponse.OK(res, "User invited!")
+    }else{
+        return Httpresponse.BadRequest(res, "Failed to send e-mail!")
+    }
+
 })
 
 router.post('/login', async(req, res) => {

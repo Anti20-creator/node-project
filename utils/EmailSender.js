@@ -20,14 +20,14 @@ async function sendMail(emailTo, subject, htmlContent, res) {
         subject: subject,
         html: htmlContent
     }, (err, data) => {
-        console.log(err)
         if(err){
-            return res.status(400).send({
-                success: false,
-                message: "Failed to send e-mail!"
-            })
+            return false
+        }else{
+            return true
         }
     })
+
+    return info
 }
 
 module.exports = {sendMail};

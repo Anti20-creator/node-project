@@ -18,12 +18,16 @@ const tableSchema = new mongoose.Schema({
     },
     direction: {
         type: Number
+    },
+    TableId: {
+        type: String,
+        required: true
     }
 })
 
 const LayoutSchema = new mongoose.Schema({
     RestaurantId: {
-        type: Number,
+        type: String,
         required: true
     },
     tables: [{
@@ -31,3 +35,4 @@ const LayoutSchema = new mongoose.Schema({
     }]
 });
 
+module.exports = mongoose.model('layout', LayoutSchema)

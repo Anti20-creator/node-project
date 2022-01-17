@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const Layout = require('../models/LayoutModel')
 
 const Restaurant = new mongoose.Schema({
     ownerId: {
@@ -21,6 +22,12 @@ const Restaurant = new mongoose.Schema({
         type: String,
         required: true
     }
+})
+
+Restaurant.post('save', async(doc, next) => {
+    await Layout.create({
+        RestaurantId: doc._id
+    })
 })
 
 module.exports = mongoose.model('Restaurant', Restaurant)
