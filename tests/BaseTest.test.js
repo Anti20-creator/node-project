@@ -1,14 +1,10 @@
 const express = require('express')
-const app = express()
+const app = require('../app/app')
 const mongoose = require('mongoose')
 const bodyparser = require('body-parser')
 
-const users = require('../routers/users')
-const appointments = require('../routers/appointment')
-
 require('dotenv').config()
 require('mocha')
-app.use(bodyparser.json())
 const request = require('supertest')
 const assert = require('assert')
 
@@ -16,23 +12,11 @@ const User        = require('../models/UserModel')
 const Restaurant  = require('../models/RestaurantModel')
 const Table       = require('../models/TableModel')
 const Appointment = require('../models/AppointmentModel')
+const Layout      = require('../models/LayoutModel')
 
-app.use('/api/users', users)
-app.use('/api/appointments/', appointments)
 
 async function registerEmployee(data) {
-    await request(app)
-        .post('/api/users/register-employee/' + data.id)
-        .set('Content-Type', 'application/json')
-        .send({
-            name: `Alkalmazott${data.count}`,
-            password: "asdadsa",
-            email: `user${data.count}@gmail.com`,
-            secretPin: data.secretPin
-        })
-        .expect((res) => {
-            assert.equal(res.body.success, true)
-        })
+
 }
 
 describe('Basic API testing', () => {
@@ -50,6 +34,7 @@ describe('Basic API testing', () => {
             await Restaurant.deleteMany({}).exec()
             await Table.deleteMany({}).exec()
             await Appointment.deleteMany({}).exec()
+            await Layout.deleteMany({}).exec()
         })
     })
 
@@ -60,7 +45,7 @@ describe('Basic API testing', () => {
             .set('Content-Type', 'application/json')
             .send({
                 name: "Teszt fiók",
-                password: "jelsasdsd",
+                password: "123456",
                 email: "owner@gmail.com",
                 restaurantName: "Anti Co."
             }).then((result) => {
@@ -76,16 +61,18 @@ describe('Basic API testing', () => {
 
         const restaurant = await Restaurant.findOne({}).exec();
 
-        for (let i = 0; i < 5; i++) {
-            await registerEmployee({
-                id: restaurant._id,
-                count: i+1,
+        await request(app)
+            .post('/api/users/register-employee/' + restaurant._id)
+            .set('Content-Type', 'application/json')
+            .send({
+                name: `Alkalmazott`,
+                password: "asdadsa",
+                email: `user@gmail.com`,
                 secretPin: restaurant.secretPin
             })
-        }
 
         const employees = await User.countDocuments({isAdmin: false}).exec();
-        assert.equal(employees, 5)
+        assert.equal(employees, 1)
 
     })
 
@@ -104,16 +91,64 @@ describe('Basic API testing', () => {
     it('Adding tables to restaurant', async() => {
         const restaurant = await Restaurant.findOne({}).exec()
 
-        for(let i = 0; i < 12; ++i) {
-            const table = new Table({
-                RestaurantId: restaurant._id,
-                liveOrders: []
+        const postData = [{
+            coordinates: {
+                x: 10,
+                y: 10
+            },
+            tableCount: 4,
+            tableType: 'round',
+            direction: 0
+        },{
+            coordinates: {
+                x: 0,
+                y: 10
+            },
+            tableCount: 6,
+            tableType: 'round',
+            direction: 90
+        },{
+            coordinates: {
+                x: 10,
+                y: 0
+            },
+            tableCount: 4,
+            tableType: 'round',
+            direction: 0
+        },{
+            coordinates: {
+                x: 5,
+                y: 10
+            },
+            tableCount: 8,
+            tableType: 'normal',
+            direction: 0
+        }]
+
+        const response = await request(app)
+            .post('/api/users/login')
+            .set('Content-Type', 'application/json')
+            .send({
+                email: "owner@gmail.com",
+                password: "123456"
             })
-            await table.save()
-        }
+
+        const token = decodeURIComponent(response.header['set-cookie'][0].split(';')[0])
+
+        await request(app)
+            .post('/api/layouts/save')
+            .set('Content-Type', 'application/json')
+            .set('Cookie', token)
+            .send({
+                newTables: postData,
+                removedTables: []
+            })
 
         const tables = await Table.countDocuments({RestaurantId: restaurant._id}).exec()
-        assert.equal(tables, 12)
+        assert.equal(tables, postData.length)
+
+        const tables2 = await Layout.findOne({RestaurantId: restaurant._id}).exec()
+        assert.equal(tables2.tables.length, postData.length)
     })
 })
 

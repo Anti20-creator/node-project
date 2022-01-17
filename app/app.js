@@ -7,8 +7,9 @@ const cookieParser = require('cookie-parser')
 require('dotenv').config()
 
 /* Importing routers */
-const users = require('../routers/users')
-const appointment = require('../routers/appointment')
+const usersRouter = require('../routers/users')
+const appointmentsRouter = require('../routers/appointment')
+const layoutsRouter = require('../routers/layout')
 
 app.use(bodyparser.json())
 app.use(cookieParser())
@@ -36,7 +37,8 @@ mongoose.connection.on('error', (error) => {
     console.log('Error while connecting to DB...')
 })
 
-app.use('/api/users', users)
-app.use('/api/appointments', appointment)
+app.use('/api/users', usersRouter)
+app.use('/api/appointments', appointmentsRouter)
+app.use('/api/layouts', layoutsRouter)
 
 module.exports = app

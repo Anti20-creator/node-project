@@ -12,7 +12,7 @@ router.post('/save', authenticateAccessToken, async (req, res) => {
 
     const {newTables, removedTables} = req.body
 
-    const layout = await Layout.find({
+    const layout = await Layout.findOne({
         RestaurantId: req.user.restaurantId
     });
     if(!layout) {
@@ -20,13 +20,14 @@ router.post('/save', authenticateAccessToken, async (req, res) => {
     }
 
     const resultTables = layout.tables.filter(x => !removedTables.includes(x)).slice();
+    console.log(resultTables)
 
-    for (const table of newTables) {
+    for (const newTable of newTables) {
         const table = await new Table({
             RestaurantId: req.user.restaurantId
         }).save()
-        resultTables.append({
-            ...table,
+        resultTables.push({
+            ...newTable,
             TableId: table._id
         })
     }
@@ -35,17 +36,22 @@ router.post('/save', authenticateAccessToken, async (req, res) => {
         await table.delete();
     }
 
+    await layout.updateOne({
+        tables: resultTables
+    })
+
     return Httpresponse.OK(res, "Layout updated!")
 })
 
 router.get('/', authenticateAccessToken, async(req, res) => {
 
-    const tables = await Table.find({RestaurantId: req.user.restaurantId}).exec();
-    if(!tables) {
+    const layout = await Layout.findOne({RestaurantId: req.user.restaurantId}).exec();
+    if(!layout) {
         return Httpresponse.NotFound(res, "No tables found!")
     }
 
-    return Httpresponse.OK(res, tables)
-
+    return Httpresponse.OK(res, layout.tables)
 
 })
+
+module.exports = router

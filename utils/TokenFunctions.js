@@ -8,7 +8,7 @@ class Tokens {
             userId: data._id,
             isAdmin: data.isAdmin,
             restaurantId: data.restaurantId
-        }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15s'})
+        }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15d'})
 
     }
 
