@@ -1,0 +1,44 @@
+POST https://localhost:4000/api/users/login
+Content-Type: application/json
+
+{
+  "email": "owner@gmail.com",
+  "password": "123456"
+}
+
+###
+
+POST https://localhost:4000/api/tables/book
+Content-Type: application/json
+
+{
+  "tableId": "61e6a9f2e1121c4b04dfd1fe"
+}
+
+###
+
+POST https://localhost:4000/api/tables/order
+Content-Type: application/json
+
+{
+  "tableId": "61e6a9f2e1121c4b04dfd1fe",
+  "items": [
+    {
+      "food": "Cordon Bleu",
+      "amount": "1",
+      "price": "2490"
+    },
+    {
+      "food": "Sprite",
+      "amount": "3",
+      "price": "150"
+    }
+  ]
+}
+
+###
+
+GET https://localhost:4000/api/tables/61e6a9f2e1121c4b04dfd1fe
+Content-Type: application/json
+
+###

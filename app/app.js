@@ -10,6 +10,7 @@ require('dotenv').config()
 const usersRouter = require('../routers/users')
 const appointmentsRouter = require('../routers/appointment')
 const layoutsRouter = require('../routers/layout')
+const tablesRouter = require('../routers/tables')
 
 app.use(bodyparser.json())
 app.use(cookieParser())
@@ -40,5 +41,6 @@ mongoose.connection.on('error', (error) => {
 app.use('/api/users', usersRouter)
 app.use('/api/appointments', appointmentsRouter)
 app.use('/api/layouts', layoutsRouter)
+app.use('/api/tables', tablesRouter)
 
 module.exports = app
