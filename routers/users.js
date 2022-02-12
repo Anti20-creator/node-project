@@ -70,9 +70,9 @@ router.post('/register-employee/:id', async (req, res) => {
     let restaurantName = null
     let restaurantsPin = null
 
-    const restaurant = await Restaurant.findById(restaurantId,function (err, data)  {
-        restaurantsPin = data.secretPin
-    })
+    const restaurant = await Restaurant.findById(restaurantId).exec()
+
+    restaurantsPin = resturant.secretPin
 
     if(!restaurant){
         res.status(400).send({
@@ -107,9 +107,10 @@ router.post('/register-employee/:id', async (req, res) => {
         await newUser.save((err) => {
             if (err) {
                 return Httpresponse.Conflict(res, "User already exists with the given email!")
-            } else {
-                return Httpresponse.Created(res, "User has been added!")
             }
+	     /*else {
+                return Httpresponse.Created(res, "User has been added!")
+            }*/
         }).then(() => console.log('Job completed'))
 
 
@@ -133,38 +134,33 @@ router.post('/register-employee/:id', async (req, res) => {
         })*/
 
     }
+    restaurant.invited = restaurant.invited.filter(inv => inv !== email)
+    await restaurant.save()
+
+    return Httpresponse.Created(res, "User has been added!")
 
 })
 
 /*
 * Refresh and access token should contain ownerEmail, this must be modified in the future.
 * */
-router.post('/send-invite', async (req, res) => {
-    
-    const {ownerEmail, emailTo} = req.body
+router.post('/send-invite', authenticateAccessToken, async (req, res) => {
 
-    let restaurantId = null
-    let secretPin    = null
+    const { emailTo } = req.body
 
-    const restaurant = await Restaurant.findOne({ownerEmail: ownerEmail}, (err, data) => {
-        if(err){
-            console.log(err)
-            res.status(400).send({
-                success: false,
-                message: "No restaurant found with the given information!"
-            })
-        }else{
-            console.log(data)
-            restaurantId = data._id
-            secretPin    = data.secretPin
-        }
-    })
+    const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
+
+    if(!restaurant) {
+	return Httpresponse.BadRequest(res, "No restaurant found with the given information")
+    }
+    restaurant.invited.push(emailTo)
 
     const emailSuccess = await sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
-                <a href="frontend.com/invite/${restaurantId}">Click here to join</a>
-                Secret PIN code to join: ${secretPin}`, res)
+                <a href="frontend.com/invite/${restaurant.restaurantId}">Click here to join</a>
+                Secret PIN code to join: ${restaurant.secretPin}`, res)
 
     if(emailSuccess) {
+	await restaurant.save()
         return Httpresponse.OK(res, "User invited!")
     }else{
         return Httpresponse.BadRequest(res, "Failed to send e-mail!")
@@ -233,6 +229,27 @@ router.post('/refresh-token', authenticateRefreshToken, async(req, res) => {
             Httpresponse.OK(res, accessToken)
         }
     })
+})
+
+router.get('/logout', async(req, res) => {
+    const cookie = req.cookies;
+    for (const prop in cookie) {
+        if (!cookie.hasOwnProperty(prop)) {
+            continue;
+        }
+        res.cookie(prop, '', {expires: new Date(0)});
+    }
+    res.end()
+})
+
+router.get('/team', authenticateAccessToken, async(req, res) => {
+
+    const team = await UserModel.find({restaurantId: req.user.restaurantId}).exec()
+    const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
+
+    console.log(restaurant.invited)
+
+    return Httpresponse.OK(res, team.concat(restaurant.invited.map(email => ({email: email}))))
 })
 
 

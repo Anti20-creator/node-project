@@ -10,7 +10,7 @@ router.post('/save', authenticateAccessToken, async (req, res) => {
 
     // TODO: authenticateAdminAccesstoken
 
-    const {newTables, removedTables} = req.body
+    const {newTables, removedTables, updatedTables} = req.body
 
     const layout = await Layout.findOne({
         RestaurantId: req.user.restaurantId
@@ -19,7 +19,15 @@ router.post('/save', authenticateAccessToken, async (req, res) => {
         return Httpresponse.NotFound(res, "No layout found!")
     }
 
-    const resultTables = layout.tables.filter(x => !removedTables.includes(x)).slice();
+    let resultTables = layout.tables.filter(x => !removedTables.includes(x)).slice();
+
+    for (const updatedTable of updatedTables) {
+	// Maybe we should check if the table exists
+	const idx = resultTables.findIndex(table => table.TableId === updatedTable.databaseID)
+	console.log(idx)
+	resultTables[idx] = {...updatedTable, TableId: updatedTable.databaseID}
+	console.log(resultTables[idx])
+    }
     console.log(resultTables)
 
     for (const newTable of newTables) {
@@ -33,14 +41,17 @@ router.post('/save', authenticateAccessToken, async (req, res) => {
     }
 
     for(const table of removedTables) {
-        await table.delete();
+        await Table.deleteOne({ _id: table })
     }
+
+    resultTables = resultTables.filter(table => !removedTables.includes(table.TableId))
 
     await layout.updateOne({
         tables: resultTables
     })
+    //req.app.get('socketio').broadcast.to(req.user.restaurantId).emit('layout-modified', resultTables)
 
-    return Httpresponse.OK(res, "Layout updated!")
+    return Httpresponse.OK(res, resultTables)
 })
 
 router.get('/', authenticateAccessToken, async(req, res) => {

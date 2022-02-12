@@ -19,12 +19,6 @@ async function sendMail(emailTo, subject, htmlContent, res) {
         to: emailTo,
         subject: subject,
         html: htmlContent
-    }, (err, data) => {
-        if(err){
-            return false
-        }else{
-            return true
-        }
     })
 
     return info

@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const OrderModel = new mongoose.Schema({
-    food: {
+    name: {
         type: String,
         required: true
     },
@@ -9,7 +9,7 @@ const OrderModel = new mongoose.Schema({
         type: Number,
         required: true
     },
-    amount: {
+    quantity: {
         type: Number,
         required: true
     },

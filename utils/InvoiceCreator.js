@@ -9,7 +9,8 @@ function createInvoice(invoice, path, invoiceId) {
     generateFooter(doc);
 
     doc.end();
-    doc.pipe(fs.createWriteStream(path));
+    doc.pipe(fs.createWriteStream('public/invoices/' + path));
+    return doc
 }
 
 function generateHeader(doc, invoiceId) {
@@ -55,10 +56,10 @@ function generateInvoiceTable(doc, items) {
         generateTableRow(
             doc,
             position,
-            item.food,
+            item.name,
             formatCurrency(item.price),
-            item.amount,
-            formatCurrency(item.amount * item.price)
+            item.quantity,
+            formatCurrency(item.quantity * item.price)
         );
 
         generateHr(doc, position + 20);
@@ -73,7 +74,7 @@ function generateInvoiceTable(doc, items) {
         "",
         "Subtotal",
         "",
-        formatCurrency(items.reduce((part, item) => part + item.price * item.amount, 0))
+        formatCurrency(items.reduce((part, item) => part + item.price * item.quantity, 0))
     );
 
 }

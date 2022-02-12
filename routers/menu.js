@@ -7,7 +7,7 @@ const {authenticateAccessToken} = require("../middlewares/auth");
 
 router.post('/add-category', authenticateAccessToken,async(req, res) => {
 
-    const { category } = req.body
+    const { category, categoryIcon } = req.body
 
     if(!category) {
         return Httpresponse.BadRequest(res, "One or more parameters are missing!")
@@ -15,19 +15,24 @@ router.post('/add-category', authenticateAccessToken,async(req, res) => {
     const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
 
     const items = { ...menu.items }
+    const icons = { ...menu.icons }
 
     if(!items[category]) {
-        items[category] = []
+        items[category] = {}
+    }
+    if(!icons[category]) {
+	icons[category] = categoryIcon
     }
 
     await menu.updateOne({
-        items: items
+        items,
+	icons
     }).exec()
 
     return Httpresponse.Created(res, "Category added!")
 })
 
-router.post('/modify-category', authenticateAccessToken,async(req, res) => {
+router.post('/modify-category', authenticateAccessToken, async(req, res) => {
 
     const { category, oldCategory } = req.body
 
@@ -97,18 +102,17 @@ router.post('/add-item', authenticateAccessToken, async(req, res) => {
         return Httpresponse.Conflict(res, "There is already a product with that name on the menu!")
     }
 
-    if(!items[category]) {
-        items[category] = []
-    }
     items[category][name] = {
         unit,
         amount,
         price
     }
+    console.log(items)
 
     await menu.updateOne({
-        items: items
+        items
     }).exec()
+    console.log(menu)
 
     return Httpresponse.Created(res, "Item added!")
 })
@@ -154,18 +158,19 @@ router.get('/categories', async(req, res) => {
         return Httpresponse.NotFound(res, "Menu not found!")
     }
 
-    return Httpresponse.OK(res, Object.keys(menu.items))
+    return Httpresponse.OK(res, {icons: menu.icons})
 })
 
-router.get('/', async(req, res) => {
+router.get('/', authenticateAccessToken, async(req, res) => {
 
     const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
 
     if(!menu) {
         return Httpresponse.NotFound(res, "Menu not found!")
     }
+    console.log(menu)
 
     return Httpresponse.OK(res, menu)
 })
 
-module.exports = router()
+module.exports = router

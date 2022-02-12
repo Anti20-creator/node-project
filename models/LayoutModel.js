@@ -16,12 +16,19 @@ const tableSchema = new mongoose.Schema({
         type: String,
         enum: ['round', 'normal']
     },
+    size: {
+	type: String,
+    },
     direction: {
         type: Number
     },
     TableId: {
         type: String,
         required: true
+    },
+    localId: {
+	type: Number,
+	required: true
     }
 })
 

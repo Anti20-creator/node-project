@@ -2,6 +2,7 @@ const app = require('./app/app')
 const cors = require('cors')
 const port = process.env.PORT || 4001
 const https = require('https')
+const express = require('express')
 const fs = require('fs')
 const { events } = require('./socket/events')
 const { Server } = require('socket.io')
@@ -31,6 +32,11 @@ const io = new Server(server, {
 
 events(io)
 app.set('socketio', io)
+
+app.get('/', (req, res) => {
+	res.send('Hello')
+})
+app.use('/public', express.static('public'))
 
 server.listen(port, () => {
     console.log('Server started ' + port)
