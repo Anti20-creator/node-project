@@ -42,6 +42,15 @@ router.post('/book', async(req, res) => {
 
         const now = new Date();
         now.setUTCHours(0, 0, 0, 0)
+
+	if(now - givenDate < 0) {
+	    return Httpresponse.BadRequest(res, "You can't book for the past")
+	}
+
+	if(now - givenDate > 3600 * 24 * 60) {
+	    return Httpresponse.BadRequest(res, "You can't book for that date")
+	}
+
         if(givenDate.getDate() == now.getDate() && table.inLiveUse) {
             return Httpresponse.BadRequest(res, "This table is in use at the time!")
         }
