@@ -72,10 +72,10 @@ router.post('/register-employee/:id', async (req, res) => {
 
     const restaurant = await Restaurant.findById(restaurantId).exec()
 
-    restaurantsPin = resturant.secretPin
+    restaurantsPin = restaurant.secretPin
 
     if(!restaurant){
-        res.status(400).send({
+        return res.status(400).send({
             success: false,
             message: "Restaurant doesn't exist with the given id."
         })

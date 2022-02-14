@@ -66,7 +66,7 @@ describe('Basic API testing', () => {
             .set('Content-Type', 'application/json')
             .send({
                 name: `Alkalmazott`,
-                password: "asdadsa",
+                password: "123456",
                 email: `user@gmail.com`,
                 secretPin: restaurant.secretPin
             })
@@ -84,8 +84,6 @@ describe('Basic API testing', () => {
                 ownerEmail: 'owner@gmail.com',
                 emailTo: 'amtmannkristof@gmail.com'
             })
-
-        assert.equal(true, true)
     })
 
     it('Adding tables to restaurant', async() => {
@@ -141,7 +139,8 @@ describe('Basic API testing', () => {
             .set('Cookie', token)
             .send({
                 newTables: postData,
-                removedTables: []
+                removedTables: [],
+		updatedTables: []
             })
 
         const tables = await Table.countDocuments({RestaurantId: restaurant._id}).exec()
