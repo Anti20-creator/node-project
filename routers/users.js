@@ -111,7 +111,7 @@ router.post('/register-employee/:id', async (req, res) => {
 	     /*else {
                 return Httpresponse.Created(res, "User has been added!")
             }*/
-        }).then(() => console.log('Job completed'))
+        })
 
 
         /*await newUser.validate().then(async () => {
