@@ -17,7 +17,7 @@ const tableSchema = new mongoose.Schema({
         enum: ['round', 'normal']
     },
     size: {
-	type: String,
+	    type: String,
     },
     direction: {
         type: Number
@@ -27,8 +27,8 @@ const tableSchema = new mongoose.Schema({
         required: true
     },
     localId: {
-	type: Number,
-	required: true
+        type: Number,
+        required: true
     }
 })
 

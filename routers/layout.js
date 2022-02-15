@@ -24,11 +24,8 @@ router.post('/save', authenticateAccessToken, async (req, res) => {
     for (const updatedTable of updatedTables) {
 	// Maybe we should check if the table exists
 	const idx = resultTables.findIndex(table => table.TableId === updatedTable.databaseID)
-	console.log(idx)
 	resultTables[idx] = {...updatedTable, TableId: updatedTable.databaseID}
-	console.log(resultTables[idx])
     }
-    console.log(resultTables)
 
     for (const newTable of newTables) {
         const table = await new Table({

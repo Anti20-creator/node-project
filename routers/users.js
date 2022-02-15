@@ -170,13 +170,10 @@ router.post('/send-invite', authenticateAccessToken, async (req, res) => {
 
 router.post('/login', async(req, res) => {
 
-    console.log(req.cookies)
-
     const {email, password} = req.body
     let userData = null
 
     const user = UserModel.findOne({email: email}, (err, data) => {
-        console.log(data)
         /* Case: User existst with the given email */
         if(!err) {
 
@@ -246,8 +243,6 @@ router.get('/team', authenticateAccessToken, async(req, res) => {
 
     const team = await UserModel.find({restaurantId: req.user.restaurantId}).exec()
     const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
-
-    console.log(restaurant.invited)
 
     return Httpresponse.OK(res, team.concat(restaurant.invited.map(email => ({email: email}))))
 })

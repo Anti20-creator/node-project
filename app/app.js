@@ -51,13 +51,4 @@ app.use('/api/tables', tablesRouter)
 app.use('/api/menu', menuRouter)
 app.use(express.static('public'));
 
-function availableRoutesString() {
-  return app._router.stack
-    .filter(r => r.route)
-    .map(r => Object.keys(r.route.methods)[0].toUpperCase().padEnd(7) + r.route.path)
-    .join("\n")
-}
-
-console.log(availableRoutesString());
-
 module.exports = app

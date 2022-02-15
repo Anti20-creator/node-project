@@ -33,6 +33,7 @@ router.post('/book', async(req, res) => {
             RestaurantId: restaurantId,
             TableId: tableId
         })
+        
         if(!table) {
             return Httpresponse.BadRequest(res, "No table found with given parameters!")
         }
@@ -43,13 +44,13 @@ router.post('/book', async(req, res) => {
         const now = new Date();
         now.setUTCHours(0, 0, 0, 0)
 
-	if(now - givenDate < 0) {
-	    return Httpresponse.BadRequest(res, "You can't book for the past")
-	}
+        if(now - givenDate < 0) {
+            return Httpresponse.BadRequest(res, "You can't book for the past")
+        }
 
-	if(now - givenDate > 3600 * 24 * 60) {
-	    return Httpresponse.BadRequest(res, "You can't book for that date")
-	}
+        if(now - givenDate > 3600 * 24 * 60) {
+            return Httpresponse.BadRequest(res, "You can't book for that date")
+        }
 
         if(givenDate.getDate() == now.getDate() && table.inLiveUse) {
             return Httpresponse.BadRequest(res, "This table is in use at the time!")
@@ -106,7 +107,7 @@ router.post('/book', async(req, res) => {
 
         await appointment.save()
         await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
-	req.app.get('socketio').to('appointment:' + restaurantId).emit('new-appointment')
+	    req.app.get('socketio').to('appointment:' + restaurantId).emit('new-appointment')
 
         return Httpresponse.OK(res, pinCode)
 

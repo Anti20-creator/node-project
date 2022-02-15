@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const Layout = require('../models/LayoutModel')
+const Layout   = require('../models/LayoutModel')
 
 const Restaurant = new mongoose.Schema({
     ownerId: {
@@ -23,8 +23,8 @@ const Restaurant = new mongoose.Schema({
         required: true
     },
     invited: {
-	type: Array,
-	default: []
+        type: Array,
+        default: []
     }
 })
 

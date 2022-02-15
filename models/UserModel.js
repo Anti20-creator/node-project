@@ -89,7 +89,13 @@ User.post('save', async function(doc, next) {
 
         await restaurant.save()
 
-        let id = null
+        console.log('Id', restaurant._id)
+
+        await doc.updateOne({
+            restaurantId: restaurant._id
+        })
+
+        /*let id = null
         await Restaurant.findOne({ownerId: doc._id}, (err, data) => {
             id = data._id
         })
@@ -102,7 +108,7 @@ User.post('save', async function(doc, next) {
             }
         }, {
             new: true
-        })
+        })*/
 
 
     }else{
