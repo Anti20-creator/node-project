@@ -224,7 +224,9 @@ describe('Testcases', () => {
                 peopleCount: 1
             })
         
+        console.log(result.body)
         assert.equal(result.status, 200)
+
         const appointmentsCount = await Appointment.countDocuments().exec()
         assert.equal(appointmentsCount, 1)
     })
