@@ -1,12 +1,12 @@
 const express = require('express')
-const {authenticateAccessToken} = require("../middlewares/auth");
+const {authenticateAccessToken, authenticateAdminAccessToken} = require("../middlewares/auth");
 const router = express.Router()
 
 const Httpresponse = require('../utils/ErrorCreator')
 const Table = require('../models/TableModel')
 const Layout = require('../models/LayoutModel')
 
-router.post('/save', authenticateAccessToken, async (req, res) => {
+router.post('/save', authenticateAdminAccessToken, async (req, res) => {
 
     // TODO: authenticateAdminAccesstoken
 
@@ -22,9 +22,9 @@ router.post('/save', authenticateAccessToken, async (req, res) => {
     let resultTables = layout.tables.filter(x => !removedTables.includes(x)).slice();
 
     for (const updatedTable of updatedTables) {
-	// Maybe we should check if the table exists
-	const idx = resultTables.findIndex(table => table.TableId === updatedTable.databaseID)
-	resultTables[idx] = {...updatedTable, TableId: updatedTable.databaseID}
+        // Maybe we should check if the table exists
+        const idx = resultTables.findIndex(table => table.TableId === updatedTable.databaseID)
+        resultTables[idx] = {...updatedTable, TableId: updatedTable.databaseID}
     }
 
     for (const newTable of newTables) {

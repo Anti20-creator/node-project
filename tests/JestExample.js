@@ -1,22 +1,4 @@
-const express = require('express')
-const app = require('../app/app')
-const mongoose = require('mongoose')
-const bodyparser = require('body-parser')
-const { faker } = require('@faker-js/faker')
-const { createServer } = require('http')
-const { events } = require('../socket/events')
-const { Server } = require('socket.io')
 
-require('dotenv').config()
-const request = require('supertest')
-const assert = require('assert')
-const jwt = require('jsonwebtoken')
-
-const User        = require('../models/UserModel')
-const Restaurant  = require('../models/RestaurantModel')
-const Table       = require('../models/TableModel')
-const Appointment = require('../models/AppointmentModel')
-const Layout      = require('../models/LayoutModel')
 
 jest.mock('nodemailer', () => ({
     createTransport: jest.fn().mockReturnValue({

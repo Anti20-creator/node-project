@@ -21,4 +21,14 @@ function authenticateRefreshToken (req, res, next) {
     }
 }
 
-module.exports = {authenticateAccessToken, authenticateRefreshToken};
+function authenticateAdminAccessToken (req, res, next) {
+    const validate = Tokens.validateAdminAccessToken(req)
+    if(validate) {
+        req.user = validate
+        next();
+    }else{
+        Httpresponse.Unauthorized(res, "You don't have access to that resource!")
+    }
+}
+
+module.exports = {authenticateAccessToken, authenticateRefreshToken, authenticateAdminAccessToken};

@@ -8,7 +8,7 @@ const {authenticateAccessToken} = require("../middlewares/auth");
 router.post('/add-category', authenticateAccessToken,async(req, res) => {
 
     const { category, categoryIcon } = req.body
-
+    
     if(!category) {
         return Httpresponse.BadRequest(res, "One or more parameters are missing!")
     }
@@ -21,7 +21,7 @@ router.post('/add-category', authenticateAccessToken,async(req, res) => {
         items[category] = {}
     }
     if(!icons[category]) {
-	icons[category] = categoryIcon
+	    icons[category] = categoryIcon
     }
 
     await menu.updateOne({

@@ -11,7 +11,10 @@ const tableSchema = new mongoose.Schema({
             required: true
         }
     },
-    tableCount: Number,
+    tableCount: {
+        type: Number,
+        required: true
+    },
     tableType: {
         type: String,
         enum: ['round', 'normal']

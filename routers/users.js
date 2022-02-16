@@ -80,8 +80,13 @@ router.post('/register-employee/:id', async (req, res) => {
             message: "Restaurant doesn't exist with the given id."
         })
     }else if(restaurantsPin !== secretPin){
-        Httpresponse.Conflict(res, "The secret PIN doesn't match")
+        return Httpresponse.BadRequest(res, "The secret PIN doesn't match")
     }else{
+
+        if(!restaurant.invited.includes(email)) {
+            return Httpresponse.NotFound(res, "The given email has not been invited!")
+        }
+
         restaurantName = restaurant.restaurantName
 
         const newUser = new UserModel({
@@ -101,7 +106,7 @@ router.post('/register-employee/:id', async (req, res) => {
                 {password: password ? password.message : ''},
                 {restaurantName: restaurantName ? restaurantName.message : ''}
             ]
-            Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
+            return Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
         })
 
         await newUser.save((err) => {
@@ -138,7 +143,6 @@ router.post('/register-employee/:id', async (req, res) => {
     await restaurant.save()
 
     return Httpresponse.Created(res, "User has been added!")
-
 })
 
 /*
@@ -160,7 +164,7 @@ router.post('/send-invite', authenticateAccessToken, async (req, res) => {
                 Secret PIN code to join: ${restaurant.secretPin}`, res)
 
     if(emailSuccess) {
-	await restaurant.save()
+	    await restaurant.save()
         return Httpresponse.OK(res, "User invited!")
     }else{
         return Httpresponse.BadRequest(res, "Failed to send e-mail!")

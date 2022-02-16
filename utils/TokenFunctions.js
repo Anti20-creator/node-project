@@ -53,7 +53,27 @@ class Tokens {
                 return decoded
             }
         })
+    }
 
+    static validateAdminAccessToken(req) {
+        let token = req.cookies['Authorization']
+        if(token){
+            token = token.split(' ')[1]
+        }else{
+            return false;
+        }
+
+        return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+            if(err) {
+                return false
+            }else{
+                if(decoded.isAdmin) {
+                    return decoded
+                }else{
+                    return false
+                }
+            }
+        })
     }
 }
 
