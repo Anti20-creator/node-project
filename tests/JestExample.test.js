@@ -8,7 +8,6 @@ const { events } = require('../socket/events')
 const { Server } = require('socket.io')
 
 require('dotenv').config()
-require('mocha')
 const request = require('supertest')
 const assert = require('assert')
 const jwt = require('jsonwebtoken')
@@ -18,6 +17,12 @@ const Restaurant  = require('../models/RestaurantModel')
 const Table       = require('../models/TableModel')
 const Appointment = require('../models/AppointmentModel')
 const Layout      = require('../models/LayoutModel')
+
+jest.mock('nodemailer', () => ({
+    createTransport: jest.fn().mockReturnValue({
+      sendMail: jest.fn().mockReturnValue((mailoptions, callback) => {})
+    })
+}));
 
 class CookieStorage {
     cookieHeader = null

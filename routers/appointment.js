@@ -33,7 +33,7 @@ router.post('/book', async(req, res) => {
             RestaurantId: restaurantId,
             TableId: tableId
         })
-        
+
         if(!table) {
             return Httpresponse.BadRequest(res, "No table found with given parameters!")
         }
