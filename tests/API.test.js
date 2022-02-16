@@ -92,6 +92,7 @@ describe('API tests', () => {
                 email: "owner@gmail.com",
                 restaurantName: "Anti Co."
             }).then((result) => {
+                console.log(result.body)
                 assert.equal(result.body.success, true)
             })
 
@@ -429,7 +430,7 @@ describe('API tests', () => {
 
         })
 
-        test('Add category', async() => {
+        test('Add category and item to menu', async() => {
 
             const login = await request(app)
                 .post('/api/users/login')
@@ -466,6 +467,22 @@ describe('API tests', () => {
             
             assert.equal(itemResult.status, 201)
             assert.equal(itemResult.body.success, true)
+            
+            const itemResult2 = await request(app)
+                .put('/api/menu/modify-item')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+                .send({
+                    oldName: itemName, 
+                    name: faker.random.word(),
+                    amount: 2, 
+                    category: category, 
+                    price: faker.datatype.number({min: 149, max: 399}) * 10, 
+                    unit: 'db'
+                })
+            
+            assert.equal(itemResult2.status, 200)
+            assert.equal(itemResult2.body.success, true)
 
         })
 

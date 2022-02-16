@@ -17,7 +17,7 @@ const Restaurant = new mongoose.Schema({
     },
     employees: {
         type: Array,
-        required: true
+        default: []
     },
     secretPin: {
         type: String,
@@ -27,15 +27,6 @@ const Restaurant = new mongoose.Schema({
         type: Array,
         default: []
     }
-})
-
-Restaurant.post('save', async(doc, next) => {
-    await Layout.create({
-        RestaurantId: doc._id
-    })
-    await Menu.create({
-        RestaurantId: doc._id
-    })
 })
 
 module.exports = mongoose.model('Restaurant', Restaurant)

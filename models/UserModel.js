@@ -70,61 +70,6 @@ User.pre('save', function async(next) {
     }
 })
 
-
-/*
-* If user creation is successful, then we need to add a new restaurant for the owner.
-* If the user isn't an admin then we have to add him to the assigned restaurant.
-* */
-User.post('save', async function(doc, next) {
-
-    if(doc.isAdmin){
-
-        const restaurant = new Restaurant({
-            ownerId: doc._id,
-            ownerEmail: doc.email,
-            restaurantName: doc.restaurantName,
-            employees: [],
-            secretPin: crypto.randomBytes(5).toString('hex')
-        })
-
-        await restaurant.save()
-
-        console.log('Id', restaurant._id)
-
-        await doc.updateOne({
-            restaurantId: restaurant._id
-        })
-
-        /*let id = null
-        await Restaurant.findOne({ownerId: doc._id}, (err, data) => {
-            id = data._id
-        })
-
-        doc.restaurantId = id
-
-        await mongoose.model('User', User).findByIdAndUpdate(doc._id, {
-            $set: {
-                restaurantId: id
-            }
-        }, {
-            new: true
-        })*/
-
-
-    }else{
-
-        //console.log('THIS IS GOING')
-        await Restaurant.findByIdAndUpdate(doc.restaurantId, {
-            $addToSet: {
-                employees: doc._id
-            }
-        })
-
-    }
-
-    next()
-})
-
 User.methods.comparePassword = function(plainPass) {
     return bcrypt.compareSync(plainPass, this.password)
 }

@@ -4,11 +4,14 @@ const nodemailer   = require('nodemailer')
 const jwt          = require('jsonwebtoken')
 const router       = express.Router()
 const UserModel    = require('../models/UserModel')
+const Layout       = require('../models/LayoutModel')
+const Menu         = require('../models/MenuModel')
 const Restaurant   = require('../models/RestaurantModel')
 const Httpresponse = require('../utils/ErrorCreator')
 const Tokens       = require('../utils/TokenFunctions')
-const {authenticateRefreshToken, authenticateAccessToken} = require("../middlewares/auth");
-const {sendMail} = require("../utils/EmailSender");
+const {authenticateRefreshToken, authenticateAccessToken} = require("../middlewares/auth")
+const {sendMail}  = require("../utils/EmailSender")
+const crypto      = require('crypto')
 
 router.post('/register-admin', async (req, res) => {
 
@@ -34,33 +37,34 @@ router.post('/register-admin', async (req, res) => {
             ]
             return Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
         })
+    
+    
 
-    await newUser.save((err) => {
+    await newUser.save(async (err, document) => {
         if(err){
             return Httpresponse.Conflict(res, "User already exists with the given email!")
         }else{
+            const restaurant = await Restaurant.create({
+                ownerEmail: email,
+                ownerId: document._id,
+                restaurantName: restaurantName,
+                secretPin: crypto.randomBytes(5).toString('hex')
+            })
+
+            await document.updateOne({
+                restaurantId: restaurant._id
+            }).exec()
+
+            await Layout.create({
+                RestaurantId: restaurant._id
+            })
+            await Menu.create({
+                RestaurantId: restaurant._id
+            })
+
             return Httpresponse.Created(res, "User has been added!")
         }
     })
-
-    /*await newUser.validate().then(async () => {
-        await newUser.save((err, doc) => {
-            if(err){
-                return Httpresponse.Conflict(res, "User already exists with the given email!")
-            }else{
-                return Httpresponse.Created(res, "User has been added!")
-            }
-        })
-    }).catch((err) => {
-        const {email, fullName, password, restaurantName} = err.errors
-        const errors = [
-            {email: email ? email.message : ''},
-            {fullName: fullName ? fullName.message : ''},
-            {password: password ? password.message : ''},
-            {restaurantName: restaurantName ? restaurantName.message : ''}
-        ]
-        return Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
-    })*/
 })
 
 router.post('/register-employee/:id', async (req, res) => {

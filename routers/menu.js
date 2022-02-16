@@ -8,7 +8,7 @@ const {authenticateAccessToken} = require("../middlewares/auth");
 router.post('/add-category', authenticateAccessToken,async(req, res) => {
 
     const { category, categoryIcon } = req.body
-    
+
     if(!category) {
         return Httpresponse.BadRequest(res, "One or more parameters are missing!")
     }
@@ -61,7 +61,7 @@ router.put('/modify-item', authenticateAccessToken, async(req, res) => {
 
     const { name, amount, category, price, unit, oldName } = req.body
 
-    if(!name || !amount || !category || !price || !unit) {
+    if(!name || !amount || !category || !price || !unit || !oldName) {
         return Httpresponse.BadRequest(res, "One or more parameters are missing!")
     }
     const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
@@ -72,12 +72,12 @@ router.put('/modify-item', authenticateAccessToken, async(req, res) => {
         return Httpresponse.NotFound(res, "No item found to update!")
     }
 
-    delete(items[category][oldName])
     items[category][name] = {
         unit,
         amount,
         price
     }
+    delete(items[category][oldName])
 
     await menu.updateOne({
         items: items
