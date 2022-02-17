@@ -92,7 +92,6 @@ describe('API tests', () => {
                 email: "owner@gmail.com",
                 restaurantName: "Anti Co."
             }).then((result) => {
-                console.log(result.body)
                 assert.equal(result.body.success, true)
             })
 
@@ -398,7 +397,7 @@ describe('API tests', () => {
         })
     })
 
-    describe('Menu router tests', () => {
+    describe('Menu router tests - constructing', () => {
 
         test('Try to access menu without logging in', async() => {
 
@@ -484,9 +483,488 @@ describe('API tests', () => {
             assert.equal(itemResult2.status, 200)
             assert.equal(itemResult2.body.success, true)
 
+            const newCategory = 'New ' + faker.random.word()
+            const modifyCategoryResult = await request(app)
+                .post('/api/menu/modify-category')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+                .send({
+                    oldCategory: category,
+                    category: newCategory
+                })
+
+            assert.equal(modifyCategoryResult.status, 200)
+            assert.equal(modifyCategoryResult.body.success, true)
+
+            const modifyBadCategoryResult = await request(app)
+                .post('/api/menu/modify-category')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+                .send({
+                    oldCategory: 'asdhakjsd',
+                    category: faker.random.word()
+                })
+
+            assert.equal(modifyBadCategoryResult.status, 404)
+            assert.equal(modifyBadCategoryResult.body.success, false)
+            
+            const modifyEmptyCategoryResult = await request(app)
+                .post('/api/menu/modify-category')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+
+            assert.equal(modifyEmptyCategoryResult.status, 400)
+            assert.equal(modifyEmptyCategoryResult.body.success, false)
+        })
+    })
+
+    describe('Table router tests', () => {
+
+        test('Try to book a table without permission', async() => {
+
+            await request(app)
+                .post('/api/tables/book')
+                .then(result => {
+                    assert.equal(result.status, 401)
+                    assert.equal(result.body.success, false)
+                })
+                
+        })
+
+        test('Book a table and try to book again', async() => {
+
+            const restaurant = await Restaurant.findOne({ownerEmail: "owner@gmail.com"}).exec()
+
+            const tables = await Table.find({RestaurantId: restaurant._id}).exec()
+
+            const tableId = faker.random.arrayElement(tables)
+
+            await request(app)
+                .post('/api/users/login')
+                .send({email: "user2@gmail.com", password: "123456"})
+                .then(async loginResult => {
+                    await request(app)
+                        .post('/api/tables/book')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({
+                            tableId
+                        })
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+                })
+            
+            await request(app)
+                .post('/api/users/login')
+                .send({email: "user1@gmail.com", password: "123456"})
+                .then(async loginResult => {
+                    await request(app)
+                        .post('/api/tables/book')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({
+                            tableId
+                        })
+                        .then(result => {
+                            assert.equal(result.status, 409)
+                            assert.equal(result.body.success, false)
+                        })
+                    
+                    await request(app)
+                        .post('/api/tables/free-table')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({tableId})
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+                })
+            
+        })
+
+        test('Book table and order food', async() => {
+
+            const restaurant = await Restaurant.findOne({ownerEmail: "owner@gmail.com"}).exec()
+
+            const tables = await Table.find({RestaurantId: restaurant._id}).exec()
+            const menu = await Menu.findOne({RestaurantId: restaurant._id}).exec()
+
+            const itemCategory = Object.keys(menu.items)[0]
+            const itemName = Object.keys(menu.items[itemCategory])[0]
+
+            const table = faker.random.arrayElement(tables)
+            
+            await request(app)
+                .post('/api/users/login')
+                .send({email: "owner@gmail.com", password: "123456"})
+                .then(async loginResult => {
+
+                    await request(app)
+                        .post('/api/tables/order')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({tableId: table._id, item: {
+                            name: itemName,
+                            category: itemCategory,
+                            quantity: 1
+                        }})
+                        .then(result => {
+                            assert.equal(result.status, 400)
+                            assert.equal(result.body.success, false)
+                        })
+
+                })
+
+            await request(app)
+                .post('/api/users/login')
+                .send({email: "owner@gmail.com", password: "123456"})
+                .then(async loginResult => {
+
+                    await request(app)
+                        .post('/api/tables/book')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({tableId: table._id})
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+
+                    await request(app)
+                        .post('/api/tables/order')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({tableId: table._id, item: {
+                            name: itemName,
+                            category: itemCategory,
+                            quantity: 1
+                        }})
+                        .then(result => {
+                            assert.equal(result.status, 201)
+                            assert.equal(result.body.success, true)
+                        })
+
+                    await request(app)
+                        .post('/api/tables/increase-order')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({
+                            tableId: table._id,
+                            name: itemName
+                        })
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+
+                    await request(app)
+                        .post('/api/tables/decrease-order')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({
+                            tableId: table._id,
+                            name: itemName
+                        })
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+                    
+                    
+                    await request(app)
+                        .get('/api/tables/orders/' + table._id)
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                            assert.equal(result.body.message.length, 1)
+                            assert.equal(result.body.message[0].name, itemName)
+                        })
+
+                    await request(app)
+                        .delete('/api/tables/remove-order/')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({tableId: table._id, name: itemName})
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+
+                    await request(app)
+                        .post('/api/tables/order')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({tableId: table._id, item: {
+                            name: itemName,
+                            category: itemCategory,
+                            quantity: 1
+                        }})
+                        .then(result => {
+                            assert.equal(result.status, 201)
+                            assert.equal(result.body.success, true)
+                        })
+                    
+                    await request(app)
+                        .get('/api/tables/' + table._id)
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .then(result => {
+                            assert.equal(result.status, 201)
+                            assert.equal(result.body.success, true)
+                        })
+                })
+
         })
 
     })
+
+    describe('Appointment router tests', () => {
+        
+        test('Book an appointment for past and over 2 month limit', async() => {
+            
+            const past = new Date().setTime(new Date().getTime() - 24 * 3600 * 1000)
+            const future = new Date().setTime(new Date().getTime() + 80 * 24 * 3600 * 1000)
+
+            const restaurant = await Restaurant.findOne({ownerEmail: "owner@gmail.com"}).exec()
+            const tables     = await Table.find({RestaurantId: restaurant._id}).exec()
+            
+            const table = faker.random.arrayElement(tables)
+
+            await request(app)
+                .post('/api/appointments/book')
+                .send({
+                    tableId: table._id,
+                    date: past,
+                    peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
+                    restaurantId: restaurant._id,
+                    email: "guest@gmail.com"
+                })
+                .then(result => {
+                    assert.equal(result.status, 400)
+                    assert.equal(result.body.success, false)
+                })
+
+            await request(app)
+                .post('/api/appointments/book')
+                .send({
+                    tableId: table._id,
+                    date: future,
+                    peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
+                    restaurantId: restaurant._id,
+                    email: "guest@gmail.com"
+                })
+                .then(result => {
+                    assert.equal(result.status, 400)
+                    assert.equal(result.body.success, false)
+                })
+
+        })
+
+
+        test('Book an appointment', async() => {
+            
+            const date = new Date().setTime(new Date().getTime() + 24 * 3600 * 1000)
+            const secondDate = new Date().setTime(new Date().getTime() + 48 * 3600 * 1000)
+
+            const restaurant = await Restaurant.findOne({ownerEmail: "owner@gmail.com"}).exec()
+            const tables     = await Table.find({RestaurantId: restaurant._id}).exec()
+            
+            const table = faker.random.arrayElement(tables)
+
+            await request(app)
+                .post('/api/appointments/book')
+                .send({
+                    tableId: table._id + '1',
+                    date: date,
+                    peopleCount: table.tableCount,
+                    restaurantId: restaurant._id,
+                    email: "guest@gmail.com"
+                })
+                .then(result => {
+                    assert.equal(result.status, 400)
+                    assert.equal(result.body.success, false)
+                })
+
+            await request(app)
+                .post('/api/appointments/book')
+                .send({
+                    tableId: table._id,
+                    date: date,
+                    peopleCount: table.tableCount + 1,
+                    restaurantId: restaurant._id,
+                    email: "guest@gmail.com"
+                })
+                .then(result => {
+                    assert.equal(result.status, 400)
+                    assert.equal(result.body.success, false)
+                })
+
+            await request(app)
+                .post('/api/appointments/book')
+                .send({
+                    tableId: table._id,
+                    date: date,
+                    peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
+                    restaurantId: restaurant._id,
+                    email: "guest@gmail.com"
+                })
+                .then(result => {
+                    assert.equal(result.status, 201)
+                    assert.equal(result.body.success, true)
+                })
+
+            await request(app)
+                .post('/api/appointments/book')
+                .send({
+                    tableId: table._id,
+                    date: date,
+                    peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
+                    restaurantId: restaurant._id,
+                    email: "guest@gmail.com"
+                })
+                .then(result => {
+                    assert.equal(result.status, 400)
+                    assert.equal(result.body.success, false)
+                })
+
+            await request(app)
+                .post('/api/appointments/book')
+                .send({
+                    tableId: table._id,
+                    date: secondDate,
+                    peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
+                    restaurantId: restaurant._id,
+                    email: "guest@gmail.com"
+                })
+                .then(result => {
+                    assert.equal(result.status, 201)
+                    assert.equal(result.body.success, true)
+                })
+        })
+
+        test('Disclaiming appointment', async() => {
+
+            const appointment = await Appointment.findOne({}).exec()
+
+            await request(app)
+                .delete('/api/appointments/disclaim')
+                .send({
+                    tableId: appointment.TableId + '1',
+                    restaurantId: appointment.RestaurantId,
+                    date: appointment.date,
+                    pin: appointment.code
+                })
+                .then(result => {
+                    assert.equal(result.status, 404)
+                    assert.equal(result.body.success, false)
+                })
+
+            await request(app)
+                .delete('/api/appointments/disclaim')
+                .send({
+                    tableId: appointment.TableId,
+                    restaurantId: appointment.RestaurantId,
+                    date: appointment.date,
+                    pin: appointment.code + '1'
+                })
+                .then(result => {
+                    assert.equal(result.status, 400)
+                    assert.equal(result.body.success, false)
+                })
+
+            await request(app)
+                .delete('/api/appointments/disclaim')
+                .send({
+                    tableId: appointment.TableId,
+                    restaurantId: appointment.RestaurantId,
+                    date: appointment.date,
+                    pin: appointment.code
+                })
+                .then(result => {
+                    assert.equal(result.status, 200)
+                    assert.equal(result.body.success, true)
+                })
+        })
+
+        test('User removing appointment', async() => {
+
+            const appointment = await Appointment.findOne({}).exec()
+
+            await request(app)
+                .post('/api/users/login/')
+                .send({email: "user2@gmail.com", password: "123456"})
+                .then(async loginResult => {
+                    await request(app)
+                        .delete('/api/appointments/delete-appointment/' + appointment._id)
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+                })
+        })
+
+        test('Find tables', async() => {
+
+            await request(app)
+                .post('/api/users/login/')
+                .send({email: "user2@gmail.com", password: "123456"})
+                .then(async loginResult => {
+                    await request(app)
+                        .post('/api/appointments/find-tables')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({
+                            email: "guest@gmail.com",
+                            date: new Date().setTime(new Date().getTime() + 24 * 3600 * 1000),
+                            peopleCount: 1
+                        })
+                        .then(result => {
+                            assert.equal(result.status, 201)
+                            assert.equal(result.body.success, true)
+                        })
+                })
+        })
+    })
+
+    describe('Menu router tests - delete item and category', () => {
+
+        test('Delete item and category', async() => {
+
+            const restaurant = await Restaurant.findOne({ownerEmail: "owner@gmail.com"}).exec()
+            const menu = await Menu.findOne({RestaurantId: restaurant._id}).exec()
+            
+            const itemCategory = Object.keys(menu.items)[0]
+            const itemName = Object.keys(menu.items[itemCategory])[0]
+
+            await request(app)
+                .post('/api/users/login/')
+                .send({email: "user1@gmail.com", password: "123456"})
+                .then(async loginResult => {
+                    await request(app)
+                        .delete('/api/menu/delete-item')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({
+                            name: itemName,
+                            category: itemCategory
+                        })
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+
+                    await request(app)
+                        .delete('/api/menu/delete-category')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({
+                            category: itemCategory
+                        })
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.success, true)
+                        })
+                })
+
+            const menuAfter = await Menu.findOne({RestaurantId: restaurant._id}).exec()
+            assert.equal(Object.keys(menuAfter.items).length, 0)
+            assert.equal(Object.keys(menuAfter.icons).length, 0)
+        })
+
+    })
+
+
 })
 
 afterAll(async () => {

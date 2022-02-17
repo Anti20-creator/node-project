@@ -20,7 +20,7 @@ class HttpResponse {
 
     static BadRequest(res, message) {
         res.status(400).send({
-            success: true,
+            success: false,
             message: message
         })
     }

@@ -110,7 +110,7 @@ router.post('/increase-order', authenticateAccessToken, async(req, res) => {
     const table = await Table.findById(tableId).exec()
 
     if(!table.inLiveUse) {
-	return Httpresponse.BadRequest(res, "Table is not in use!")
+	    return Httpresponse.BadRequest(res, "Table is not in use!")
     }
 
     table.liveOrders.find(item => item.name === name).quantity += 1
@@ -143,10 +143,12 @@ router.post('/decrease-order', authenticateAccessToken, async(req, res) => {
 })
 
 router.get('/orders/:tableId', authenticateAccessToken, async(req, res) => {
+    
+    console.log(req.params.tableId)
     const table = await Table.findById(req.params.tableId).exec()
 
     if(!table.inLiveUse)
-	return Httpresponse.OK(res, [])
+	    return Httpresponse.OK(res, [])
 
     return Httpresponse.OK(res, table.liveOrders)
 })

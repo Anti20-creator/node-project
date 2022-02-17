@@ -44,11 +44,11 @@ router.post('/book', async(req, res) => {
         const now = new Date();
         now.setUTCHours(0, 0, 0, 0)
 
-        if(now - givenDate < 0) {
+        if(now - givenDate > 0) {
             return Httpresponse.BadRequest(res, "You can't book for the past")
         }
 
-        if(now - givenDate > 3600 * 24 * 60) {
+        if(givenDate - now > 3600 * 24 * 60 * 1000) {
             return Httpresponse.BadRequest(res, "You can't book for that date")
         }
 
@@ -109,7 +109,7 @@ router.post('/book', async(req, res) => {
         await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
 	    req.app.get('socketio').to('appointment:' + restaurantId).emit('new-appointment')
 
-        return Httpresponse.OK(res, pinCode)
+        return Httpresponse.Created(res, pinCode)
 
     }catch (e) {
         return Httpresponse.BadRequest(res, e.message)
@@ -173,7 +173,6 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
     try {
 
         const {email, date, peopleCount} = req.body;
-	console.log(email, date, peopleCount)
 
         // If parameters are missing then we should throw an error
         /*if(!date || !email || !peopleCount) {
@@ -184,7 +183,7 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
         const layout = await Layout.findOne({
             RestaurantId: req.user.restaurantId
         }).exec()
-	console.log(layout)
+
         if(!layout) {
             return Httpresponse.BadRequest(res, "No table found with given parameters!")
         }
@@ -260,7 +259,7 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
         await appointment.save()
         await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
 
-        return Httpresponse.OK(res, appointment)
+        return Httpresponse.Created(res, appointment)
 
 	}
 

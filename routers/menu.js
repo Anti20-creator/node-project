@@ -42,16 +42,21 @@ router.post('/modify-category', authenticateAccessToken, async(req, res) => {
     const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
 
     const items = { ...menu.items }
+    const icons = { ...menu.icons }
 
-    if(!items[category]) {
+    if(!items[oldCategory]) {
         return Httpresponse.NotFound(res, "No category found to update!")
     }
 
     items[category] = items[oldCategory]
     delete(items[oldCategory])
 
+    icons[category] = icons[oldCategory]
+    delete(icons[oldCategory])
+
     await menu.updateOne({
-        items: items
+        items: items,
+        icons: icons
     }).exec()
 
     return Httpresponse.OK(res, "Category updated!")
@@ -117,18 +122,22 @@ router.post('/add-item', authenticateAccessToken, async(req, res) => {
     return Httpresponse.Created(res, "Item added!")
 })
 
-router.delete('/delete-category', authenticateAccessToken,async(req, res) => {
+router.delete('/delete-category', authenticateAccessToken, async(req, res) => {
 
     const { category } = req.body
     const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
 
     if(menu.items[category]) {
         delete(menu.items[category])
+        delete(menu.icons[category])
     }else{
         return Httpresponse.NotFound(res, "No item found with given parameters!")
     }
 
-    await menu.updateOne({items: menu.items})
+    await menu.updateOne({
+        items: menu.items,
+        icons: menu.icons
+    })
 
     return Httpresponse.OK(res, "Category deleted!")
 
