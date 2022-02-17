@@ -1,4 +1,3 @@
-const express = require('express')
 const app = require('../app/app')
 const mongoose = require('mongoose')
 const { createServer } = require('http')
@@ -9,8 +8,6 @@ const { faker } = require('@faker-js/faker')
 
 require('dotenv').config()
 const assert = require('assert')
-const jwt = require('jsonwebtoken')
-const { userRouterTests } = require('./UserRouter')
 
 const User        = require('../models/UserModel')
 const Restaurant  = require('../models/RestaurantModel')

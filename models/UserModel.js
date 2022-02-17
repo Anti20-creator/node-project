@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
-const Restaurant = require('./RestaurantModel')
 const bcrypt = require('bcrypt')
-const crypto = require('crypto')
+const Restaurant = require('./RestaurantModel')
 
 const User = new mongoose.Schema({
     email: {

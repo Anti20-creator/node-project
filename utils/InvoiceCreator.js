@@ -8,8 +8,13 @@ function createInvoice(invoice, path, invoiceId) {
     generateInvoiceTable(doc, invoice);
     generateFooter(doc);
 
-    doc.end();
-    doc.pipe(fs.createWriteStream('public/invoices/' + path));
+    try{
+        doc.end();
+        doc.pipe(fs.createWriteStream('public/invoices/' + path));
+    }catch(err) {
+        console.log('Failed to save invoice...')
+    }
+
     return doc
 }
 
