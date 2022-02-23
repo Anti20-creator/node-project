@@ -6,11 +6,17 @@ const MenuModel = new mongoose.Schema({
         required: true
     },
     items: {
-        type: Object
+        type: Object,
+        default: {}
     },
     icons: {
-	type: Object
+	    type: Object,
+        default: {}
     }
 }, { minimize: false })
 
-module.exports = mongoose.model('Menu', MenuModel)
+const menuMongooseModel = mongoose.model('Menu', MenuModel)
+
+menuMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
+
+module.exports = menuMongooseModel

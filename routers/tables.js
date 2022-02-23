@@ -9,6 +9,7 @@ const Table = require('../models/TableModel')
 const Restaurant = require('../models/RestaurantModel')
 const Menu = require('../models/MenuModel')
 const {createInvoice} = require("../utils/InvoiceCreator");
+const process = require('process')
 
 router.post('/book', authenticateAccessToken, async(req, res) => {
 
@@ -27,8 +28,9 @@ router.post('/book', authenticateAccessToken, async(req, res) => {
     await table.updateOne({
         inLiveUse: true
     })
-    console.log(req.user.restaurantId)
-    req.app.get('socketio').to(req.user.restaurantId).emit('notify-new-guest', tableId)
+    console.log(process.pid)
+    console.log('New guest API', req.user.restaurantId)
+    req.app.get('socketio').to('restaurant:' + req.user.restaurantId).emit('notify-new-guest', tableId)
 
     return Httpresponse.OK(res, "Table booked for live use!")
 
@@ -50,7 +52,7 @@ router.post('/free-table', authenticateAccessToken, async(req, res) => {
     table.inLiveUse = false
 
     await table.save()
-    req.app.get('socketio').to(req.user.restaurantId).emit('guest-leaved', tableId)
+    req.app.get('socketio').to('restaurant:' + req.user.restaurantId).emit('guest-leaved', tableId)
 
     return Httpresponse.OK(res, "Table updated!")
 
@@ -83,7 +85,7 @@ router.post('/order', authenticateAccessToken, async(req, res) => {
     }
 
     await table.save()
-    req.app.get('socketio').to(tableId).emit('order-added', item, socketId)
+    req.app.get('socketio').to('table:' + tableId).emit('order-added', item, socketId)
 
     return Httpresponse.Created(res, "Orders added!")
 })
@@ -99,7 +101,7 @@ router.delete('/remove-order', authenticateAccessToken, async(req, res) => {
 
     table.liveOrders = table.liveOrders.filter(order => order.name !== name)
     await table.save()
-    req.app.get('socketio').to(tableId).emit('order-removed', name, socketId)
+    req.app.get('socketio').to('table:' + tableId).emit('order-removed', name, socketId)
 
     return Httpresponse.OK(res, "Order removed!")
 })
@@ -116,7 +118,7 @@ router.post('/increase-order', authenticateAccessToken, async(req, res) => {
     table.liveOrders.find(item => item.name === name).quantity += 1
 
     await table.save()
-    req.app.get('socketio').to(tableId).emit('increase-order', name, socketId)
+    req.app.get('socketio').to('table:' + tableId).emit('increase-order', name, socketId)
 
     return Httpresponse.OK(res, "Order quantity increased!")
 })
@@ -137,7 +139,7 @@ router.post('/decrease-order', authenticateAccessToken, async(req, res) => {
     }
 
     await table.save()
-    req.app.get('socketio').to(tableId).emit('decrease-order', name, socketId)
+    req.app.get('socketio').to('table:' + tableId).emit('decrease-order', name, socketId)
 
     return Httpresponse.OK(res, "Order quantity decreased!")
 })
@@ -172,9 +174,11 @@ router.get('/:tableId', authenticateAccessToken, async(req, res) => {
         return Httpresponse.BadRequest(res, "No items were ordered!")
     }
 
+    console.log(items)
+
     const invoiceId = crypto.randomBytes(10).toString('hex')
     const invoiceName = "Invoice - " + new Date().toISOString().split('T')[0] + "_" + invoiceId + ".pdf"
-    const file = createInvoice(items, invoiceName, invoiceId);
+    const file = await createInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.restaurantName);
 
     table.liveOrders = []
     table.inLiveUse = false

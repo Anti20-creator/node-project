@@ -17,7 +17,7 @@ const tableSchema = new mongoose.Schema({
     },
     tableType: {
         type: String,
-        enum: ['round', 'normal']
+        enum: ['rounded', 'normal']
     },
     size: {
 	    type: String,
@@ -45,4 +45,8 @@ const LayoutSchema = new mongoose.Schema({
     }]
 });
 
-module.exports = mongoose.model('layout', LayoutSchema)
+const layoutMongooseModel = mongoose.model('layout', LayoutSchema)
+
+layoutMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
+
+module.exports = layoutMongooseModel

@@ -22,6 +22,7 @@ jest.mock('nodemailer', () => ({
     })
 }));
 
+
 const createTables = () => {
     return Array.from(Array(faker.datatype.number({min: 3, max: 5}))).map(i => {
         return {
@@ -841,7 +842,7 @@ describe('API tests', () => {
                 .send({
                     tableId: appointment.TableId + '1',
                     restaurantId: appointment.RestaurantId,
-                    date: appointment.date,
+                    date: appointment.day,
                     pin: appointment.code
                 })
                 .then(result => {
@@ -854,7 +855,7 @@ describe('API tests', () => {
                 .send({
                     tableId: appointment.TableId,
                     restaurantId: appointment.RestaurantId,
-                    date: appointment.date,
+                    date: appointment.day,
                     pin: appointment.code + '1'
                 })
                 .then(result => {
@@ -867,7 +868,7 @@ describe('API tests', () => {
                 .send({
                     tableId: appointment.TableId,
                     restaurantId: appointment.RestaurantId,
-                    date: appointment.date,
+                    date: appointment.day,
                     pin: appointment.code
                 })
                 .then(result => {

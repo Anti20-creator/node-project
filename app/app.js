@@ -33,7 +33,8 @@ app.use(function(req, res, next) {
     next()
 })
 app.get('/', (req, res) => {
-	res.send('Hello')
+	for(let i = 0; i < 1e8; ++i) {}
+    res.send('Hello')
 })
 
 /* Connecting to MongoDB Database */

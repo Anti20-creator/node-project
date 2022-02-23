@@ -31,4 +31,14 @@ function authenticateAdminAccessToken (req, res, next) {
     }
 }
 
+async function authenticateOwnerAccessToken (req, res, next) {
+    const validate = await Tokens.validateOwnerAccessToken(req)
+    if(validate) {
+        req.user = validate
+        next();
+    }else{
+        Httpresponse.Unauthorized(res, "You don't have access to that resource!")
+    }
+}
+
 module.exports = {authenticateAccessToken, authenticateRefreshToken, authenticateAdminAccessToken};

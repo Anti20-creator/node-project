@@ -34,7 +34,7 @@ router.post('/add-category', authenticateAccessToken,async(req, res) => {
 
 router.post('/modify-category', authenticateAccessToken, async(req, res) => {
 
-    const { category, oldCategory } = req.body
+    const { category, oldCategory, categoryIcon } = req.body
 
     if(!category || !oldCategory) {
         return Httpresponse.BadRequest(res, "One or more parameters are missing!")
@@ -48,11 +48,16 @@ router.post('/modify-category', authenticateAccessToken, async(req, res) => {
         return Httpresponse.NotFound(res, "No category found to update!")
     }
 
-    items[category] = items[oldCategory]
-    delete(items[oldCategory])
+    if(category !== oldCategory) {
+        items[category] = items[oldCategory]
+        delete(items[oldCategory])
+    }
 
-    icons[category] = icons[oldCategory]
-    delete(icons[oldCategory])
+    icons[category] = categoryIcon
+
+    if(category !== oldCategory) {
+        delete(icons[oldCategory])
+    }
 
     await menu.updateOne({
         items: items,
@@ -62,7 +67,7 @@ router.post('/modify-category', authenticateAccessToken, async(req, res) => {
     return Httpresponse.OK(res, "Category updated!")
 })
 
-router.put('/modify-item', authenticateAccessToken, async(req, res) => {
+router.post('/modify-item', authenticateAccessToken, async(req, res) => {
 
     const { name, amount, category, price, unit, oldName } = req.body
 
@@ -73,7 +78,7 @@ router.put('/modify-item', authenticateAccessToken, async(req, res) => {
 
     const items = { ...menu.items }
 
-    if(!items[category] && items[category][oldName]) {
+    if(!items[category] || !items[category][oldName]) {
         return Httpresponse.NotFound(res, "No item found to update!")
     }
 
@@ -82,7 +87,9 @@ router.put('/modify-item', authenticateAccessToken, async(req, res) => {
         amount,
         price
     }
-    delete(items[category][oldName])
+    if(name !== oldName) {
+        delete(items[category][oldName])
+    }
 
     await menu.updateOne({
         items: items
@@ -112,12 +119,10 @@ router.post('/add-item', authenticateAccessToken, async(req, res) => {
         amount,
         price
     }
-    console.log(items)
 
     await menu.updateOne({
         items
     }).exec()
-    console.log(menu)
 
     return Httpresponse.Created(res, "Item added!")
 })
@@ -177,7 +182,6 @@ router.get('/', authenticateAccessToken, async(req, res) => {
     if(!menu) {
         return Httpresponse.NotFound(res, "Menu not found!")
     }
-    console.log(menu)
 
     return Httpresponse.OK(res, menu)
 })

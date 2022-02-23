@@ -73,4 +73,8 @@ User.methods.comparePassword = function(plainPass) {
     return bcrypt.compareSync(plainPass, this.password)
 }
 
-module.exports = mongoose.model('User', User)
+const userMongooseModel = mongoose.model('User', User)
+
+userMongooseModel.collection.createIndex( { email: 1 }, { unique: true } )
+
+module.exports = userMongooseModel

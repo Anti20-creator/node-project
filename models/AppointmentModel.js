@@ -13,8 +13,12 @@ const AppointmentModel = new mongoose.Schema({
         type: Number,
         required: true
     },
-    date: {
-        type: Date,
+    day: {
+        type: String,
+        required: true
+    },
+    time: {
+        type: String,
         required: true
     },
     code: {
@@ -22,8 +26,12 @@ const AppointmentModel = new mongoose.Schema({
         required: true
     },
     email: {
-	type: String
+	    type: String
     }
 })
 
-module.exports = mongoose.model('Appointment', AppointmentModel)
+const appointmentMongooseModel = mongoose.model('Appointment', AppointmentModel)
+
+appointmentMongooseModel.collection.createIndex( { RestaurantId: 1, TableId: 1, day: 1 }, { unique: true, sparse: false } )
+
+module.exports = appointmentMongooseModel

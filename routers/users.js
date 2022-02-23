@@ -9,7 +9,7 @@ const Menu         = require('../models/MenuModel')
 const Restaurant   = require('../models/RestaurantModel')
 const Httpresponse = require('../utils/ErrorCreator')
 const Tokens       = require('../utils/TokenFunctions')
-const {authenticateRefreshToken, authenticateAccessToken} = require("../middlewares/auth")
+const {authenticateRefreshToken, authenticateAccessToken, authenticateAdminAccessToken, authenticateOwnerAccessToken} = require("../middlewares/auth")
 const {sendMail}  = require("../utils/EmailSender")
 const crypto      = require('crypto')
 
@@ -159,13 +159,13 @@ router.post('/send-invite', authenticateAccessToken, async (req, res) => {
     const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
 
     if(!restaurant) {
-	return Httpresponse.BadRequest(res, "No restaurant found with the given information")
+	    return Httpresponse.BadRequest(res, "No restaurant found with the given information")
     }
     restaurant.invited.push(emailTo)
 
     const emailSuccess = await sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
-                <a href="frontend.com/invite/${restaurant.restaurantId}">Click here to join</a>
-                Secret PIN code to join: ${restaurant.secretPin}`, res)
+                <a href="http://192.168.31.161:3000/invite/${restaurant._id}">Kattints ide a csatlakozáshoz</a>
+                Étterem PIN kódja: ${restaurant.secretPin}`, res)
 
     if(emailSuccess) {
 	    await restaurant.save()
@@ -236,15 +236,52 @@ router.post('/refresh-token', authenticateRefreshToken, async(req, res) => {
     })
 })
 
-router.get('/logout', async(req, res) => {
-    const cookie = req.cookies;
-    for (const prop in cookie) {
-        if (!cookie.hasOwnProperty(prop)) {
-            continue;
-        }
-        res.cookie(prop, '', {expires: new Date(0)});
+router.post('/update-rank', authenticateAdminAccessToken, async (req, res) => {
+
+    const { promote, email } = req.body;
+
+    const user = await UserModel.findOne({email}).exec()
+
+    if(!user) {
+        return Httpresponse.NotFound(res, "No user found with given email!")
     }
+    const userRestaurant = await Restaurant.findOne({ownerId: user._id}).exec()
+    const requestRestaraunt = await Restaurant.findById(req.user.restaurantId).exec()
+
+    if(user.isAdmin && !promote && userRestaurant) {
+        return Httpresponse.BadRequest(res, "You can't change owner's rank!")
+    }
+
+    if(user.isAdmin && !promote && requestRestaraunt.ownerId !== req.user.userId) {
+        return Httpresponse.BadRequest(res, "You can't change another admin's rank!")
+    }
+
+    if(promote) {
+        await user.updateOne({
+            isAdmin: true
+        })
+    }else{
+        await user.updateOne({
+            isAdmin: false
+        })
+    }
+    
+    return Httpresponse.OK(res, "User's role has been changed!")
+})
+
+router.get('/logout', async(req, res) => {
+    res.cookie('Authorization', '', {httpOnly: false, sameSite: 'none', path: '/', secure: true})
+    res.cookie('Refresh-token', '', {httpOnly: false, sameSite: 'none', path: '/', secure: true})
     res.end()
+})
+
+router.delete('/delete', authenticateOwnerAccessToken, async(req, res) => {
+
+    const { email } = req.body
+    
+    await UserModel.deleteOne({email}).exec()
+
+    return Httresponse.OK(res, "User has been removed!")
 })
 
 router.get('/team', authenticateAccessToken, async(req, res) => {

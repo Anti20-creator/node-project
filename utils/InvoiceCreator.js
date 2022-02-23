@@ -1,26 +1,25 @@
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
+const Informations = require('../models/InformationsModel')
+const Restaurant = require('../models/RestaurantModel')
 
-function createInvoice(invoice, path, invoiceId) {
+async function createInvoice(invoice, path, invoiceId, restaurantId) {
     
     let doc = new PDFDocument({ size: "A4", margin: 50 });
     
-    try{
+    await generateHeader(doc, invoiceId, restaurantId);
+    generateInvoiceTable(doc, invoice);
+    generateFooter(doc);
 
-        generateHeader(doc, invoiceId);
-        generateInvoiceTable(doc, invoice);
-        generateFooter(doc);
-
-        doc.end();
-        doc.pipe(fs.createWriteStream('public/invoices/' + path));
-    }catch(err) {
-        console.log('Failed to save invoice...')
-    }
+    doc.end();
+    doc.pipe(fs.createWriteStream('public/invoices/' + path));
 
     return doc
 }
 
-function generateHeader(doc, invoiceId) {
+async function generateHeader(doc, invoiceId, restaurantId) {
+    const restaurant = await Restaurant.findById(restaurantId).exec()
+    const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
     doc
         .fillColor("#444444")
         .fontSize(20)
@@ -30,9 +29,9 @@ function generateHeader(doc, invoiceId) {
         .text(invoiceId, 150, 50)
         .text("Invoice date:", 50, 65)
         .text(formatDate(new Date()), 150, 65)
-        .text("Manna Lounge & Étterem", 200, 50, { align: "right" })
-        .text("Palota út 17.", 200, 65, { align: "right" })
-        .text("1013 Budapest", 200, 80, { align: "right" })
+        .text(`${restaurant.restaurantName}`, 200, 50, { align: "right" })
+        .text(`${informations.address}`, 200, 65, { align: "right" })
+        .text(`${informations.postalCode} ${informations.city}`, 200, 80, { align: "right" })
         .moveDown();
 
     doc

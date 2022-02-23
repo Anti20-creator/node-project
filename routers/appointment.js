@@ -7,6 +7,7 @@ const Table        = require('../models/TableModel')
 const Layout       = require('../models/LayoutModel')
 const {sendMail}   = require('../utils/EmailSender')
 const { authenticateAccessToken } = require('../middlewares/auth')
+const prcs = require('process');
 
 function createPin() {
     const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -23,6 +24,8 @@ router.post('/book', async(req, res) => {
 
         const {email, date, restaurantId, tableId, peopleCount} = req.body;
 
+        //console.log(req.body)
+
         // If parameters are missing then we should throw an error
         if(!date || !restaurantId || !tableId || !peopleCount) {
             return Httpresponse.BadRequest(res, "Missing parameters!")
@@ -33,7 +36,7 @@ router.post('/book', async(req, res) => {
             RestaurantId: restaurantId,
             TableId: tableId
         })
-
+        console.log(table)
         if(!table) {
             return Httpresponse.BadRequest(res, "No table found with given parameters!")
         }
@@ -85,10 +88,7 @@ router.post('/book', async(req, res) => {
             TableId: {
                 $eq: tableId
             },
-            date: {
-                $gt: startDate,
-                $lt: endDate
-            }
+            day: new Date(date).toISOString().slice(0, 10)
         })
 
         if(conflictingData) {
@@ -97,15 +97,25 @@ router.post('/book', async(req, res) => {
 
         // If everything went well, then we will generate a random pin, save the appointment and send an e-mail.
         const pinCode = createPin()
-        const appointment = new Appointment({
-            RestaurantId: restaurantId,
-            TableId: tableId,
-            date: date,
-            peopleCount: peopleCount,
-            code: pinCode
-        })
-
-        await appointment.save()
+        
+        
+        try {
+            const appointment = new Appointment({
+                RestaurantId: restaurantId,
+                TableId: tableId,
+                day: new Date(date).toISOString().slice(0, 10),
+                time: new Date(date).getUTCHours() + ':' + new Date(date).getUTCMinutes(),
+                peopleCount: peopleCount,
+                code: pinCode,
+                email: email
+            })
+            await appointment.save()
+        }catch(e) {
+            console.warn('Hiba a mentés során...')
+            return Httpresponse.BadRequest(res, e.message)
+        }
+        
+        
         await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
 	    req.app.get('socketio').to('appointment:' + restaurantId).emit('new-appointment')
 
@@ -129,7 +139,7 @@ router.delete('/disclaim', async(req, res) => {
     const appointment = await Appointment.findOne({
         RestaurantId: restaurantId,
         TableId: tableId,
-        date: date
+        day: date
     })
 
     if(!appointment) {
@@ -233,10 +243,7 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
             TableId: {
                 $eq: tableId
             },
-            date: {
-                $gt: startDate,
-                $lt: endDate
-            }
+            day: new Date(date).toISOString().slice(0, 10)
         })
 
         if(conflictingData) {
@@ -250,8 +257,9 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
         const appointment = new Appointment({
             RestaurantId: req.user.restaurantId,
             TableId: tableId,
-            date: date,
-	    email: email,
+            day: new Date(date).toISOString().slice(0, 10),
+            time: new Date(date).getUTCHours() + ':' + new Date(date).getUTCMinutes(),
+            email: email,
             peopleCount: peopleCount,
             code: pinCode
         })

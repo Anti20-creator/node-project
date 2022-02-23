@@ -35,4 +35,8 @@ const TableModel = new mongoose.Schema({
     }
 })
 
-module.exports = mongoose.model('Table', TableModel)
+const tableMongooseModel = mongoose.model('Table', TableModel)
+
+//tableMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
+
+module.exports = tableMongooseModel
