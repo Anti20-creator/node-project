@@ -8,8 +8,9 @@ class Tokens {
         return jwt.sign({
             userId: data._id,
             isAdmin: data.isAdmin,
-            restaurantId: data.restaurantId
-        }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '15d'})
+            restaurantId: data.restaurantId,
+            email: data.email
+        }, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '1h'})
 
     }
 
@@ -77,7 +78,7 @@ class Tokens {
         })
     }
 
-    async static validateOwnerAccessToken(req) {
+    static async validateOwnerAccessToken(req) {
         let token = req.cookies['Authorization']
         if(token){
             token = token.split(' ')[1]
@@ -85,12 +86,13 @@ class Tokens {
             return false;
         }
 
-        return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, decoded) => {
             if(err) {
                 return false
             }else{
+                console.log(decoded)
                 if(decoded.isAdmin) {
-                    const restaurant = await Restaurant.findOne({ownerId: decoded.restaurantId}).exec()
+                    const restaurant = await Restaurant.findOne({ownerId: decoded.userId}).exec()
                     if(restaurant) {
                         return decoded
                     }else{

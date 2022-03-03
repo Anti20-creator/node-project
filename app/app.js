@@ -6,6 +6,7 @@ const cors = require('cors')
 const cookieParser = require('cookie-parser')
 const path = require('path')
 require('dotenv').config()
+const jwt = require('jsonwebtoken')
 
 /* Importing routers */
 const usersRouter = require('../routers/users')
@@ -13,6 +14,9 @@ const appointmentsRouter = require('../routers/appointment')
 const layoutsRouter = require('../routers/layout')
 const tablesRouter = require('../routers/tables')
 const menuRouter = require('../routers/menu')
+const invoicesRouter = require('../routers/invoices')
+const informationsRouter = require('../routers/informations')
+const { authenticateAccessToken, authenticateFilePermission } = require('../middlewares/auth')
 
 app.use(bodyparser.json())
 app.use(cookieParser())
@@ -23,7 +27,7 @@ const corsConfig = {
 }
 app.use(cors(corsConfig))
 app.options('*', cors(corsConfig))
-app.use(express.static(path.join(__dirname, 'public')))
+//app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "http://192.168.31.160:3000")
@@ -50,6 +54,8 @@ app.use('/api/appointments', appointmentsRouter)
 app.use('/api/layouts', layoutsRouter)
 app.use('/api/tables', tablesRouter)
 app.use('/api/menu', menuRouter)
-app.use(express.static('public'));
+app.use('/api/invoices', invoicesRouter)
+app.use('/api/informations', informationsRouter)
+app.use('/public/', [authenticateAccessToken, authenticateFilePermission, express.static("public")])
 
 module.exports = app

@@ -104,7 +104,7 @@ router.post('/book', async(req, res) => {
                 RestaurantId: restaurantId,
                 TableId: tableId,
                 day: new Date(date).toISOString().slice(0, 10),
-                time: new Date(date).getUTCHours() + ':' + new Date(date).getUTCMinutes(),
+                time: new Date(date).toISOString(),
                 peopleCount: peopleCount,
                 code: pinCode,
                 email: email
@@ -258,7 +258,7 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
             RestaurantId: req.user.restaurantId,
             TableId: tableId,
             day: new Date(date).toISOString().slice(0, 10),
-            time: new Date(date).getUTCHours() + ':' + new Date(date).getUTCMinutes(),
+            time: new Date(date).toISOString(),
             email: email,
             peopleCount: peopleCount,
             code: pinCode

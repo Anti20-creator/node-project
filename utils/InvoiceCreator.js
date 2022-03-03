@@ -1,23 +1,55 @@
 const PDFDocument = require("pdfkit");
 const fs = require("fs");
+const path = require('path')
 const Informations = require('../models/InformationsModel')
-const Restaurant = require('../models/RestaurantModel')
+const Restaurant   = require('../models/RestaurantModel')
+const Invoice      = require('../models/InvoiceModel')
 
-async function createInvoice(invoice, path, invoiceId, restaurantId) {
+async function createInvoice(invoice, path, invoiceId, restaurantId, email, callback) {
     
     let doc = new PDFDocument({ size: "A4", margin: 50 });
+    const writeStream = fs.createWriteStream('public/invoices/' + path);
     
     await generateHeader(doc, invoiceId, restaurantId);
     generateInvoiceTable(doc, invoice);
     generateFooter(doc);
 
+    
+    await Invoice.create({email: email, RestaurantId: restaurantId, invoiceName: path, date: new Date().toISOString()})
+    
+    doc.on('end', async() => {
+        await callback()
+    })
+    
+    doc.end();
+    doc.pipe(writeStream);
+}
+
+async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email, peopleCount) {
+    let doc = new PDFDocument({ size: "A4", margin: 50 });
+    
+    console.log(peopleCount)
+    for(let i = 0; i < peopleCount; ++i) {
+        console.log('new page')
+        await generateHeader(doc, invoiceId, restaurantId);
+        generateInvoiceTable(doc, invoice, peopleCount);
+        generateFooter(doc);
+
+        if(i !== peopleCount - 1)
+            doc.addPage()
+    }
+    
+    doc.flushPages()
     doc.end();
     doc.pipe(fs.createWriteStream('public/invoices/' + path));
 
+    await Invoice.create({email: email, RestaurantId: restaurantId, invoiceName: path, date: new Date().toISOString()})
+    
     return doc
 }
 
 async function generateHeader(doc, invoiceId, restaurantId) {
+    doc.font("Helvetica");
     const restaurant = await Restaurant.findById(restaurantId).exec()
     const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
     doc
@@ -25,9 +57,9 @@ async function generateHeader(doc, invoiceId, restaurantId) {
         .fontSize(20)
         .text("", 110, 57)
         .fontSize(10)
-        .text("Invoice ID:", 50, 50)
+        .text("Számla ID:", 50, 50)
         .text(invoiceId, 150, 50)
-        .text("Invoice date:", 50, 65)
+        .text("Dátum:", 50, 65)
         .text(formatDate(new Date()), 150, 65)
         .text(`${restaurant.restaurantName}`, 200, 50, { align: "right" })
         .text(`${informations.address}`, 200, 65, { align: "right" })
@@ -40,17 +72,17 @@ async function generateHeader(doc, invoiceId, restaurantId) {
         .text("Invoice", 50, 160, {align: 'center'});
 }
 
-function generateInvoiceTable(doc, items) {
+function generateInvoiceTable(doc, items, divisor=1) {
     const invoiceTableTop = 230;
 
     doc.font("Helvetica-Bold");
     generateTableRow(
         doc,
         invoiceTableTop,
-        "Item",
-        "Description",
-        "Unit Cost",
-        "Quantity",
+        "Rendelések",
+        "Egységár",
+        "Mennyiség",
+        "Részösszeg",
         "Line Total"
     );
     generateHr(doc, invoiceTableTop + 20);
@@ -78,9 +110,9 @@ function generateInvoiceTable(doc, items) {
         doc,
         subtotalPosition,
         "",
-        "Subtotal",
+        "Összesen",
         "",
-        formatCurrency(items.reduce((part, item) => part + item.price * item.quantity, 0))
+        formatCurrency((items.reduce((part, item) => part + item.price * item.quantity, 0)) / divisor )
     );
 
 }
@@ -122,7 +154,7 @@ function generateHr(doc, y) {
 }
 
 function formatCurrency(forints) {
-    return forints.toFixed(2).toString() + ' Ft'
+    return Number(forints).toFixed(2).toString() + ' Ft'
 }
 
 function formatDate(date) {
@@ -133,4 +165,4 @@ function formatDate(date) {
     return year + "/" + month + "/" + day;
 }
 
-module.exports = {createInvoice}
+module.exports = {createInvoice, createMultiInvoice}

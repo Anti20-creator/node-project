@@ -4,11 +4,12 @@ const router = express.Router()
 const fs = require("fs")
 const crypto = require('crypto')
 const Httpresponse = require('../utils/ErrorCreator')
+const Blob = require('node-blob');
 
 const Table = require('../models/TableModel')
 const Restaurant = require('../models/RestaurantModel')
 const Menu = require('../models/MenuModel')
-const {createInvoice} = require("../utils/InvoiceCreator");
+const {createInvoice, createMultiInvoice} = require("../utils/InvoiceCreator");
 const process = require('process')
 
 router.post('/book', authenticateAccessToken, async(req, res) => {
@@ -28,8 +29,6 @@ router.post('/book', authenticateAccessToken, async(req, res) => {
     await table.updateOne({
         inLiveUse: true
     })
-    console.log(process.pid)
-    console.log('New guest API', req.user.restaurantId)
     req.app.get('socketio').to('restaurant:' + req.user.restaurantId).emit('notify-new-guest', tableId)
 
     return Httpresponse.OK(res, "Table booked for live use!")
@@ -146,7 +145,6 @@ router.post('/decrease-order', authenticateAccessToken, async(req, res) => {
 
 router.get('/orders/:tableId', authenticateAccessToken, async(req, res) => {
     
-    console.log(req.params.tableId)
     const table = await Table.findById(req.params.tableId).exec()
 
     if(!table.inLiveUse)
@@ -156,8 +154,6 @@ router.get('/orders/:tableId', authenticateAccessToken, async(req, res) => {
 })
 
 router.get('/:tableId', authenticateAccessToken, async(req, res) => {
-
-    console.log(req.params.tableId)
 
     const table = await Table.findById(req.params.tableId).exec()
     const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
@@ -174,18 +170,106 @@ router.get('/:tableId', authenticateAccessToken, async(req, res) => {
         return Httpresponse.BadRequest(res, "No items were ordered!")
     }
 
-    console.log(items)
+    const invoiceId = crypto.randomBytes(10).toString('hex')
+    const invoicePrefix = "Invoice - " + new Date().toISOString().split('T')[0] + "_" + invoiceId
+    const invoiceName = invoicePrefix + "_" + req.user.restaurantId + ".pdf"
+    await createInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, async() => {
+
+        table.liveOrders = []
+        table.inLiveUse = false
+        await table.save()
+        req.app.get('socketio').to('restaurant:' + req.user.restaurantId).emit('guest-leaved', req.params.tableId)
+    
+        return Httpresponse.Created(res, invoicePrefix + '.pdf')
+    })
+
+
+})
+
+router.post('/:tableId/split', authenticateAccessToken, async(req, res) => {
+
+    const {items} = req.body
+
+    const table = await Table.findById(req.params.tableId).exec()
+    if(!table) {
+        return Httpresponse.NotFound(res, "No table found!")
+    }
+
+    if(!table.inLiveUse) {
+        return Httpresponse.BadRequest(res, "Table is not in use!")
+    }
+
+    const tableItems = table.liveOrders
+    for(const item of items) {
+        const searchForItem = tableItems.findIndex(tableItem => tableItem.name === item.name)
+        if(searchForItem === -1) {
+            return Httpresponse.BadRequest(res, "Couldn't find given orders!")
+        }
+        if(item.quantity > tableItems[searchForItem].quantity) {
+            return Httpresponse.BadRequest(res, "Too much items!")
+        }
+
+        if(item.quantity === tableItems[searchForItem].quantity) {
+            tableItems.splice(searchForItem, 1)
+        }else{
+            tableItems[searchForItem].quantity -= item.quantity
+        }
+    }
+
+    
+    const invoiceId = crypto.randomBytes(10).toString('hex')
+    const invoicePrefix = "Invoice - " + new Date().toISOString().split('T')[0] + "_" + invoiceId
+    const invoiceName = invoicePrefix + "_" + req.user.restaurantId + ".pdf"
+    await createInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, async() => {
+        
+        req.app.get('socketio').to('table:' + req.params.tableId).emit('orders-modified', tableItems)
+    
+        await table.updateOne({
+            liveOrders: tableItems,
+            inLiveUse: tableItems.length !== 0
+        })
+        return Httpresponse.Created(res, invoicePrefix + '.pdf')
+    })
+
+    //res.sendStatus(200)
+    //res.send(file.toBlobURL('application/pdf'))
+    //const sendFile = fs.readFileSync(`../public/invoices/${invoiceName}`)
+    //res.contentType('application/pdf')
+    //res.send(sendFile)
+})
+
+router.post('/:tableId/split-equal', authenticateAccessToken, async(req, res) => {
+
+    const { peopleCount } = req.body
+
+    const table = await Table.findById(req.params.tableId).exec()
+    const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
+    if(!table || !restaurant) {
+        return Httpresponse.NotFound(res, "No table found with given ID!")
+    }
+
+    if(!table.inLiveUse){
+        return Httpresponse.BadRequest(res, "Table is not in use!")
+    }
+
+    const items = table.liveOrders
+    if(items.length === 0) {
+        return Httpresponse.BadRequest(res, "No items were ordered!")
+    }
+
 
     const invoiceId = crypto.randomBytes(10).toString('hex')
-    const invoiceName = "Invoice - " + new Date().toISOString().split('T')[0] + "_" + invoiceId + ".pdf"
-    const file = await createInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.restaurantName);
+    const invoicePrefix = "Invoice - " + new Date().toISOString().split('T')[0] + "_" + invoiceId
+    const invoiceName = invoicePrefix + "_" + req.user.restaurantId + ".pdf"
+    await createMultiInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, peopleCount, async() => {
+        table.liveOrders = []
+        table.inLiveUse = false
+        await table.save()
+        req.app.get('socketio').to('restaurant:' + req.user.restaurantId).emit('guest-leaved', req.params.tableId)
+    
+        return Httpresponse.Created(res, invoicePrefix + '.pdf')
+    })
 
-    table.liveOrders = []
-    table.inLiveUse = false
-    await table.save()
-    //req.app.get('socketio').to(req.user.restaurantId).emit('guest-leaved', req.params.tableId)
-
-    return Httpresponse.Created(res, invoiceName)
 
 })
 

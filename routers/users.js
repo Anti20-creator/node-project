@@ -183,7 +183,7 @@ router.post('/login', async(req, res) => {
 
     const user = UserModel.findOne({email: email}, (err, data) => {
         /* Case: User existst with the given email */
-        if(!err) {
+        if(!err && data) {
 
             /* Case: the passwords matches the stored one */
             if(data.comparePassword(password)){
@@ -217,6 +217,17 @@ router.get('/getdata', authenticateAccessToken, async(req, res) => {
             })
         }
     })
+})
+
+router.get('/is-admin', authenticateAccessToken, async(req, res) => {
+
+    const user = await UserModel.findById(req.user.userId).exec()
+
+    if(!user) {
+        return Httpresponse.NotFound(res, false)
+    }
+
+    return Httpresponse.OK(res, user.isAdmin)
 })
 
 router.post('/refresh-token', authenticateRefreshToken, async(req, res) => {
@@ -279,9 +290,10 @@ router.delete('/delete', authenticateOwnerAccessToken, async(req, res) => {
 
     const { email } = req.body
     
+    console.log(email)
     await UserModel.deleteOne({email}).exec()
 
-    return Httresponse.OK(res, "User has been removed!")
+    return Httpresponse.OK(res, "User has been removed!")
 })
 
 router.get('/team', authenticateAccessToken, async(req, res) => {

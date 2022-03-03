@@ -8,8 +8,6 @@ const Layout = require('../models/LayoutModel')
 
 router.post('/save', authenticateAdminAccessToken, async (req, res) => {
 
-    // TODO: authenticateAdminAccesstoken
-
     const {newTables, removedTables, updatedTables} = req.body
 
     const layout = await Layout.findOne({
@@ -18,6 +16,20 @@ router.post('/save', authenticateAdminAccessToken, async (req, res) => {
     if(!layout) {
         return Httpresponse.NotFound(res, "No layout found!")
     }
+
+    if(removedTables.length > 0) {
+        const askedForRemoveTables = await Table.collection.find( { _id: { $in: removedTables}, RestaurantId: req.user.restaurantId } ).toArray()
+        console.log(askedForRemoveTables.filter(table => table.inLiveUse))
+        if (!askedForRemoveTables.filter(table => table.inLiveUse).length) {
+            return Httpresponse.Conflict(res, "You can't remove a table which is in live use!")
+        }
+        
+        const appointments = await Table.collection.find({RestaurantId: req.user, TableId: {$in: removedTables}, day: {}}).toArray()
+        if(!appointments.filter(appointment => new Date() < new Date(appointment.day)).length) {
+            return Httpresponse.Conflict(res, "You can't remove a table which has booking for the future!")
+        }
+    }
+    
 
     let resultTables = layout.tables.filter(x => !removedTables.includes(x)).slice();
 

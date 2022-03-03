@@ -33,6 +33,7 @@ function authenticateAdminAccessToken (req, res, next) {
 
 async function authenticateOwnerAccessToken (req, res, next) {
     const validate = await Tokens.validateOwnerAccessToken(req)
+    console.log(validate)
     if(validate) {
         req.user = validate
         next();
@@ -41,4 +42,21 @@ async function authenticateOwnerAccessToken (req, res, next) {
     }
 }
 
-module.exports = {authenticateAccessToken, authenticateRefreshToken, authenticateAdminAccessToken};
+async function authenticateFilePermission (req, res, next) {
+
+    const restaurantId = req.user.restaurantId
+
+    if(req.url.split('.')[0].split('_')[2] !== restaurantId) {
+        return Httpresponse.Forbidden(res, "You don't have access to this!")
+    }else{
+        next()
+    }
+}
+
+module.exports = {
+    authenticateAccessToken, 
+    authenticateRefreshToken, 
+    authenticateAdminAccessToken, 
+    authenticateOwnerAccessToken,
+    authenticateFilePermission
+};

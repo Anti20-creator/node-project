@@ -47,7 +47,7 @@ if (cluster.isMaster) {
 
   events(io)
   app.set('socketio', io)
-  app.use('/public', express.static('public'))
+  //app.use('/public', express.static('public'))
 
   io.adapter(redisAdapter({ host: '192.168.31.214', port: 6379 }));
 

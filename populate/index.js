@@ -195,7 +195,7 @@ const createAppointments = async(restaurantId, tableId, tableCount) => {
                         TableId: tableId,
                         peopleCount: faker.datatype.number({min: 1, max: tableCount}),
                         day: new Date(new Date(now.setDate(now.getDate() + i))).toISOString().slice(0, 10),
-                        time: faker.datatype.number({min: 0, max: 23}) + ':' + faker.random.arrayElement(['00', '15', '30', '45']), 
+                        time: new Date(new Date(now.setDate(now.getDate() + i))).toISOString(), 
                         code: "1234",
                         email: `guest${i}@gmail.com`
                     }
