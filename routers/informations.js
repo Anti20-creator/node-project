@@ -35,6 +35,6 @@ router.post('/update', authenticateAccessToken, async(req, res) => {
     
     return Httpresponse.OK(res, "Updated!")
 
-});
+})
 
 module.exports = router

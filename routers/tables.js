@@ -4,7 +4,6 @@ const router = express.Router()
 const fs = require("fs")
 const crypto = require('crypto')
 const Httpresponse = require('../utils/ErrorCreator')
-const Blob = require('node-blob');
 
 const Table = require('../models/TableModel')
 const Restaurant = require('../models/RestaurantModel')
@@ -261,12 +260,14 @@ router.post('/:tableId/split-equal', authenticateAccessToken, async(req, res) =>
     const invoiceId = crypto.randomBytes(10).toString('hex')
     const invoicePrefix = "Invoice - " + new Date().toISOString().split('T')[0] + "_" + invoiceId
     const invoiceName = invoicePrefix + "_" + req.user.restaurantId + ".pdf"
+    console.log(invoiceName)
     await createMultiInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, peopleCount, async() => {
+	console.log('DONE')
         table.liveOrders = []
         table.inLiveUse = false
         await table.save()
         req.app.get('socketio').to('restaurant:' + req.user.restaurantId).emit('guest-leaved', req.params.tableId)
-    
+
         return Httpresponse.Created(res, invoicePrefix + '.pdf')
     })
 

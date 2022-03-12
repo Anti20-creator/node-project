@@ -4,6 +4,7 @@ const port = process.env.PORT || 4001
 const https = require('https')
 const express = require('express')
 const fs = require('fs')
+const path = require('path')
 const { events } = require('./socket/events')
 const { Server } = require('socket.io')
 const cluster = require('cluster');
@@ -47,7 +48,7 @@ if (cluster.isMaster) {
 
   events(io)
   app.set('socketio', io)
-  //app.use('/public', express.static('public'))
+  app.use('/backgrounds', express.static(__dirname + '/public/backgrounds'));
 
   io.adapter(redisAdapter({ host: '192.168.31.214', port: 6379 }));
 

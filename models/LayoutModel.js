@@ -17,10 +17,10 @@ const tableSchema = new mongoose.Schema({
     },
     tableType: {
         type: String,
-        enum: ['rounded', 'normal']
+        enum: ['rounded', 'normal', 'wide']
     },
     size: {
-	    type: String,
+	type: String,
     },
     direction: {
         type: Number
@@ -42,7 +42,16 @@ const LayoutSchema = new mongoose.Schema({
     },
     tables: [{
         type: tableSchema
-    }]
+    }],
+    sizeX: {
+	type: Number
+    },
+    sizeY: {
+	type: Number
+    },
+    backgroundImage: {
+	type: String
+    }
 });
 
 const layoutMongooseModel = mongoose.model('layout', LayoutSchema)

@@ -23,6 +23,9 @@ const InformationsModel = new mongoose.Schema({
     openingTimes: {
         type: Array,
         default: []
+    },
+    timeBeforeLastAppointment: {
+        type: Number
     }
 })
 

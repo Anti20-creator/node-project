@@ -3,10 +3,13 @@ const express      = require('express')
 const nodemailer   = require('nodemailer')
 const jwt          = require('jsonwebtoken')
 const router       = express.Router()
+
 const UserModel    = require('../models/UserModel')
 const Layout       = require('../models/LayoutModel')
 const Menu         = require('../models/MenuModel')
 const Restaurant   = require('../models/RestaurantModel')
+const Informations = require('../models/InformationsModel')
+
 const Httpresponse = require('../utils/ErrorCreator')
 const Tokens       = require('../utils/TokenFunctions')
 const {authenticateRefreshToken, authenticateAccessToken, authenticateAdminAccessToken, authenticateOwnerAccessToken} = require("../middlewares/auth")
@@ -59,6 +62,9 @@ router.post('/register-admin', async (req, res) => {
                 RestaurantId: restaurant._id
             })
             await Menu.create({
+                RestaurantId: restaurant._id
+            })
+            await Informations.create({
                 RestaurantId: restaurant._id
             })
 

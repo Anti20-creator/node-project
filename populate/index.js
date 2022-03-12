@@ -11,6 +11,81 @@ const Layout      = require('../models/LayoutModel')
 const Menu        = require('../models/MenuModel')
 const Informations= require('../models/InformationsModel')
 
+const generateOpeningTime = () => {
+    return [
+        {
+                open: {
+                    hours: "11",
+                    minutes: "00"
+                },
+                close: {
+                    hours: "23",
+                    minutes: "00"
+                }
+        },
+        {
+                open: {
+                    hours: "11",
+                    minutes: "00"
+                },
+                close: {
+                    hours: "05",
+                    minutes: "00"
+                }
+        },
+        {
+                open: {
+                    hours: "11",
+                    minutes: "00"
+                },
+                close: {
+                    hours: "24",
+                    minutes: "00"
+                }
+        },
+        {
+                open: {
+                    hours: "00",
+                    minutes: "00"
+                },
+                close: {
+                    hours: "18",
+                    minutes: "00"
+                }
+        },
+        {
+                open: {
+                    hours: "11",
+                    minutes: "00"
+                },
+                close: {
+                    hours: "04",
+                    minutes: "00"
+                }
+        },
+        {
+                open: {
+                    hours: "11",
+                    minutes: "00"
+                },
+                close: {
+                    hours: "04",
+                    minutes: "00"
+                }
+        },
+        {
+                open: {
+                    hours: "11",
+                    minutes: "00"
+                },
+                close: {
+                    hours: "23",
+                    minutes: "00"
+                }
+        }
+    ]
+}
+
 const createAdmin = async(index) => {
     const user = await User.collection.bulkWrite([
         {
@@ -49,7 +124,9 @@ const createAdmin = async(index) => {
                     city: faker.address.city(),
                     postalCode: faker.address.zipCode(),
                     taxNumber: faker.datatype.number({min: 10000000000000, max: 1000000000000000}),
-                    address: faker.address.streetAddress()
+                    address: faker.address.streetAddress(),
+                    timeBeforeLastAppointment: 60,
+                    openingTimes: generateOpeningTime()
                 }  
             }  
         }
@@ -150,7 +227,7 @@ const createTables = async(restaurantId) => {
                 y: faker.datatype.number({min: 60, max: 460})
             },
             tableCount: tableCounts[i],
-            tableType: faker.random.arrayElement(['rounded', 'normal']),
+            tableType: faker.random.arrayElement(['rounded', 'normal', 'wide']),
             size: faker.random.arrayElement(['small', 'average', 'large']),
             direction: faker.random.arrayElement([0, 90, 180, 270]),
             TableId: tables.insertedIds[i].toString(),
@@ -169,7 +246,9 @@ const createTables = async(restaurantId) => {
             insertOne: {
                 document: {
                     RestaurantId: restaurantId,
-                    tables: tableData
+                    tables: tableData,
+		    sizeX: 1000,
+		    sizeY: 500
                 }
             }
         }
@@ -179,6 +258,12 @@ const createTables = async(restaurantId) => {
     }
 }
 
+Date.prototype.addDays = function(days) {
+    var date = new Date(this.valueOf());
+    date.setDate(date.getDate() + days);
+    return date;
+}
+
 const createAppointments = async(restaurantId, tableId, tableCount) => {
 
     const appointmentCount = faker.datatype.number({min: 20, max: 40})
@@ -186,6 +271,8 @@ const createAppointments = async(restaurantId, tableId, tableCount) => {
     for(let i = 0; i < appointmentCount; ++i) {
 
         const now = new Date()
+	const time = now.addDays(i).toISOString()
+	console.log(time, time.slice(0,10))
 
         await Appointment.collection.bulkWrite([
             {
@@ -194,8 +281,8 @@ const createAppointments = async(restaurantId, tableId, tableCount) => {
                         RestaurantId: restaurantId,
                         TableId: tableId,
                         peopleCount: faker.datatype.number({min: 1, max: tableCount}),
-                        day: new Date(new Date(now.setDate(now.getDate() + i))).toISOString().slice(0, 10),
-                        time: new Date(new Date(now.setDate(now.getDate() + i))).toISOString(), 
+                        day: time.slice(0, 10),
+                        time: time,
                         code: "1234",
                         email: `guest${i}@gmail.com`
                     }

@@ -30,7 +30,7 @@ app.options('*', cors(corsConfig))
 //app.use(express.static(path.join(__dirname, 'public')))
 
 app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "http://192.168.31.160:3000")
+    res.header("Access-Control-Allow-Origin", "http://192.168.31.161:3000")
     res.header('Access-Control-Allow-Credentials', true);
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
@@ -56,6 +56,8 @@ app.use('/api/tables', tablesRouter)
 app.use('/api/menu', menuRouter)
 app.use('/api/invoices', invoicesRouter)
 app.use('/api/informations', informationsRouter)
-app.use('/public/', [authenticateAccessToken, authenticateFilePermission, express.static("public")])
+//app.use('/public/backgrounds', express.static("public"))
+app.use('/public/invoices', [authenticateAccessToken, authenticateFilePermission, express.static("public")])
+
 
 module.exports = app

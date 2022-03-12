@@ -25,7 +25,7 @@ async function createInvoice(invoice, path, invoiceId, restaurantId, email, call
     doc.pipe(writeStream);
 }
 
-async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email, peopleCount) {
+async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email, peopleCount, callback) {
     let doc = new PDFDocument({ size: "A4", margin: 50 });
     
     console.log(peopleCount)
@@ -38,13 +38,18 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
         if(i !== peopleCount - 1)
             doc.addPage()
     }
-    
+
+
+    await Invoice.create({email: email, RestaurantId: restaurantId, invoiceName: path, date: new Date().toISOString()})
+
+    doc.on('end', async() => {
+	await callback()
+    })
+
     doc.flushPages()
     doc.end();
     doc.pipe(fs.createWriteStream('public/invoices/' + path));
 
-    await Invoice.create({email: email, RestaurantId: restaurantId, invoiceName: path, date: new Date().toISOString()})
-    
     return doc
 }
 

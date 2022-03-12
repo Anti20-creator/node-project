@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "jest",
-    "start": "nodemon server.js",
+    "start": "redis-server --daemonize yes --protected-mode no && nodemon server.js",
     "populate": "node populate/index.js"
   },
   "keywords": [],
@@ -31,7 +31,7 @@
     "kill-port": "^1.6.1",
     "mocha": "^9.0.0",
     "mongoose": "^5.12.13",
-    "node-blob": "^0.0.2",
+    "multer": "^1.4.4",
     "node-fetch": "^3.2.0",
     "nodemailer": "^6.6.1",
     "nodemon": "^2.0.15",
