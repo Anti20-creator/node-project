@@ -24,8 +24,10 @@ const InformationsModel = new mongoose.Schema({
         type: Array,
         default: []
     },
-    timeBeforeLastAppointment: {
-        type: Number
+    currency: {
+	type: String,
+	enum: ['USD', 'EUR', 'HUF'],
+	default: 'HUF'
     }
 })
 

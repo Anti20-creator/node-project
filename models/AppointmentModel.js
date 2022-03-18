@@ -13,13 +13,8 @@ const AppointmentModel = new mongoose.Schema({
         type: Number,
         required: true
     },
-    day: {
-        type: String,
-        required: true
-    },
-    time: {
-        type: String,
-        required: true
+    date: {
+	type: Date
     },
     code: {
         type: String,
@@ -27,11 +22,16 @@ const AppointmentModel = new mongoose.Schema({
     },
     email: {
 	    type: String
+    },
+    confirmed: {
+	type: Boolean,
+	default: false
     }
 })
 
 const appointmentMongooseModel = mongoose.model('Appointment', AppointmentModel)
 
-appointmentMongooseModel.collection.createIndex( { RestaurantId: 1, TableId: 1, day: 1 }, { unique: true, sparse: false } )
+appointmentMongooseModel.collection.dropIndexes()
+//appointmentMongooseModel.collection.createIndex( { RestaurantId: 1, TableId: 1, day: 1 }, { unique: true, sparse: false } )
 
 module.exports = appointmentMongooseModel

@@ -188,6 +188,7 @@ router.post('/login', async(req, res) => {
     let userData = null
 
     const user = UserModel.findOne({email: email}, (err, data) => {
+	console.log(data)
         /* Case: User existst with the given email */
         if(!err && data) {
 
@@ -214,15 +215,11 @@ router.get('/getdata', authenticateAccessToken, async(req, res) => {
 
     const user = req.user
 
-    UserModel.findOne({_id: user.userId}, (err, data) => {
-        if(err){
-            Httpresponse.Unauthorized(res, err)
-        }else{
-            res.status(200).send({
-                email: data.email
-            })
-        }
-    })
+    const data = await UserModel.findOne({_id: user.userId}).exec()
+    if(!data)
+	return Httpresponse.Unauthorized(res, "Unathorized!")
+
+    return Httpresponse.OK(res, data.email)
 })
 
 router.get('/is-admin', authenticateAccessToken, async(req, res) => {
@@ -238,19 +235,17 @@ router.get('/is-admin', authenticateAccessToken, async(req, res) => {
 
 router.post('/refresh-token', authenticateRefreshToken, async(req, res) => {
 
-    const user = req.user;
+    const user = req.user
+    console.log(user)
 
-    UserModel.findOne({_id: user.userId}, (err, data) => {
-        if(err){
-            Httpresponse.Unauthorized(res, "Failed to refresh token")
-        }else{
+    const dbUser = await UserModel.findOne({_id: user.userId}).exec()
+    if(!dbUser) {
+	return Httpresponse.Unauthorized(res, "Failed to refresh token")
+    }
 
-            const accessToken = Tokens.generateAccessToken(data)
-
-            res.cookie('Authorization', 'Bearer '.concat(accessToken), {httpOnly: false, sameSite: 'none', path: '/', secure: true})
-            Httpresponse.OK(res, accessToken)
-        }
-    })
+    const accessToken = Tokens.generateAccessToken(dbUser)
+    res.cookie('Authorization', 'Bearer '.concat(accessToken), {httpOnly: false, sameSite: 'none', path: '/', secure: true})
+    return Httpresponse.OK(res, accessToken)
 })
 
 router.post('/update-rank', authenticateAdminAccessToken, async (req, res) => {
@@ -282,7 +277,7 @@ router.post('/update-rank', authenticateAdminAccessToken, async (req, res) => {
             isAdmin: false
         })
     }
-    
+
     return Httpresponse.OK(res, "User's role has been changed!")
 })
 
@@ -295,8 +290,11 @@ router.get('/logout', async(req, res) => {
 router.delete('/delete', authenticateOwnerAccessToken, async(req, res) => {
 
     const { email } = req.body
-    
+
     console.log(email)
+    if(req.user.email === email) {
+	return Httpresponse.BadRequest(res, "You can't remove yourself!")
+    }
     await UserModel.deleteOne({email}).exec()
 
     return Httpresponse.OK(res, "User has been removed!")

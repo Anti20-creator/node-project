@@ -5,6 +5,7 @@ class Tokens {
 
     static generateAccessToken(data) {
 
+	console.log(data)
         return jwt.sign({
             userId: data._id,
             isAdmin: data.isAdmin,

@@ -356,7 +356,7 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
 	        await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
 
             console.log('IDŐPONT MENTVE')
-        	return Httpresponse.Created(res, pinCode)
+        	return Httpresponse.Created(res, appointment)
 	}catch(e) {
 		console.log(e.message)
 	}
@@ -375,6 +375,7 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
 router.post('/search-tables', async(req, res) => {
 
     let resultTables = []
+    console.log('Searching tables')
 
     try {
 

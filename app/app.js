@@ -10,7 +10,7 @@ const jwt = require('jsonwebtoken')
 
 /* Importing routers */
 const usersRouter = require('../routers/users')
-const appointmentsRouter = require('../routers/appointment')
+const appointmentsRouter = require('../routers/appointment2')
 const layoutsRouter = require('../routers/layout')
 const tablesRouter = require('../routers/tables')
 const menuRouter = require('../routers/menu')
@@ -32,10 +32,19 @@ app.options('*', cors(corsConfig))
 app.use(function(req, res, next) {
     res.header("Access-Control-Allow-Origin", "http://192.168.31.161:3000")
     res.header('Access-Control-Allow-Credentials', true);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
     next()
 })
+
+app.use(async (err, req, res, next) => {
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    return res.status(400).send({success: false, message: "Request failed..."})
+});
+
 app.get('/', (req, res) => {
 	for(let i = 0; i < 1e8; ++i) {}
     res.send('Hello')

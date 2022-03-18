@@ -17,9 +17,13 @@ cluster.schedulingPolicy = cluster.SCHED_RR
 if (cluster.isMaster) {
   console.log(`Primary ${prcs.pid} is running`);
   // Fork workers.
-  for (let i = 0; i < 1; i++) {
+  for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }
+
+  cluster.on('exit', (worker, code, signal) => {
+	cluster.fork()
+  })
 
 } else {
   const corsConfig = {

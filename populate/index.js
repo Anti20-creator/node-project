@@ -266,13 +266,15 @@ Date.prototype.addDays = function(days) {
 
 const createAppointments = async(restaurantId, tableId, tableCount) => {
 
-    const appointmentCount = faker.datatype.number({min: 20, max: 40})
+    const appointmentCount = faker.datatype.number({min: 60, max: 100})
 
     for(let i = 0; i < appointmentCount; ++i) {
 
-        const now = new Date()
-	const time = now.addDays(i).toISOString()
-	console.log(time, time.slice(0,10))
+	const from = (new Date().addDays(2))
+        const until = (new Date().addDays(35))
+        const time = faker.date.between(from, until)
+	time.setSeconds(0)
+	time.setMilliseconds(0)
 
         await Appointment.collection.bulkWrite([
             {
@@ -281,10 +283,10 @@ const createAppointments = async(restaurantId, tableId, tableCount) => {
                         RestaurantId: restaurantId,
                         TableId: tableId,
                         peopleCount: faker.datatype.number({min: 1, max: tableCount}),
-                        day: time.slice(0, 10),
-                        time: time,
+                        date: time,
                         code: "1234",
-                        email: `guest${i}@gmail.com`
+                        email: faker.random.word() + '@gmail.com',
+			confirmed: faker.datatype.boolean()
                     }
                 }
             }

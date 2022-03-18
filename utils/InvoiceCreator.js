@@ -6,33 +6,61 @@ const Restaurant   = require('../models/RestaurantModel')
 const Invoice      = require('../models/InvoiceModel')
 
 async function createInvoice(invoice, path, invoiceId, restaurantId, email, callback) {
-    
+
     let doc = new PDFDocument({ size: "A4", margin: 50 });
     const writeStream = fs.createWriteStream('public/invoices/' + path);
-    
-    await generateHeader(doc, invoiceId, restaurantId);
-    generateInvoiceTable(doc, invoice);
+    const restaurant = await Restaurant.findById(restaurantId).exec()
+    const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
+    let currency = ''
+    switch(informations.currency) {
+	case 'EUR':
+		currency = '€'
+		break
+	case 'USD':
+		currency = '$'
+		break
+	case 'HUF':
+		currency = 'Ft'
+		break
+    }
+
+    await generateHeader(doc, invoiceId, restaurantId, restaurant, informations);
+    generateInvoiceTable(doc, invoice, 1, currency)
     generateFooter(doc);
 
-    
     await Invoice.create({email: email, RestaurantId: restaurantId, invoiceName: path, date: new Date().toISOString()})
-    
+
     doc.on('end', async() => {
         await callback()
     })
-    
+
     doc.end();
     doc.pipe(writeStream);
 }
 
 async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email, peopleCount, callback) {
     let doc = new PDFDocument({ size: "A4", margin: 50 });
-    
+
     console.log(peopleCount)
+    const restaurant = await Restaurant.findById(restaurantId).exec()
+    const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
+    let currency = ''
+    switch(informations.currency) {
+	case 'EUR':
+		currency = '€'
+		break
+	case 'USD':
+		currency = '$'
+		break
+	case 'HUF':
+		currency = 'Ft'
+		break
+    }
+
     for(let i = 0; i < peopleCount; ++i) {
         console.log('new page')
-        await generateHeader(doc, invoiceId, restaurantId);
-        generateInvoiceTable(doc, invoice, peopleCount);
+        await generateHeader(doc, invoiceId, restaurantId, restaurant, informations);
+        generateInvoiceTable(doc, invoice, peopleCount, currency);
         generateFooter(doc);
 
         if(i !== peopleCount - 1)
@@ -53,10 +81,8 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
     return doc
 }
 
-async function generateHeader(doc, invoiceId, restaurantId) {
+async function generateHeader(doc, invoiceId, restaurantId, restaurant, informations) {
     doc.font("Helvetica");
-    const restaurant = await Restaurant.findById(restaurantId).exec()
-    const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
     doc
         .fillColor("#444444")
         .fontSize(20)
@@ -66,9 +92,9 @@ async function generateHeader(doc, invoiceId, restaurantId) {
         .text(invoiceId, 150, 50)
         .text("Dátum:", 50, 65)
         .text(formatDate(new Date()), 150, 65)
-        .text(`${restaurant.restaurantName}`, 200, 50, { align: "right" })
-        .text(`${informations.address}`, 200, 65, { align: "right" })
-        .text(`${informations.postalCode} ${informations.city}`, 200, 80, { align: "right" })
+        .text(`${restaurant.restaurantName ?? ''}`, 200, 50, { align: "right" })
+        .text(`${informations.address ?? ''}`, 200, 65, { align: "right" })
+        .text(`${informations.postalCode ?? ''} ${informations.city ?? ''}`, 200, 80, { align: "right" })
         .moveDown();
 
     doc
@@ -77,7 +103,7 @@ async function generateHeader(doc, invoiceId, restaurantId) {
         .text("Invoice", 50, 160, {align: 'center'});
 }
 
-function generateInvoiceTable(doc, items, divisor=1) {
+function generateInvoiceTable(doc, items, divisor=1, currency) {
     const invoiceTableTop = 230;
 
     doc.font("Helvetica-Bold");
@@ -94,22 +120,27 @@ function generateInvoiceTable(doc, items, divisor=1) {
     doc.font("Helvetica");
 
     let i = 0;
+    let offset = 0
     for (const item of items) {
-        const position = invoiceTableTop + (i + 1) * 30;
+        const position = invoiceTableTop + (i + 1) * 30 + offset;
         generateTableRow(
             doc,
             position,
             item.name,
-            formatCurrency(item.price),
+            formatCurrency(item.price, currency),
             item.quantity,
-            formatCurrency(item.quantity * item.price)
+            formatCurrency(item.quantity * item.price, currency)
         );
-
-        generateHr(doc, position + 20);
+	if(item.name.length >= 65) {
+		generateHr(doc, position + 30);
+		offset += 10
+	}else{
+		generateHr(doc, position + 20);
+	}
         i++
     }
 
-    const subtotalPosition = invoiceTableTop + (i + 1) * 30;
+    const subtotalPosition = invoiceTableTop + (i + 1) * 30 + offset;
     doc.font("Helvetica-Bold");
     generateTableRow(
         doc,
@@ -117,7 +148,7 @@ function generateInvoiceTable(doc, items, divisor=1) {
         "",
         "Összesen",
         "",
-        formatCurrency((items.reduce((part, item) => part + item.price * item.quantity, 0)) / divisor )
+        formatCurrency((items.reduce((part, item) => part + item.price * item.quantity, 0)) / divisor, currency)
     );
 
 }
@@ -143,7 +174,7 @@ function generateTableRow(
 ) {
     doc
         .fontSize(10)
-        .text(item, 50, y)
+        .text(item, 50, y, {width: 290})
         .text(unitCost, 280, y, { width: 90, align: "right" })
         .text(quantity, 370, y, { width: 90, align: "right" })
         .text(lineTotal, 0, y, { align: "right" });
@@ -158,8 +189,11 @@ function generateHr(doc, y) {
         .stroke();
 }
 
-function formatCurrency(forints) {
-    return Number(forints).toFixed(2).toString() + ' Ft'
+function formatCurrency(forints, currency) {
+    if(currency === 'Ft')
+    	return Number(forints).toFixed(0).toString() + ' ' + currency
+
+    return Number(forints).toFixed(2).toString() + ' ' + currency
 }
 
 function formatDate(date) {

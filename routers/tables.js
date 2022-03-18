@@ -79,11 +79,17 @@ router.post('/order', authenticateAccessToken, async(req, res) => {
     if (index === -1) {
 	table.liveOrders = [ ...table.liveOrders.concat([item]) ]
     }else{
-	table.liveOrders[index].quantity += 1
+	const quantityBefore = table.liveOrders[index].quantity
+	table.liveOrders[index].set("quantity", quantityBefore + 1)
+	table.markModified('liveOrders')
     }
-
-    await table.save()
-    req.app.get('socketio').to('table:' + tableId).emit('order-added', item, socketId)
+    try {
+    	await table.save()
+    	req.app.get('socketio').to('table:' + tableId).emit('order-added', item, socketId)
+    }catch(e){
+	console.log(e)
+	return Httpresponse.BadRequest(res, "Not ok")
+    }
 
     return Httpresponse.Created(res, "Orders added!")
 })
@@ -115,6 +121,7 @@ router.post('/increase-order', authenticateAccessToken, async(req, res) => {
 
     table.liveOrders.find(item => item.name === name).quantity += 1
 
+    table.markModified('liveOrders')
     await table.save()
     req.app.get('socketio').to('table:' + tableId).emit('increase-order', name, socketId)
 
@@ -134,6 +141,7 @@ router.post('/decrease-order', authenticateAccessToken, async(req, res) => {
 	table.liveOrders = table.liveOrders.filter(item => item.name !== name)
     }else{
 	table.liveOrders.find(item => item.name === name).quantity -= 1
+	table.markModified('liveOrders')
     }
 
     await table.save()
