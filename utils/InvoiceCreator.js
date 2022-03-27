@@ -100,7 +100,7 @@ async function generateHeader(doc, invoiceId, restaurantId, restaurant, informat
     doc
         .fillColor("#444444")
         .fontSize(20)
-        .text("Invoice", 50, 160, {align: 'center'});
+        .text("Számla", 50, 160, {align: 'center'});
 }
 
 function generateInvoiceTable(doc, items, divisor=1, currency) {

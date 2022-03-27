@@ -158,10 +158,12 @@ router.post('/update', authenticateAdminAccessToken, upload.single('image'), asy
     if(!layout) {
 	return Httpresponse.NotFound(res, "No tables found!")
     }
-
+    console.log(deleteImage)
+    console.log(deleteImage === 'true')
+    console.log(deleteImage === true)
     if((sentImage == 'true' && layout.backgroundImage && layout.backgroundImage.split('.').length > 1 && layout.backgroundImage.split('.').pop() !== extName) || deleteImage == 'true') {
 	try {
-	     fs.unlinkSync(path.join(__dirname, '/../public/backgrounds/', layout.backgroundImage))
+	     fs.rmSync(path.join(__dirname, '/../public/backgrounds/', layout.backgroundImage))
 	}catch(e) {}
 
     }

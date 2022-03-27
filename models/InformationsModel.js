@@ -22,7 +22,10 @@ const InformationsModel = new mongoose.Schema({
     },
     openingTimes: {
         type: Array,
-        default: []
+        default: Array.from(Array(7)).map(() => {return {
+		"open": {"hours": 0, "minutes": 0},
+		"close": {"hours": 24, "minutes": 0}
+	}})
     },
     currency: {
 	type: String,

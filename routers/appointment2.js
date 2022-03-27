@@ -57,6 +57,10 @@ router.post('/book', async(req, res) => {
         if(!table) {
             return Httpresponse.NotFound(res, "Given table not found!")
         }
+
+	if(table.tableCount < peopleCount) {
+	    return Httpresponse.BadRequest(res, "Not enough seats!")
+	}
     }
 
     console.time()
@@ -88,11 +92,17 @@ router.post('/book', async(req, res) => {
 
 router.post('/booking-conflicts', authenticateAccessToken, async(req, res) => {
 
-    const { date, tableId } = req.body
+    const { date, tableId, peopleCount } = req.body
     const startDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() - 3_600_000 * 12)
     const endDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() + 3_600_000 * 12)
-    console.log(startDate)
-    console.log(endDate)
+
+    const table = await Table.findById(tableId).exec()
+    if(!table) {
+	return Httpresponse.NotFound(res, "No table found!")
+    }
+    if(table.tableCount < peopleCount) {
+	return Httpresponse.BadRequest(res, "Not enough seats!")
+    }
 
     const optionalConflicts = await Appointment.collection.find({
         RestaurantId: {
@@ -113,6 +123,42 @@ router.post('/booking-conflicts', authenticateAccessToken, async(req, res) => {
     return Httpresponse.OK(res, optionalConflicts)
 })
 
+router.post('/search-tables', async(req, res) => {
+
+    const { date, peopleCount, restaurantId } = req.body
+    const startDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() - 3_600_000 * 12)
+    const endDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() + 3_600_000 * 12)
+
+    const tables = await Table.find({RestaurantId: restaurantId}).exec()
+    const resultIds = []
+
+    for (const table of tables) {
+	    const tableId = table._id
+	    const optionalConflicts = await Appointment.collection.find({
+	        RestaurantId: {
+	            $eq: restaurantId,
+	        },
+	        TableId: {
+	            $eq: tableId
+	        },
+	        date: {
+	            $gt: startDate,
+	            $lt: endDate
+	        },
+		confirmed: {
+		    $eq: true
+		}
+	    }).toArray()
+            if(optionalConflicts.length === 0) {
+		resultIds.push(tableId)
+	    }
+
+    }
+
+    return Httpresponse.OK(res, resultIds)
+
+})
+
 router.put('/accept-appointment', authenticateAccessToken, async(req, res) => {
 
     const {accept, appointmentId, tableId} = req.body
@@ -121,10 +167,12 @@ router.put('/accept-appointment', authenticateAccessToken, async(req, res) => {
         return Httpresponse.OK("Missing parameters!")
     }
 
+    console.log('ACCEPT:', tableId)
+
     if(accept) {
         await Appointment.findByIdAndUpdate(appointmentId, {
             confirmed: true,
-            tableId: tableId
+            TableId: tableId
         })
     }else{
         await Appointment.findByIdAndDelete(appointmentId)
@@ -183,5 +231,77 @@ router.delete('/delete-appointment/:id', authenticateAccessToken, async(req, res
 
     return Httpresponse.OK(res, "Appointment deleted!")
 })
+
+router.post('/book-for-guest', authenticateAccessToken, async(req, res) => {
+
+    const { email, date, tableId, peopleCount } = req.body
+
+    if(!email || !date || !tableId || !peopleCount) {
+        return Httpresponse.BadRequest(res, "Missing parameters!")
+    }
+
+    const formattedDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset())
+    if(formattedDate.getTime() < new Date().getTime()) {
+        return Httpresponse.BadRequest(res, "You can't book for the past!")
+    }
+
+    // Check if given table exists
+    if(tableId !== 'any') {
+        const table = await Table.findOne({ RestaurantId: req.user.restaurantId, _id: tableId }).exec()
+        if(!table) {
+            return Httpresponse.NotFound(res, "Given table not found!")
+        }
+
+	if(table.tableCount < peopleCount) {
+	    return Httpresponse.BadRequest(res, "Not enough seats!")
+	}
+    }
+
+    console.time()
+    const informations = await Informations.findOne({ RestaurantId: req.user.restaurantId }).exec()
+    console.timeEnd()
+    const isOpen = checkRestaurantOpen(informations, formattedDate)
+    if(!isOpen) {
+        return Httpresponse.BadRequest(res, "Restaurant is closed!")
+    }
+
+    const pinCode = createPin()
+    const appointment = new Appointment({
+        RestaurantId: req.user.restaurantId,
+        TableId: tableId,
+        date: formattedDate,
+        peopleCount: peopleCount,
+        code: pinCode,
+        email: email,
+        confirmed: true
+    })
+    await appointment.save()
+
+    //await removed
+    sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
+
+    return Httpresponse.Created(res, appointment)
+
+})
+
+router.post('/is-open', async(req, res) => {
+
+    const {date, restaurantId} = req.body
+
+    const formattedDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset())
+    if(formattedDate.getTime() < new Date().getTime()) {
+        return Httpresponse.BadRequest(res, "You can't book for the past!")
+    }
+
+    const informations = await Informations.findOne({ RestaurantId: restaurantId }).exec()
+    const isOpen = checkRestaurantOpen(informations, formattedDate)
+    if(!isOpen) {
+        return Httpresponse.BadRequest(res, "Restaurant is closed!")
+    }else{
+	return Httpresponse.OK(res, "Restaurant is open!")
+    }
+
+})
+
 
 module.exports = router

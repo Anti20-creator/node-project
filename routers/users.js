@@ -3,7 +3,7 @@ const express      = require('express')
 const nodemailer   = require('nodemailer')
 const jwt          = require('jsonwebtoken')
 const router       = express.Router()
-
+require('dotenv').config()
 const UserModel    = require('../models/UserModel')
 const Layout       = require('../models/LayoutModel')
 const Menu         = require('../models/MenuModel')
@@ -15,6 +15,12 @@ const Tokens       = require('../utils/TokenFunctions')
 const {authenticateRefreshToken, authenticateAccessToken, authenticateAdminAccessToken, authenticateOwnerAccessToken} = require("../middlewares/auth")
 const {sendMail}  = require("../utils/EmailSender")
 const crypto      = require('crypto')
+
+router.get('/restaurant-id', authenticateAccessToken, (req, res) => {
+
+	return Httpresponse.OK(res, req.user.restaurantId)
+
+})
 
 router.post('/register-admin', async (req, res) => {
 
@@ -51,7 +57,7 @@ router.post('/register-admin', async (req, res) => {
                 ownerEmail: email,
                 ownerId: document._id,
                 restaurantName: restaurantName,
-                secretPin: crypto.randomBytes(5).toString('hex')
+                secretPin: process.env.PRODUCTION === '0' ? '1234' : crypto.randomBytes(5).toString('hex')
             })
 
             await document.updateOne({

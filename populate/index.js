@@ -291,8 +291,29 @@ const createAppointments = async(restaurantId, tableId, tableCount) => {
                 }
             }
         ])
-
     }
+
+    const from = (new Date().addDays(2))
+    const until = (new Date().addDays(35))
+    const time = faker.date.between(from, until)
+    time.setSeconds(0)
+    time.setMilliseconds(0)
+
+    await Appointment.collection.bulkWrite([
+            {
+                insertOne: {
+                    document: {
+                        RestaurantId: restaurantId,
+                        TableId: 'any',
+                        peopleCount: faker.datatype.number({min: 1, max: 8}),
+                        date: time,
+                        code: "1234",
+                        email: faker.random.word() + '@gmail.com',
+			confirmed: false
+                    }
+                }
+            }
+    ])
 
 
 }
