@@ -20,7 +20,7 @@ function createPin() {
     return pin
 }
 
-router.post('/book', async(req, res) => {
+router.post('/book', catchErrors(async(req, res) => {
 
     try {
 
@@ -160,9 +160,9 @@ router.post('/book', async(req, res) => {
     }catch (e) {
         return Httpresponse.BadRequest(res, e.message)
     }
-})
+}))
 
-router.delete('/disclaim', async(req, res) => {
+router.delete('/disclaim', catchErrors(async(req, res) => {
 
     const { date, tableId, restaurantId, pin } = req.body;
 
@@ -189,17 +189,17 @@ router.delete('/disclaim', async(req, res) => {
     await appointment.deleteOne();
     return Httpresponse.OK(res, "Your appointment has been deleted!")
 
-})
+}))
 
-router.get('/', authenticateAccessToken, async(req, res) => {
+router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const appointments = await Appointment.find({ RestaurantId: req.user.restaurantId })
 
     return Httpresponse.OK(res, appointments)
 
-})
+}))
 
-router.delete('/delete-appointment/:id', authenticateAccessToken, async(req, res) => {
+router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const appointment = await Appointment.findById(req.params.id).exec()
 
@@ -212,9 +212,9 @@ router.delete('/delete-appointment/:id', authenticateAccessToken, async(req, res
 
     return Httpresponse.OK(res, "Appointment deleted!")
 
-})
+}))
 
-router.post('/find-tables', authenticateAccessToken, async(req, res) => {
+router.post('/find-tables', authenticateAccessToken, catchErrors(async(req, res) => {
 
     try {
 
@@ -370,9 +370,9 @@ router.post('/find-tables', authenticateAccessToken, async(req, res) => {
 
     return Httpresponse.NotFound(res, "No available tables found!") 
 
-})
+}))
 
-router.post('/search-tables', async(req, res) => {
+router.post('/search-tables', catchErrors(async(req, res) => {
 
     let resultTables = []
     console.log('Searching tables')
@@ -511,7 +511,7 @@ router.post('/search-tables', async(req, res) => {
 
     return Httpresponse.OK(res, resultTables) 
 
-})
+}))
 
 
 

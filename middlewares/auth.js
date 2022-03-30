@@ -33,7 +33,6 @@ function authenticateAdminAccessToken (req, res, next) {
 
 async function authenticateOwnerAccessToken (req, res, next) {
     const validate = await Tokens.validateOwnerAccessToken(req)
-    console.log(validate)
     if(validate) {
         req.user = validate
         next();

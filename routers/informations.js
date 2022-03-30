@@ -1,56 +1,38 @@
-const express = require('express')
+const express                                                 = require('express')
+const router                                                  = express.Router()
+const Httpresponse                                            = require('../utils/ErrorCreator')
+const InformationsController                                  = require('../controller/informationsController')
 const {authenticateAccessToken, authenticateAdminAccessToken} = require("../middlewares/auth");
-const router = express.Router()
-const path = require('path')
+const { catchErrors }                                         = require('../utils/ErrorHandler')
 
-const Httpresponse = require('../utils/ErrorCreator')
-const Informations = require('../models/InformationsModel')
+router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 
-router.get('/', authenticateAccessToken, async(req, res) => {
-
-    const infos = await Informations.findOne({RestaurantId: req.user.restaurantId}).exec()
-
-    if(!infos) {
-        return Httpresponse.NotFound(res, "No informations found!")
-    }
+    const infos = await InformationsController.findByAuth(res, req.user.restaurantId)
 
     return Httpresponse.OK(res, {...infos._doc, openingTimes: infos.openingTimes.map(data => data.open.hours + ':' + data.open.minutes + '-' + data.close.hours + ':' + data.close.minutes)})
+}))
 
-})
+router.get('/currency', authenticateAccessToken, catchErrors(async(req, res) => {
 
-router.get('/currency', authenticateAccessToken, async(req, res) => {
-
-    const infos = await Informations.findOne({RestaurantId: req.user.restaurantId}).exec()
-
-    if(!infos) {
-	return Httpresponse.NotFound(res, "No informations found!")
-    }
+    const infos = await InformationsController.findByAuth(res, req.user.restaurantId)
 
     if(infos.currency === 'USD') infos.currency = '$'
     if(infos.currency === 'EUR') infos.currency = '€'
     if(infos.currency === 'HUF') infos.currency = 'Ft'
 
     return Httpresponse.OK(res, infos.currency)
+}))
 
-})
+router.post('/update', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-router.post('/update', authenticateAccessToken, async(req, res) => {
+    const {taxNumber, address, city, postalCode, phoneNumber, openingTimes, currency} = RequestValidator.destructureBody(req, res, {taxNumber: 'string', address: 'string', city: 'string', postalCode: 'string', phoneNumber: 'string', openingTimes: 'object', currency: 'string'})
 
-    const {taxNumber, address, city, postalCode, phoneNumber, openingTimes, currency} = req.body
-
-    const infos = await Informations.findOne({RestaurantId: req.user.restaurantId}).exec()
-
-    if(!infos) {
-        return Httpresponse.NotFound(res, "No informations found!")
-    }
-
-    console.log(req.body)
-    await infos.updateOne({
-        taxNumber, address, city, postalCode, phoneNumber, openingTimes, currency
-    })
+    const infos = await InformationsController.findByAuth(res, req.user.restaurantId)
+    infos.taxNumber = taxNumber; infos.address = address; infos.city = city; infos.postalCode = postalCode; infos.phoneNumber = phoneNumber; infos.openingTimes = openingTimes; infos.currency = currency;
+    
+    await infos.save()
 
     return Httpresponse.OK(res, "Updated!")
-
-})
+}))
 
 module.exports = router

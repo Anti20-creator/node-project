@@ -5,7 +5,6 @@ class Tokens {
 
     static generateAccessToken(data) {
 
-	console.log(data)
         return jwt.sign({
             userId: data._id,
             isAdmin: data.isAdmin,
@@ -91,7 +90,6 @@ class Tokens {
             if(err) {
                 return false
             }else{
-                console.log(decoded)
                 if(decoded.isAdmin) {
                     const restaurant = await Restaurant.findOne({ownerId: decoded.userId}).exec()
                     if(restaurant) {

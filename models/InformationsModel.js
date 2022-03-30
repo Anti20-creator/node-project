@@ -36,6 +36,9 @@ const InformationsModel = new mongoose.Schema({
 
 const informationsMongooseModel = mongoose.model('Information', InformationsModel)
 
-informationsMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
+/*try {
+    informationsMongooseModel.collection.dropIndexes()
+    informationsMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
+}catch(e) {}*/
 
 module.exports = informationsMongooseModel

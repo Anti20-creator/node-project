@@ -22,7 +22,7 @@ if (cluster.isMaster) {
   }
 
   cluster.on('exit', (worker, code, signal) => {
-	cluster.fork()
+	  cluster.fork()
   })
 
 } else {

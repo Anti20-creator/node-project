@@ -31,6 +31,9 @@ const Restaurant = new mongoose.Schema({
 
 const restaurantMongooseModel = mongoose.model('Restaurant', Restaurant)
 
-restaurantMongooseModel.collection.createIndex( { ownerId: 1 }, { unique: true } )
+/*try {
+    restaurantMongooseModel.collection.dropIndexes()
+    restaurantMongooseModel.collection.createIndex( { ownerId: 1 }, { unique: true } )
+}catch(e) {}*/
 
 module.exports = restaurantMongooseModel

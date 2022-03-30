@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
-const Restaurant = require('./RestaurantModel')
 
 const User = new mongoose.Schema({
     email: {
@@ -42,7 +41,8 @@ const User = new mongoose.Schema({
                 return restaurant.length > 1
             },
             message: "Your email should be longer than one character!"
-        }
+        },
+        required: true
     },
     restaurantId: {
         type: String,
@@ -54,27 +54,15 @@ const User = new mongoose.Schema({
     }
 })
 
-/*
-* We need to store user's password as a hash
-* @library used for that: bcrypt
-* */
-
-User.pre('save', function async(next) {
-    try {
-        const salt = bcrypt.genSaltSync(10)
-        this.password = bcrypt.hashSync(this.password, salt)
-        next()
-    } catch(err) {
-        next(err)
-    }
-})
-
 User.methods.comparePassword = function(plainPass) {
     return bcrypt.compareSync(plainPass, this.password)
 }
 
 const userMongooseModel = mongoose.model('User', User)
 
-userMongooseModel.collection.createIndex( { email: 1 }, { unique: true } )
+/*try {
+    userMongooseModel.collection.dropIndexes()
+    //userMongooseModel.collection.createIndex( { email: 1 }, { unique: true } )
+}catch(e) {}*/
 
 module.exports = userMongooseModel

@@ -4,9 +4,8 @@ const bodyparser = require('body-parser')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
-const path = require('path')
 require('dotenv').config()
-const jwt = require('jsonwebtoken')
+const Httpresponse = require('../utils/ErrorCreator')
 
 /* Importing routers */
 const usersRouter = require('../routers/users')
@@ -17,6 +16,7 @@ const menuRouter = require('../routers/menu')
 const invoicesRouter = require('../routers/invoices')
 const informationsRouter = require('../routers/informations')
 const { authenticateAccessToken, authenticateFilePermission } = require('../middlewares/auth')
+const { catchErrors } = require('../utils/ErrorHandler')
 
 app.use(bodyparser.json())
 app.use(cookieParser())
@@ -37,14 +37,6 @@ app.use(function(req, res, next) {
     next()
 })
 
-app.use(async (err, req, res, next) => {
-    if (res.headersSent) {
-        return next(err);
-    }
-
-    return res.status(400).send({success: false, message: "Request failed..."})
-});
-
 app.get('/', (req, res) => {
 	for(let i = 0; i < 1e8; ++i) {}
     res.send('Hello')
@@ -58,6 +50,18 @@ mongoose.connection.on('error', (error) => {
     console.log('Error while connecting to DB...')
 })
 
+const random = (err, req, res, next) => {
+    console.log('random')
+    res.status(400).send({success: false, message: "Unexpected error"})
+}
+
+app.use(function errorHandler (err, req, res, next) {
+    if (res.headersSent) {
+      return next(err)
+    }
+    res.status(500)
+    res.render('error', { error: err })
+  });
 app.use('/api/users', usersRouter)
 app.use('/api/appointments', appointmentsRouter)
 app.use('/api/layouts', layoutsRouter)
@@ -65,8 +69,6 @@ app.use('/api/tables', tablesRouter)
 app.use('/api/menu', menuRouter)
 app.use('/api/invoices', invoicesRouter)
 app.use('/api/informations', informationsRouter)
-//app.use('/public/backgrounds', express.static("public"))
 app.use('/public/invoices', [authenticateAccessToken, authenticateFilePermission, express.static("public")])
-
 
 module.exports = app

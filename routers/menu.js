@@ -1,99 +1,71 @@
-const express = require('express')
-const router = express.Router()
-const Httpresponse = require('../utils/ErrorCreator')
-
-const Menu = require('../models/MenuModel')
+const express                   = require('express')
+const router                    = express.Router()
+const Httpresponse              = require('../utils/ErrorCreator')
+const RequestValidator          = require('../controller/bodychecker')
+const MenuController            = require('../controller/menuController')
 const {authenticateAccessToken} = require("../middlewares/auth");
+const { catchErrors }           = require('../utils/ErrorHandler')
 
-router.post('/add-category', authenticateAccessToken,async(req, res) => {
+router.post('/add-category', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { category, categoryIcon } = req.body
+    const { category, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', categoryIcon: 'string'})
 
-    if(!category) {
-        return Httpresponse.BadRequest(res, "One or more parameters are missing!")
+    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    if(!menu.items[category]) {
+        menu.items[category] = {}
     }
-    const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
+    menu.icons[category] = categoryIcon
 
-    const items = { ...menu.items }
-    const icons = { ...menu.icons }
+    menu.markModified('items')
+    menu.markModified('icons')
 
-    if(!items[category]) {
-        items[category] = {}
-    }
-    if(!icons[category]) {
-	    icons[category] = categoryIcon
-    }
-
-    await menu.updateOne({
-        items,
-	icons
-    }).exec()
+    await menu.save()
 
     return Httpresponse.Created(res, "Category added!")
-})
+}))
 
-router.post('/modify-category', authenticateAccessToken, async(req, res) => {
+router.post('/modify-category', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { category, oldCategory, categoryIcon } = req.body
+    const { category, oldCategory, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', oldCategory: 'string', categoryIcon: 'string'})
 
-    if(!category || !oldCategory) {
-        return Httpresponse.BadRequest(res, "One or more parameters are missing!")
-    }
-    const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
+    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
 
-    const items = { ...menu.items }
-    const icons = { ...menu.icons }
-
-    if(!items[oldCategory]) {
+    if(!menu.items[oldCategory]) {
         return Httpresponse.NotFound(res, "No category found to update!")
     }
 
     if(category !== oldCategory) {
-        items[category] = items[oldCategory]
-        delete(items[oldCategory])
+        menu.items[category] = menu.items[oldCategory]
+        delete(menu.items[oldCategory])
     }
 
-    icons[category] = categoryIcon
-
+    menu.icons[category] = categoryIcon
     if(category !== oldCategory) {
-        delete(icons[oldCategory])
+        delete(menu.icons[oldCategory])
     }
 
-    await menu.updateOne({
-        items: items,
-        icons: icons
-    }).exec()
+    await menu.save()
 
     return Httpresponse.OK(res, "Category updated!")
-})
+}))
 
 router.post('/modify-item', authenticateAccessToken, async(req, res) => {
 
-    const { name, amount, category, price, unit, oldName } = req.body
+    const { name, amount, category, price, unit, oldName } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string', oldName: 'string'})
 
-    if(!name || !amount || !category || !price || !unit || !oldName) {
-        return Httpresponse.BadRequest(res, "One or more parameters are missing!")
-    }
-    const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
+    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
 
-    const items = { ...menu.items }
-
-    if(!items[category] || !items[category][oldName]) {
+    if(!Object.keys(menu.items).includes(category) || !menu.items[category][oldName]) {
         return Httpresponse.NotFound(res, "No item found to update!")
     }
 
-    items[category][name] = {
-        unit,
-        amount,
-        price
-    }
+    menu.items[category][name] = { unit, amount, price }
+
     if(name !== oldName) {
-        delete(items[category][oldName])
+        delete(menu.items[category][oldName])
     }
 
-    await menu.updateOne({
-        items: items
-    }).exec()
+    await menu.save()
 
     return Httpresponse.OK(res, "Item modified!")
 })
@@ -101,87 +73,67 @@ router.post('/modify-item', authenticateAccessToken, async(req, res) => {
 
 router.post('/add-item', authenticateAccessToken, async(req, res) => {
 
-    const { name, amount, category, price, unit } = req.body
+    const { name, amount, category, price, unit } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string'})
 
-    if(!name || !amount || !category || !price || !unit) {
-        return Httpresponse.BadRequest(res, "One or more parameters are missing!")
-    }
-    const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
+    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const allFoodNames = MenuController.getAllFoodNames(menu)
 
-    const items = { ...menu.items }
-
-    if(items[category] && items[category][name]) {
-        return Httpresponse.Conflict(res, "There is already a product with that name on the menu!")
+    if(!Object.keys(menu.items).includes(category) || allFoodNames.includes(name)) {
+        return Httpresponse.Conflict(res, "There is already a product with that name on the menu or category don't exist!")
     }
 
-    items[category][name] = {
-        unit,
-        amount,
-        price
-    }
-
-    await menu.updateOne({
-        items
-    }).exec()
+    menu.items[category][name] = { unit, amount, price }
+    menu.markModified('items')
+    await menu.save()
 
     return Httpresponse.Created(res, "Item added!")
 })
 
 router.delete('/delete-category', authenticateAccessToken, async(req, res) => {
 
-    const { category } = req.body
-    const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
+    const { category } = RequestValidator.destructureBody(req, res, {category: 'string'})
+    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
 
     if(menu.items[category]) {
         delete(menu.items[category])
         delete(menu.icons[category])
+        menu.markModified('items')
+        menu.markModified('icons')
     }else{
         return Httpresponse.NotFound(res, "No item found with given parameters!")
     }
 
-    await menu.updateOne({
-        items: menu.items,
-        icons: menu.icons
-    })
+    await menu.save()
 
     return Httpresponse.OK(res, "Category deleted!")
-
 })
 
 router.delete('/delete-item', authenticateAccessToken, async(req, res) => {
 
-    const { name, category } = req.body
-    const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
+    const { name, category } = RequestValidator.destructureBody(req, res, {name: 'string', category: 'string'})
+    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
 
     if(menu.items[category] && menu.items[category][name]) {
         delete(menu.items[category][name])
+        menu.markModified('items')
     }else{
         return Httpresponse.NotFound(res, "No item found with given parameters!")
     }
 
-    await menu.updateOne({items: menu.items})
+    await menu.save()
 
     return Httpresponse.OK(res, "Item deleted!")
-
 })
 
 router.get('/categories', async(req, res) => {
-    const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
-
-    if(!menu) {
-        return Httpresponse.NotFound(res, "Menu not found!")
-    }
+    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
 
     return Httpresponse.OK(res, {icons: menu.icons})
 })
 
 router.get('/', authenticateAccessToken, async(req, res) => {
 
-    const menu = await Menu.findOne({RestaurantId: req.user.restaurantId}).exec()
-
-    if(!menu) {
-        return Httpresponse.NotFound(res, "Menu not found!")
-    }
+    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
 
     return Httpresponse.OK(res, menu)
 })
