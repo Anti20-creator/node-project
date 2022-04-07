@@ -10,6 +10,13 @@ const { createInvoiceName }               = require('../utils/invoiceName')
 const {createInvoice, createMultiInvoice} = require("../utils/InvoiceCreator");
 const { catchErrors }                     = require('../utils/ErrorHandler')
 
+router.get('/tables', authenticateAccessToken, catchErrors(async(req, res) => {
+    console.log('tables', req.user)
+    const tables = await TableController.getAll(req.user.restaurantId)
+
+    return Httpresponse.OK(res, tables)
+}))
+
 router.post('/book', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { tableId } = RequestValidator.destructureBody(req, res, {tableId: 'string'})
@@ -62,12 +69,10 @@ router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
         table.liveOrders[index].set("quantity", quantityBefore + 1)
         table.markModified('liveOrders')
     }
-    try {
-    	await table.save()
-    	req.app.get('socketio').to('table:' + tableId).emit('order-added', item, socketId)
-    }catch(e){
-        return Httpresponse.BadRequest(res, "Not ok")
-    }
+
+    await table.save()
+    console.log(process.env.PRODUCTION)
+    if (process.env.PRODUCTION != '0') req.app.get('socketio').to('table:' + tableId).emit('order-added', item, socketId)
 
     return Httpresponse.Created(res, "Orders added!")
 }))
@@ -212,12 +217,6 @@ router.post('/:tableId/split-equal', authenticateAccessToken, catchErrors(async(
 
         return Httpresponse.Created(res, invoicePrefix + '.pdf')
     })
-}))
-
-router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
-    const tables = await TableController.findAll(req.user.restaurantId)
-
-    return Httpresponse.OK(res, tables)
 }))
 
 module.exports = router

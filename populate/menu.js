@@ -1,5 +1,4 @@
 module.exports = menu = {
-
     'Levesek': {
         items: [
             'Marhahúsleves házi májgobmóccal',

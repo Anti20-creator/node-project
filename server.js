@@ -1,22 +1,28 @@
-const app = require('./app/app')
-const cors = require('cors')
-const port = process.env.PORT || 4001
-const https = require('https')
-const express = require('express')
-const fs = require('fs')
-const path = require('path')
-const { events } = require('./socket/events')
-const { Server } = require('socket.io')
-const cluster = require('cluster');
-const numCPUs = require('os').cpus().length;
-const prcs = require('process');
-const redisAdapter = require('socket.io-redis');
+const app               = require('./app/app')
+const cors              = require('cors')
+const port              = process.env.PORT || 4001
+const https             = require('https')
+const express           = require('express')
+const fs                = require('fs')
+const cron              = require('node-cron')
+const { events }        = require('./socket/events')
+const { Server }        = require('socket.io')
+const cluster           = require('cluster');
+const numCPUs           = require('os').cpus().length;
+const prcs              = require('process');
+const redisAdapter      = require('socket.io-redis');
+const InvoiceController = require('./controller/invoiceController')
 
 cluster.schedulingPolicy = cluster.SCHED_RR
 
 if (cluster.isMaster) {
   console.log(`Primary ${prcs.pid} is running`);
-  // Fork workers.
+
+  InvoiceController.sendReports()
+  /*cron.schedule('* 0 0 7 * *', () => {
+    console.log('running a task every minute');
+  });*/
+
   for (let i = 0; i < numCPUs; i++) {
     cluster.fork();
   }

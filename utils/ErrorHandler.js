@@ -1,6 +1,7 @@
 const Httpresponse = require('../utils/ErrorCreator')
 
 const catchErrors = action => (req, res, next) => action(req, res).catch((err) => {
+    console.log(err)
     switch(err.name) {
         case 'MissingFieldError': {
             return Httpresponse.BadRequest(res, err.message)

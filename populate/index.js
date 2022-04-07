@@ -1,7 +1,8 @@
-const menu = require('./menu')
+﻿const menu = require('./menu')
 require('dotenv').config()
 const mongoose = require('mongoose')
 const { faker } = require('@faker-js/faker')
+const bcrypt = require('bcrypt')
 
 const User        = require('../models/UserModel')
 const Restaurant  = require('../models/RestaurantModel')
@@ -87,12 +88,15 @@ const generateOpeningTime = () => {
 }
 
 const createAdmin = async(index) => {
+    const salt = bcrypt.genSaltSync(10)
+    const hashedPassword = bcrypt.hashSync("123456", salt)
+
     const user = await User.collection.bulkWrite([
         {
             insertOne: {
                 document: {
                     email: `admin${index}@gmail.com`,
-                    password: "123456",
+                    password: hashedPassword,
                     restaurantName: `Restaurant ${index}`,
                     fullName: `Admin ${index}`,
                     isAdmin: true
@@ -102,6 +106,7 @@ const createAdmin = async(index) => {
     ])
     const userId = user.insertedIds[0]
     const foundUser = await User.findById(userId).exec()
+
 
     const restaurant = await Restaurant.collection.bulkWrite([
         {
@@ -334,7 +339,7 @@ mongoose.connect(process.env.MONGODB_URI, {
     await Menu.deleteMany({}).exec()
     await Informations.deleteMany({}).exec()
     
-    for(let i = 0; i < 10; ++i) {
+    for(let i = 0; i < 20; ++i) {
         const restaurantId = await createAdmin(i)
         await createMenu(restaurantId).then(async () => {
             await createTables(restaurantId)
