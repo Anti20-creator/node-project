@@ -19,7 +19,7 @@ const destructureBody = (req, res, items) => {
     console.log(req.body)
     for (const key in items) {
         const bodyItem = req.body[key]
-        if(!bodyItem && typeof bodyItem !== 'boolean'){
+        if(bodyItem === undefined || bodyItem === null){
             throw new MissingFieldError(key + " not represented!")
         }
         if(typeof bodyItem !== items[key]) {

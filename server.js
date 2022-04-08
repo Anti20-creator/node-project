@@ -18,9 +18,9 @@ cluster.schedulingPolicy = cluster.SCHED_RR
 if (cluster.isMaster) {
   console.log(`Primary ${prcs.pid} is running`);
 
-  InvoiceController.sendReports()
+
   /*cron.schedule('* 0 0 7 * *', () => {
-    console.log('running a task every minute');
+    InvoiceController.sendReports()
   });*/
 
   for (let i = 0; i < numCPUs; i++) {

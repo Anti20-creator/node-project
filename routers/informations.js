@@ -4,6 +4,7 @@ const Httpresponse                                            = require('../util
 const InformationsController                                  = require('../controller/informationsController')
 const {authenticateAccessToken, authenticateAdminAccessToken} = require("../middlewares/auth");
 const { catchErrors }                                         = require('../utils/ErrorHandler')
+const RequestValidator                                        = require('../controller/bodychecker')
 
 router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 

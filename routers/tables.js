@@ -10,8 +10,7 @@ const { createInvoiceName }               = require('../utils/invoiceName')
 const {createInvoice, createMultiInvoice} = require("../utils/InvoiceCreator");
 const { catchErrors }                     = require('../utils/ErrorHandler')
 
-router.get('/tables', authenticateAccessToken, catchErrors(async(req, res) => {
-    console.log('tables', req.user)
+router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
     const tables = await TableController.getAll(req.user.restaurantId)
 
     return Httpresponse.OK(res, tables)

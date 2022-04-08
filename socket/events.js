@@ -74,7 +74,7 @@ const events = io => {
 	    const cookies = cookie.parse(socket.handshake.headers.cookie)
 	    const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId
 	    console.log('New appointment')
-	    socket.broadcast.to('appointment:' + restaurantId).emit('new-appointment')
+	    socket.broadcast.to('restaurant:' + restaurantId).emit('new-appointment')
 	})
 
     })
