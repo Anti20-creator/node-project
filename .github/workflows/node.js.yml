@@ -35,3 +35,4 @@ jobs:
         REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
         PORT: ${{ secrets.PORT }}
         APPOINTMENT_PIN_LENGTH: ${{ secrets.APPOINTMENT_PIN_LENGTH }}
+        PRODUCTION: ${{ secrets.PRODUCTION }}
