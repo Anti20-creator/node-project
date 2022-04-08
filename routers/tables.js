@@ -20,9 +20,8 @@ router.post('/book', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { tableId } = RequestValidator.destructureBody(req, res, {tableId: 'string'})
     
-    const table = await TableController.findById(res, tableId)
-    console.log(table)
-    TableController.checkIsTableInUse(res, table, true)
+    const table = await TableController.findById(tableId)
+    TableController.checkIsTableInUse(table, true)
     await TableController.modifyTableUse(req, table, true)
 
     return Httpresponse.OK(res, "Table booked for live use!")
@@ -32,7 +31,7 @@ router.post('/free-table', authenticateAccessToken, catchErrors(async(req, res) 
 
     const { tableId } = RequestValidator.destructureBody(req, res, {tableId: 'string'})
 
-    const table = await TableController.findById(res, tableId)
+    const table = await TableController.findById(tableId)
     if(table.liveOrders.length > 0) {
 	    return Httpresponse.BadRequest(res, "Table have orders!")
     }
@@ -46,10 +45,10 @@ router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { item, tableId, socketId } = RequestValidator.destructureBody(req, res, {item: 'object', tableId: 'string', socketId: 'string'})
 
-    const table = await TableController.findById(res, tableId)
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const table = await TableController.findById(tableId)
+    const menu = await MenuController.findById(req.user.restaurantId)
 
-    TableController.checkIsTableInUse(res, table)
+    TableController.checkIsTableInUse(table)
 
     if(!Object.keys(menu.items).includes(item.category)){
         if(!Object.keys(menu.items[item.category]).includes(item.name)) {
@@ -79,9 +78,9 @@ router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
 router.delete('/remove-order', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { name, tableId, socketId } = RequestValidator.destructureBody(req, res, {name: 'string', tableId: 'string', socketId: 'string'})
-    const table = await TableController.findById(res, tableId)
+    const table = await TableController.findById(tableId)
 
-    TableController.checkIsTableInUse(res, table)
+    TableController.checkIsTableInUse(table)
 
     table.liveOrders = table.liveOrders.filter(order => order.name !== name)
     await table.save()
@@ -93,9 +92,9 @@ router.delete('/remove-order', authenticateAccessToken, catchErrors(async(req, r
 router.post('/increase-order', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { name, tableId, socketId } = RequestValidator.destructureBody(req, res, {name: 'string', tableId: 'string', socketId: 'string'})
-    const table = await TableController.findById(res, tableId)
+    const table = await TableController.findById(tableId)
 
-    TableController.checkIsTableInUse(res, table)
+    TableController.checkIsTableInUse(table)
 
     table.liveOrders.find(item => item.name === name).quantity += 1
 
@@ -109,9 +108,9 @@ router.post('/increase-order', authenticateAccessToken, catchErrors(async(req, r
 router.post('/decrease-order', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { name, tableId, socketId } = RequestValidator.destructureBody(req, res, {name: 'string', tableId: 'string', socketId: 'string'})
-    const table = await TableController.findById(res, tableId)
+    const table = await TableController.findById(tableId)
 
-    TableController.checkIsTableInUse(res, table)
+    TableController.checkIsTableInUse(table)
 
     if (table.liveOrders.find(item => item.name === name).quantity === 1) {
 	    table.liveOrders = table.liveOrders.filter(item => item.name !== name)
@@ -130,8 +129,8 @@ router.get('/orders/:tableId', authenticateAccessToken, catchErrors(async(req, r
     
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
 
-    const table = await TableController.findById(res, tableId)
-    TableController.checkIsTableInUse(res, table)
+    const table = await TableController.findById(tableId)
+    TableController.checkIsTableInUse(table)
 
     return Httpresponse.OK(res, table.liveOrders)
 }))
@@ -140,10 +139,10 @@ router.get('/:tableId', authenticateAccessToken, catchErrors(async(req, res) => 
 
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
 
-    const table = await TableController.findById(res, tableId)
+    const table = await TableController.findById(tableId)
     const restaurant = await RestaurantController.findByAuth(req, res)
 
-    TableController.checkIsTableInUse(res, table)
+    TableController.checkIsTableInUse(table)
 
     const items = table.liveOrders
     if(items.length === 0) {
@@ -165,8 +164,8 @@ router.post('/:tableId/split', authenticateAccessToken, catchErrors(async(req, r
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
     const { items } = RequestValidator.destructureBody(req, res, {items: 'object'})
 
-    const table = await TableController.findById(res, tableId)
-    TableController.checkIsTableInUse(res, table)
+    const table = await TableController.findById(tableId)
+    TableController.checkIsTableInUse(table)
 
     const tableItems = table.liveOrders
     for(const item of items) {
@@ -201,8 +200,8 @@ router.post('/:tableId/split-equal', authenticateAccessToken, catchErrors(async(
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
     const { peopleCount } = RequestValidator.destructureBody(req, res, {peopleCount: 'number'})
 
-    const table = await TableController.findById(res, tableId)
-    TableController.checkIsTableInUse(res, table)
+    const table = await TableController.findById(tableId)
+    TableController.checkIsTableInUse(table)
 
     const items = table.liveOrders
     if(items.length === 0) {

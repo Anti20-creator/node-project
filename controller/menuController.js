@@ -1,10 +1,16 @@
 const Menu = require('../models/MenuModel')
-const Httpresponse = require('../utils/ErrorCreator')
 
-const findByAuth = async (res, id) => {
+class MenuNotFoundError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'MenuNotFoundError'
+    }
+}
+
+const findById = async (id) => {
     const menu = await Menu.findOne({RestaurantId: id}).exec()
     if(!menu) {
-        return Httpresponse.NotFound(res, "Menu not found!")
+        throw new MenuNotFoundError("menu-not-found")
     }
 
     return menu
@@ -19,4 +25,4 @@ const getAllFoodNames = (menu) => {
     return result
 }
 
-module.exports = { findByAuth, getAllFoodNames }
+module.exports = { findById, getAllFoodNames }

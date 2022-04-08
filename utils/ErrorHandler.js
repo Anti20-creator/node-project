@@ -11,8 +11,32 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
             return Httpresponse.BadRequest(res, err.message)
         }
 
+        case 'InformationError': {
+            return Httpresponse.NotFound(res, err.message)
+        }
+        
+        case 'LayoutNotFoundError': {
+            return Httpresponse.NotFound(res, err.message)
+        }
+
+        case 'MenuNotFoundError': {
+            return Httpresponse.NotFound(res, err.message)
+        }
+
+        case 'TableNotFoundError': {
+            return Httpresponse.NotFound(res, err.message)
+        }
+        
+        case 'RestaurantNotFoundError': {
+            return Httpresponse.NotFound(res, err.message)
+        }
+
+        case 'TableUseNotCorrect': {
+            return Httpresponse.BadRequest(res, err.message)
+        }
+
         default: {
-            return Httpresponse.BadRequest(res, "Unexpected error")
+            return Httpresponse.BadRequest(res, "unexpected-error")
         }
     }
 })

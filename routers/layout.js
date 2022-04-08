@@ -17,7 +17,7 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
 
     const {newTables, removedTables, updatedTables} = RequestValidator.destructureBody(req, res, {newTables: 'object', removedTables: 'object', updatedTables: 'object'})
 
-    const layout = await LayoutController.findByAuth(res, req.user.restaurantId)
+    const layout = await LayoutController.findById(req.user.restaurantId)
 
     if(removedTables.length > 0) {
         const askedForRemoveTables = await Table.collection.find({ 
@@ -72,21 +72,21 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
 
 router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const layout = await LayoutController.findByAuth(res, req.user.restaurantId)
+    const layout = await LayoutController.findById(req.user.restaurantId)
 
     return Httpresponse.OK(res, layout.tables)
 }))
 
 router.get('/data', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const layout = await LayoutController.findByAuth(res, req.user.restaurantId)
+    const layout = await LayoutController.findById(req.user.restaurantId)
 
     return Httpresponse.OK(res, {sizeX: layout.sizeX, sizeY: layout.sizeY, image: layout.backgroundImage})
 }))
 
 router.get('/image', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const layout = await LayoutController.findByAuth(res, req.user.restaurantId)
+    const layout = await LayoutController.findById(req.user.restaurantId)
 
     return Httpresponse.OK(res, 'https://192.168.31.214:4000/backgrounds/' + layout.backgroundImage)
 }))
@@ -94,7 +94,7 @@ router.get('/image', authenticateAccessToken, catchErrors(async(req, res) => {
 router.get('/:id', catchErrors(async(req, res) => {
 
     const { id } = RequestValidator.destructureParams(req, res, {id: 'string'})
-    const layout = await LayoutController.findByAuth(res, id)
+    const layout = await LayoutController.findById(id)
 
     return Httpresponse.OK(res, layout.tables)
 }))
@@ -129,7 +129,7 @@ router.post('/update', authenticateAdminAccessToken, upload.single('image'), cat
 
     const { sizeX, sizeY, sentImage, deleteImage, extName } = RequestValidator.destructureBody(req, res, {sizeX: 'number', sizeY: 'number', sentImage: 'string', deleteImage: 'string', extName: 'string'})
 
-    const layout = await LayoutController.findByAuth(res, req.user.restaurantId)
+    const layout = await LayoutController.findById(req.user.restaurantId)
 
     if((sentImage == 'true' && layout.backgroundImage && layout.backgroundImage.split('.').length > 1 && layout.backgroundImage.split('.').pop() !== extName) || deleteImage == 'true') {
         try {

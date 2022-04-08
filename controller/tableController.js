@@ -1,27 +1,39 @@
 const Table = require('../models/TableModel')
-const Httpresponse = require('../utils/ErrorCreator')
 
-const findById = async(res, id) => {
+class TableNotFoundError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'TableNotFoundError'
+    }
+}
+class TableUseNotCorrect extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'TableUseNotCorrect'
+    }
+}
+
+const findById = async(id) => {
     const table = await Table.findById(id).exec()
     if(!table) {
-        return Httpresponse.NotFound(res, "Table not found with given id!")
+        throw new TableNotFoundError("table-not-found")
     }
 
     return table
 }
 
-const findByIds = async(res, tableId, restaurantId) => {
+const findByIds = async(tableId, restaurantId) => {
     const table = await Table.findOne({RestaurantId: restaurantId, _id: tableId}).exec()
     if(!table) {
-        throw new Error("Table not found with given id!")
+        throw new TableNotFoundError("table-not-found")
     }
 
     return table
 }
 
-const checkIsTableInUse = (res, table, expected = false) => {
+const checkIsTableInUse = (table, expected = false) => {
     if(table.inLiveUse === expected) {
-        throw new Error("Current table is not in live use!")
+        throw new TableUseNotCorrect("table-use-incorrect")
     }
 }
 

@@ -50,10 +50,6 @@ mongoose.connection.on('error', (error) => {
     console.log('Error while connecting to DB...')
 })
 
-const random = (err, req, res, next) => {
-    console.log('random')
-    res.status(400).send({success: false, message: "Unexpected error"})
-}
 
 app.use(function errorHandler (err, req, res, next) {
     if (res.headersSent) {

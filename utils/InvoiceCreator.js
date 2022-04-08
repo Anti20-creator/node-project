@@ -8,7 +8,7 @@ const Invoice      = require('../models/InvoiceModel')
 async function createInvoice(invoice, path, invoiceId, restaurantId, email, callback) {
 
     let doc = new PDFDocument({ size: "A4", margin: 50 });
-    const writeStream = fs.createWriteStream('public/invoices/' + path);
+    
     const restaurant = await Restaurant.findById(restaurantId).exec()
     const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
     let currency = ''
@@ -35,13 +35,15 @@ async function createInvoice(invoice, path, invoiceId, restaurantId, email, call
     })
 
     doc.end();
-    doc.pipe(writeStream);
+    if(process.env.PRODUCTION !== '0')
+        doc.pipe(fs.createWriteStream('public/invoices/' + path));
+    else
+        await callback()
 }
 
 async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email, peopleCount, callback) {
     let doc = new PDFDocument({ size: "A4", margin: 50 });
 
-    console.log(peopleCount)
     const restaurant = await Restaurant.findById(restaurantId).exec()
     const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
     let currency = ''
@@ -71,12 +73,15 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
     await Invoice.create({email: email, RestaurantId: restaurantId, invoiceName: path, date: new Date().toISOString()})
 
     doc.on('end', async() => {
-	await callback()
+	    await callback()
     })
 
     doc.flushPages()
     doc.end();
-    doc.pipe(fs.createWriteStream('public/invoices/' + path));
+    if(process.env.PRODUCTION !== '0') 
+        doc.pipe(fs.createWriteStream('public/invoices/' + path));
+    else
+        await callback()
 
     return doc
 }

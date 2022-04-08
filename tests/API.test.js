@@ -860,6 +860,7 @@ describe('API tests', () => {
                             tableId
                         })
                         .then(result => {
+                            console.log(result.body)
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
                         })
@@ -1037,6 +1038,7 @@ describe('API tests', () => {
                         .get('/api/tables/' + table._id)
                         .set('Cookie', loginResult.headers['set-cookie'])
                         .then(result => {
+                            console.warn(result.body)
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
                         })
@@ -1049,8 +1051,8 @@ describe('API tests', () => {
         
         test('Book an appointment for past and over 2 month limit', async() => {
             
-            const past = new Date().setTime(new Date().getTime() - 24 * 3600 * 1000)
-            const future = new Date().setTime(new Date().getTime() + 80 * 24 * 3600 * 1000)
+            const past = new Date(new Date().setTime(new Date().getTime() - 24 * 3600 * 1000))
+            const future = new Date(new Date().setTime(new Date().getTime() + 80 * 24 * 3600 * 1000))
 
             const restaurant = await Restaurant.findOne({ownerEmail: adminEmail}).exec()
             const tables     = await Table.find({RestaurantId: restaurant._id}).exec()
@@ -1061,7 +1063,7 @@ describe('API tests', () => {
                 .post('/api/appointments/book')
                 .send({
                     tableId: table._id,
-                    date: past,
+                    date: past.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                     restaurantId: restaurant._id,
                     email: "guest@gmail.com"
@@ -1075,7 +1077,7 @@ describe('API tests', () => {
                 .post('/api/appointments/book')
                 .send({
                     tableId: table._id,
-                    date: future,
+                    date: future.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                     restaurantId: restaurant._id,
                     email: "guest@gmail.com"
@@ -1088,8 +1090,8 @@ describe('API tests', () => {
 
         test('Book an appointment', async() => {
             
-            const date = new Date().setTime(new Date().getTime() + 24 * 3600 * 1000)
-            const secondDate = new Date().setTime(new Date().getTime() + 48 * 3600 * 1000)
+            const date = new Date(new Date().setTime(new Date().getTime() + 24 * 3600 * 1000))
+            const secondDate = new Date(new Date().setTime(new Date().getTime() + 48 * 3600 * 1000))
 
             const restaurant = await Restaurant.findOne({ownerEmail: adminEmail}).exec()
             const layout     = await Layout.findOne({RestaurantId: restaurant._id}).exec()
@@ -1097,11 +1099,12 @@ describe('API tests', () => {
             const table = faker.random.arrayElement(layout.tables)
             console.warn(table)
 
+            //Booking with bad tableid
             await request(app)
                 .post('/api/appointments/book')
                 .send({
                     tableId: table.TableId + '1',
-                    date: date,
+                    date: date.toString(),
                     peopleCount: table.tableCount,
                     restaurantId: restaurant._id,
                     email: "guest@gmail.com"
@@ -1111,12 +1114,12 @@ describe('API tests', () => {
                     assert.equal(result.body.success, false)
                 })
 
-            console.warn(table.tableCount + 1)
+            //Booking with too many people
             await request(app)
                 .post('/api/appointments/book')
                 .send({
                     tableId: table.TableId,
-                    date: date,
+                    date: date.toString(),
                     peopleCount: table.tableCount + 1,
                     restaurantId: restaurant._id,
                     email: "guest@gmail.com"
@@ -1126,25 +1129,28 @@ describe('API tests', () => {
                     assert.equal(result.body.success, false)
                 })
 
+            //Booking with normal values
             await request(app)
                 .post('/api/appointments/book')
                 .send({
                     tableId: table.TableId,
-                    date: date,
+                    date: date.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                     restaurantId: restaurant._id,
                     email: "guest@gmail.com"
                 })
                 .then(result => {
+                    console.log(result.body)
                     assert.equal(result.status, 201)
                     assert.equal(result.body.success, true)
                 })
 
+            //Book for the same date twice
             await request(app)
                 .post('/api/appointments/book')
                 .send({
                     tableId: table.TableId,
-                    date: secondDate,
+                    date: secondDate.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                     restaurantId: restaurant._id,
                     email: "guest@gmail.com"
@@ -1166,7 +1172,7 @@ describe('API tests', () => {
                 .send({
                     tableId: appointment.TableId + '1',
                     restaurantId: appointment.RestaurantId,
-                    date: new Date(appointment.date).getTime(),
+                    date: new Date(appointment.date).toString(),
                     pin: appointment.code
                 })
                 .then(result => {
@@ -1179,7 +1185,7 @@ describe('API tests', () => {
                 .send({
                     tableId: appointment.TableId,
                     restaurantId: appointment.RestaurantId,
-                    date: new Date(appointment.date).getTime(),
+                    date: new Date(appointment.date).toString(),
                     pin: appointment.code + '1'
                 })
                 .then(result => {
@@ -1192,7 +1198,7 @@ describe('API tests', () => {
                 .send({
                     tableId: appointment.TableId,
                     restaurantId: appointment.RestaurantId,
-                    date: new Date(appointment.date).getTime(),
+                    date: new Date(appointment.date).toString(),
                     pin: appointment.code
                 })
                 .then(result => {
@@ -1219,7 +1225,7 @@ describe('API tests', () => {
                 })
         })
 
-        test('User accepting and disclaiming remaining appointment', async() => {
+        test('User accepting and disclaiming remaining appointments', async() => {
 
             const appointments = await Appointment.find({}).exec()
 
@@ -1252,7 +1258,7 @@ describe('API tests', () => {
                 .post('/api/appointments/search-tables')
                 .send({
                     restaurantId: restaurant._id,
-                    date: new Date().setTime(new Date().getTime() + 24 * 4 * 3600 * 1000),
+                    date: new Date().setTime(new Date().getTime() + 24 * 4 * 3600 * 1000).toString(),
                     peopleCount: 1
                 })
                 .then(result => {

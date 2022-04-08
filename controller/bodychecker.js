@@ -16,7 +16,6 @@ class FieldTypeError extends Error {
 
 const destructureBody = (req, res, items) => {
     const response = {}
-    console.log(req.body)
     for (const key in items) {
         const bodyItem = req.body[key]
         if(bodyItem === undefined || bodyItem === null){

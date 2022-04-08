@@ -1,13 +1,19 @@
 const Layout = require('../models/LayoutModel')
-const Httpresponse = require('../utils/ErrorCreator')
 
-const findByAuth = async(res, id) => {
+class LayoutNotFoundError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'LayoutNotFoundError'
+    }
+}
+
+const findById = async(id) => {
     const layout = await Layout.findOne({RestaurantId: id}).exec()
     if(!layout) {
-        return Httpresponse.NotFound(res, "Layout not found!")
+        throw new LayoutNotFoundError("layout-not-found")
     }
 
     return layout
 }
 
-module.exports = { findByAuth }
+module.exports = { findById }

@@ -3,7 +3,6 @@ const Appointments = require('../models/AppointmentModel')
 const Layouts      = require('../models/LayoutModel')
 const path         = require('path')
 const fs           = require('fs')
-const mongoose     = require('mongoose')
 
 const findConflicts = async (restaurantId, tableId, startDate, endDate, returnType) => {
     const results = await Appointments.collection.find({

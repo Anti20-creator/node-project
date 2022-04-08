@@ -1,13 +1,19 @@
 const Informations = require('../models/InformationsModel')
-const Httpresponse = require('../utils/ErrorCreator')
 
-const findByAuth = async (res, id) => {
+class InformationNotFoundError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'InformationNotFoundError'
+    }
+}
+
+const findById = async (id) => {
     const informations = await Informations.findOne({RestaurantId: id}).exec()
     if(!informations) {
-        return Httpresponse.NotFound(res, "No informations found!")
+        throw new InformationNotFoundError("informations-not-found")
     }
 
     return informations
 } 
 
-module.exports = { findByAuth }
+module.exports = { findById }

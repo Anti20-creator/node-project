@@ -10,7 +10,7 @@ router.post('/add-category', authenticateAccessToken, catchErrors(async(req, res
 
     const { category, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', categoryIcon: 'string'})
 
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const menu = await MenuController.findById(req.user.restaurantId)
     if(!menu.items[category]) {
         menu.items[category] = {}
     }
@@ -28,7 +28,7 @@ router.post('/modify-category', authenticateAccessToken, catchErrors(async(req, 
 
     const { category, oldCategory, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', oldCategory: 'string', categoryIcon: 'string'})
 
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const menu = await MenuController.findById(req.user.restaurantId)
 
     if(!menu.items[oldCategory]) {
         return Httpresponse.NotFound(res, "No category found to update!")
@@ -53,7 +53,7 @@ router.post('/modify-item', authenticateAccessToken, async(req, res) => {
 
     const { name, amount, category, price, unit, oldName } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string', oldName: 'string'})
 
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const menu = await MenuController.findById(req.user.restaurantId)
 
     if(!Object.keys(menu.items).includes(category) || !menu.items[category][oldName]) {
         return Httpresponse.NotFound(res, "No item found to update!")
@@ -75,7 +75,7 @@ router.post('/add-item', authenticateAccessToken, async(req, res) => {
 
     const { name, amount, category, price, unit } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string'})
 
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const menu = await MenuController.findById(req.user.restaurantId)
     const allFoodNames = MenuController.getAllFoodNames(menu)
 
     if(!Object.keys(menu.items).includes(category) || allFoodNames.includes(name)) {
@@ -92,7 +92,7 @@ router.post('/add-item', authenticateAccessToken, async(req, res) => {
 router.delete('/delete-category', authenticateAccessToken, async(req, res) => {
 
     const { category } = RequestValidator.destructureBody(req, res, {category: 'string'})
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const menu = await MenuController.findById(req.user.restaurantId)
 
     if(menu.items[category]) {
         delete(menu.items[category])
@@ -111,7 +111,7 @@ router.delete('/delete-category', authenticateAccessToken, async(req, res) => {
 router.delete('/delete-item', authenticateAccessToken, async(req, res) => {
 
     const { name, category } = RequestValidator.destructureBody(req, res, {name: 'string', category: 'string'})
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const menu = await MenuController.findById(req.user.restaurantId)
 
     if(menu.items[category] && menu.items[category][name]) {
         delete(menu.items[category][name])
@@ -126,14 +126,14 @@ router.delete('/delete-item', authenticateAccessToken, async(req, res) => {
 })
 
 router.get('/categories', async(req, res) => {
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const menu = await MenuController.findById(req.user.restaurantId)
 
     return Httpresponse.OK(res, {icons: menu.icons})
 })
 
 router.get('/', authenticateAccessToken, async(req, res) => {
 
-    const menu = await MenuController.findByAuth(res, req.user.restaurantId)
+    const menu = await MenuController.findById(req.user.restaurantId)
 
     return Httpresponse.OK(res, menu)
 })
