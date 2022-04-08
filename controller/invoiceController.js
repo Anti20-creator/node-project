@@ -1,6 +1,7 @@
 const Invoices     = require('../models/InvoiceModel')
 const Zip          = require('adm-zip')
 const { sendMail } = require('../utils/EmailSender')
+const fs           = require('fs')
 const Restaurant   = require('../models/RestaurantModel')
 const AppointmentController   = require('./appointmentsController')
 
@@ -15,10 +16,6 @@ const exportToZip = async(id) => {
 
     let invoices = await findAllInvoiceToRestaurant(id)
     //invoices = invoices.filter(invoice => invoice._id.getTimestamp() < firstDayOfMonth)
-    
-    if(invoices.length < 1) {
-        return false
-    }
 
     await AppointmentController.createXLS(id)
 
@@ -29,14 +26,16 @@ const exportToZip = async(id) => {
     zip.addLocalFile(__dirname + '/../public/xls/' + id + '.xlsx')
     zip.writeZip(__dirname + '/../public/invoice_zips/' + id + '.zip')
 
+    if(fs.existsSync(__dirname + '/../public/invoice_zips/' + id + '.zip')) {
+        console.log('Clearing up...')
+        await Invoices.deleteMany({RestaurantId: id}).exec()
+    }
+
     return id
 }
 
 const sendExportedInMail = async(id) => {
     const zipName = await exportToZip(id)
-    if(!zipName) {
-        return
-    }
 
     //sendMail("amtmannkristof@gmail.com", "Zip", "No content", zipName)
 }

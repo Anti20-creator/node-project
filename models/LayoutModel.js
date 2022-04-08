@@ -56,9 +56,9 @@ const LayoutSchema = new mongoose.Schema({
 
 const layoutMongooseModel = mongoose.model('layout', LayoutSchema)
 
+layoutMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
 /*try {
     layoutMongooseModel.collection.dropIndexes()
-    layoutMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
 }catch(e) {}*/
 
 module.exports = layoutMongooseModel

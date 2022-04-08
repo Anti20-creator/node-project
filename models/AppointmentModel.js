@@ -31,9 +31,9 @@ const AppointmentModel = new mongoose.Schema({
 
 const appointmentMongooseModel = mongoose.model('Appointment', AppointmentModel)
 
+appointmentMongooseModel.collection.createIndex( { RestaurantId: 1, TableId: 1, date: 1 } )
 /*try {
     appointmentMongooseModel.collection.dropIndexes()
-    //appointmentMongooseModel.collection.createIndex( { RestaurantId: 1, TableId: 1, day: 1 }, { unique: true, sparse: false } )
 }catch(e) {}*/
 
 module.exports = appointmentMongooseModel

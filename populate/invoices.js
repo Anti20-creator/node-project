@@ -50,7 +50,7 @@ const createInvoiceForOneTable = async (loginData) => {
         .set('Content-Type', 'application/json')
     
     const table = faker.random.arrayElement(result.body.message.filter(table => !table.inLiveUse))
-        
+    if(!table) return
     await request(app)
         .post('/api/tables/book')
         .set('Cookie', loginData.headers['set-cookie'])

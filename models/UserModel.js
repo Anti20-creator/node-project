@@ -60,9 +60,9 @@ User.methods.comparePassword = function(plainPass) {
 
 const userMongooseModel = mongoose.model('User', User)
 
+userMongooseModel.collection.createIndex( { email: 1 }, { unique: true } )
 /*try {
     userMongooseModel.collection.dropIndexes()
-    //userMongooseModel.collection.createIndex( { email: 1 }, { unique: true } )
 }catch(e) {}*/
 
 module.exports = userMongooseModel

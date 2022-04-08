@@ -339,7 +339,7 @@ mongoose.connect(process.env.MONGODB_URI, {
     await Menu.deleteMany({}).exec()
     await Informations.deleteMany({}).exec()
     
-    for(let i = 0; i < 20; ++i) {
+    for(let i = 0; i < Math.max(parseInt(process.argv[process.argv.length - 1]), 5); ++i) {
         const restaurantId = await createAdmin(i)
         await createMenu(restaurantId).then(async () => {
             await createTables(restaurantId)

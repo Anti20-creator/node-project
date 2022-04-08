@@ -65,8 +65,17 @@ const createXLS = async (id) => {
 
     fs.writeFileSync(path.join(__dirname,'/..', '/public', '/xls', '/' + id + '.xlsx'), buffer, function(err) {
         if (err) {
+            console.err(err)
             throw err
         }
+    })
+    await Appointments.collection.deleteMany({
+        RestaurantId: {
+            $eq: id
+        },
+        /*date: {
+            $lt: firstDayOfMonth
+        }*/
     })
 
 }
