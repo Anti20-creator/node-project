@@ -87,7 +87,7 @@ router.post('/book', catchErrors(async(req, res) => {
     })
     await appointment.save()
 
-    sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
+    sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, null, res)
 
     return Httpresponse.Created(res, appointment)
 }))
@@ -184,7 +184,7 @@ router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(as
     const email = appointment.email
 
     await appointment.delete()
-    sendMail(email, 'Appointment cancelled', 'A rendelése törlésre került!', res)
+    sendMail(email, 'Appointment cancelled', 'A rendelése törlésre került!', null, res)
 
     return Httpresponse.OK(res, "Appointment deleted!")
 }))

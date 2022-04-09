@@ -87,7 +87,6 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
 }
 
 async function generateHeader(doc, invoiceId, restaurantId, restaurant, informations) {
-    doc.font("Helvetica");
     doc
         .fillColor("#444444")
         .fontSize(20)
@@ -111,7 +110,6 @@ async function generateHeader(doc, invoiceId, restaurantId, restaurant, informat
 function generateInvoiceTable(doc, items, divisor=1, currency) {
     const invoiceTableTop = 230;
 
-    doc.font("Helvetica-Bold");
     generateTableRow(
         doc,
         invoiceTableTop,
@@ -122,7 +120,6 @@ function generateInvoiceTable(doc, items, divisor=1, currency) {
         "Line Total"
     );
     generateHr(doc, invoiceTableTop + 20);
-    doc.font("Helvetica");
 
     let i = 0;
     let offset = 0
@@ -146,7 +143,6 @@ function generateInvoiceTable(doc, items, divisor=1, currency) {
     }
 
     const subtotalPosition = invoiceTableTop + (i + 1) * 30 + offset;
-    doc.font("Helvetica-Bold");
     generateTableRow(
         doc,
         subtotalPosition,

@@ -152,7 +152,7 @@ router.post('/book', catchErrors(async(req, res) => {
         }
 
 
-        await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
+        await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, null, res)
 	    req.app.get('socketio').to('appointment:' + restaurantId).emit('new-appointment')
 
         return Httpresponse.Created(res, pinCode)
@@ -208,7 +208,7 @@ router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(as
     console.log(email)
 
     await appointment.delete()
-    await sendMail(email, 'Appointment cancelled', 'A rendelése törlésre került!', res)
+    await sendMail(email, 'Appointment cancelled', 'A rendelése törlésre került!', null, res)
 
     return Httpresponse.OK(res, "Appointment deleted!")
 
@@ -353,7 +353,7 @@ router.post('/find-tables', authenticateAccessToken, catchErrors(async(req, res)
 	        })
 
 	        await appointment.save()
-	        await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, res)
+	        await sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, null, res)
 
             console.log('IDŐPONT MENTVE')
         	return Httpresponse.Created(res, appointment)

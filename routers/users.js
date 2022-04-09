@@ -152,7 +152,7 @@ router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res
 
     const emailSuccess = await sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
                 <a href="http://192.168.31.161:3000/invite/${restaurant._id}">Kattints ide a csatlakozáshoz</a>
-                Étterem PIN kódja: ${restaurant.secretPin}`, res)
+                Étterem PIN kódja: ${restaurant.secretPin}`, null, res)
 
     if(emailSuccess) {
 	    await restaurant.save()
