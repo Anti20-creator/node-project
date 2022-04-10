@@ -36,3 +36,4 @@ jobs:
         PORT: ${{ secrets.PORT }}
         APPOINTMENT_PIN_LENGTH: ${{ secrets.APPOINTMENT_PIN_LENGTH }}
         PRODUCTION: ${{ secrets.PRODUCTION }}
+        TESTING: ${{ secrets.TESTING }}
