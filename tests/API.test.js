@@ -17,6 +17,7 @@ const Layout      = require('../models/LayoutModel')
 const Menu        = require('../models/MenuModel')
 const Information = require('../models/InformationsModel')
 
+jest.setTimeout(20000)
 jest.mock('nodemailer', () => ({
     createTransport: jest.fn().mockReturnValue({
       sendMail: jest.fn().mockReturnValue((mailoptions, callback) => {})
@@ -530,7 +531,7 @@ describe('API tests', () => {
                         .set('Cookie', loginResult.headers['set-cookie'])
                         .then(result => {
                             assert.equal(result.status, 200)
-                            assert.equal(result.body.message.length, userEmails.length + 1)
+                            assert.equal(result.body.message.length, userEmails.length + 2)
                         })
                 })
 
