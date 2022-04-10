@@ -17,7 +17,7 @@ const MenuModel = new mongoose.Schema({
 
 const menuMongooseModel = mongoose.model('Menu', MenuModel)
 
-menuMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
+if (process.env.TESTING === '0') menuMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
 /*try {
     menuMongooseModel.collection.dropIndexes()
 }catch(e) {}*/

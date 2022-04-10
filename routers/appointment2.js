@@ -21,14 +21,11 @@ function createPin() {
 }
 
 function checkRestaurantOpen(infos, givenDate) {
-    const closeTimeOnGivenDay = infos.openingTimes[givenDate.getDay()]
-    const closeTimeOnPastDay  = infos.openingTimes[(((givenDate.getDay() - 1) % 7) + 7) % 7]
+    const closeTimeOnGivenDay  = infos.openingTimes[(((givenDate.getUTCDay() - 1) % 7) + 7) % 7]
+    const closeTimeOnPastDay  = infos.openingTimes[(((givenDate.getUTCDay() - 2) % 7) + 7) % 7]
 
     if((Number(closeTimeOnGivenDay.open.hours) < givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.open.hours) === givenDate.getUTCHours() && Number(closeTimeOnGivenDay.open.minutes) <= givenDate.getUTCMinutes())) &&
-            (Number(closeTimeOnGivenDay.close.hours) > givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.close.hours) === givenDate.getUTCHours() && Number(closeTimeOnGivenDay.close.minutes) >= givenDate.getUTCMinutes())) ) {
-                if((Number(closeTimeOnGivenDay.open.hours) === Number(closeTimeOnGivenDay.close.hours) && Number(closeTimeOnGivenDay.open.minutes) === Number(closeTimeOnGivenDay.close.minutes)) && Number(closeTimeOnGivenDay.open.hours) === 0) {
-                    return false
-                }
+            (Number(closeTimeOnGivenDay.close.hours) > givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.close.hours) === givenDate.getUTCHours() && Number(closeTimeOnGivenDay.close.minutes) >= givenDate.getUTCMinutes())) && !((Number(closeTimeOnGivenDay.open.hours) === Number(closeTimeOnGivenDay.close.hours) && Number(closeTimeOnGivenDay.open.minutes) === Number(closeTimeOnGivenDay.close.minutes)) && Number(closeTimeOnGivenDay.open.hours) === 0) ) {
             console.log('open on same day')
             return true
     }else if( (Number(closeTimeOnPastDay.open.hours) > givenDate.getUTCHours() || (Number(closeTimeOnPastDay.open.hours) === givenDate.getUTCHours() && Number(closeTimeOnPastDay.open.minutes) >= givenDate.getUTCMinutes())) && 
@@ -36,7 +33,7 @@ function checkRestaurantOpen(infos, givenDate) {
         console.log('open on day before')
         return true
     }else if( (Number(closeTimeOnGivenDay.open.hours) > Number(closeTimeOnGivenDay.close.hours) || (Number(closeTimeOnGivenDay.open.hours) === Number(closeTimeOnGivenDay.close.hours) && Number(closeTimeOnGivenDay.open.minutes > Number(closeTimeOnGivenDay.close.minutes))) ) && (Number(closeTimeOnGivenDay.open.hours) < givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.open.hours) === givenDate.getUTCHours()  && Number(closeTimeOnGivenDay.open.minutes) < givenDate.getUTCMinutes() )) ) {
-        console.log('open on long day')
+        console.log('open on long day for example: 02:00-05:00')
         return true
     }else{
         console.log('Restaurant is not open')
@@ -100,7 +97,7 @@ router.post('/booking-conflicts', authenticateAccessToken, catchErrors(async(req
 
     const table = await TableController.findById(tableId)
     if(table.tableCount < peopleCount) {
-	return Httpresponse.BadRequest(res, "Not enough seats!")
+	    return Httpresponse.BadRequest(res, "Not enough seats!")
     }
     const optionalConflicts = await AppointmentsController.findConflicts(req.user.restaurantId, tableId, startDate, endDate)
 
@@ -133,7 +130,7 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
     const {accept, appointmentId, tableId} = req.body
 
     if(accept === undefined || !appointmentId) {
-        return Httpresponse.OK("Missing parameters!")
+        return Httpresponse.BadRequest("Missing parameters!")
     }
 
     if(accept) {

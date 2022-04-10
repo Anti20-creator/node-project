@@ -35,7 +35,7 @@ async function createInvoice(invoice, path, invoiceId, restaurantId, email, call
     })
 
     doc.end();
-    if(process.env.PRODUCTION !== '0')
+    if(process.env.TESTING === '0')
         doc.pipe(fs.createWriteStream('public/invoices/' + path));
     else
         await callback()
@@ -78,7 +78,7 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
 
     doc.flushPages()
     doc.end();
-    if(process.env.PRODUCTION !== '0') 
+    if(process.env.TESTING === '0') 
         doc.pipe(fs.createWriteStream('public/invoices/' + path));
     else
         await callback()

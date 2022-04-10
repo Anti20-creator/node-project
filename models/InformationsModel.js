@@ -23,8 +23,8 @@ const InformationsModel = new mongoose.Schema({
     openingTimes: {
         type: Array,
         default: Array.from(Array(7)).map(() => {return {
-		"open": {"hours": 0, "minutes": 0},
-		"close": {"hours": 24, "minutes": 0}
+		"open": {"hours": "00", "minutes": "00"},
+		"close": {"hours": "24", "minutes": "00"}
 	}})
     },
     currency: {
@@ -35,7 +35,7 @@ const InformationsModel = new mongoose.Schema({
 })
 
 const informationsMongooseModel = mongoose.model('Information', InformationsModel)
-informationsMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
+if (process.env.TESTING === '0') informationsMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
 
 /*try {
     informationsMongooseModel.collection.dropIndexes()

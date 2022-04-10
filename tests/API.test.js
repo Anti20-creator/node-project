@@ -23,7 +23,25 @@ jest.mock('nodemailer', () => ({
     })
 }));
 
-const createTables = () => {
+function getNextGivenDay(day, date = new Date()) {
+    const dateCopy = new Date(new Date(date.getTime()) + 3_600_000 * 48)
+    
+    const nextDay = new Date(
+      dateCopy.setUTCDate(
+        dateCopy.getDate() + ((7 - dateCopy.getDay() + day) % 7 || 7)
+      )
+    )
+  
+    return nextDay;
+}
+
+const getRandomDate = (from, to) => {
+    from = from.getTime()
+    to = to.getTime()
+    return new Date(from + Math.random() * (to - from));
+}
+
+const createTables = (startIndex = 0) => {
     return Array.from(Array(faker.datatype.number({min: 3, max: 5}))).map((_, i) => {
         return {
             coordinates: {
@@ -34,7 +52,7 @@ const createTables = () => {
             tableType: faker.random.arrayElement(['rounded', 'normal', 'wide']),
             size: faker.random.arrayElement(['small', 'average', 'large']),
             direction: faker.random.arrayElement([0, 90, 180, 270]),
-            localId: i
+            localId: i + startIndex
         }
     })
 }
@@ -66,8 +84,8 @@ beforeAll( async function() {
     console.info('DB cleared up...')
 })
 
-const adminEmail = faker.internet.email()
-let userEmails = Array.from(Array(faker.datatype.number({min: 3, max: 6}))).map((_, i) => faker.internet.email())
+const adminEmail = faker.unique(() => faker.internet.email())
+let userEmails = Array.from(Array(faker.datatype.number({min: 3, max: 6}))).map((_, i) => faker.unique(() => faker.internet.email()))
 const soonPromoted = faker.random.arrayElement(userEmails)
 const deletedUser = faker.random.arrayElement(userEmails)
 
@@ -238,7 +256,7 @@ describe('API tests', () => {
                 .set('Content-Type', 'application/json')
                 .send({
                     email: faker.random.arrayElement(userEmails),
-                    password: "1234567"
+                    password: "1234567" //wrong password
                 })
 
             assert.equal(result.status, 401)
@@ -366,6 +384,8 @@ describe('API tests', () => {
                 .set('Content-Type', 'application/json')
                 .send({email: adminEmail, password: "123456"})
                 .then(async loginData => {
+
+                    //Rank up user
                     await request(app)
                         .post('/api/users/update-rank')
                         .set('Content-Type', 'application/json')
@@ -379,6 +399,7 @@ describe('API tests', () => {
                             assert.equal(adminUsers, 2)
                         })
                         
+                    //Try to down rank owner as owner
                     await request(app)
                         .post('/api/users/update-rank')
                         .set('Content-Type', 'application/json')
@@ -392,6 +413,7 @@ describe('API tests', () => {
                             assert.equal(adminUsers, 2)
                         })
                     
+                    //Rank down other user
                     await request(app)
                         .post('/api/users/update-rank')
                         .set('Content-Type', 'application/json')
@@ -405,6 +427,7 @@ describe('API tests', () => {
                             assert.equal(adminUsers, 1)
                         })
 
+                    //Rank up user again
                     await request(app)
                         .post('/api/users/update-rank')
                         .set('Content-Type', 'application/json')
@@ -416,9 +439,11 @@ describe('API tests', () => {
 
                             adminUsers = await User.countDocuments({isAdmin: true}).exec()
                             assert.equal(adminUsers, 2)
+                            userEmails = userEmails.filter(email => email !== soonPromoted)
                         })
                 })
 
+            //Try to down rank owner as other admin
             await request(app)
                 .post('/api/users/login')
                 .set('Content-Type', 'application/json')
@@ -437,7 +462,8 @@ describe('API tests', () => {
                             assert.equal(adminUsers, 2)
                         })
                     })
-                    
+            
+            //Try to down rank user without access token
             await request(app)
                 .post('/api/users/update-rank')
                 .set('Content-Type', 'application/json')
@@ -458,6 +484,7 @@ describe('API tests', () => {
                 .send({email: adminEmail, password: "123456"})
                 .then(async loginData => {
 
+                    //Trying to delete own account
                     await request(app)
                         .delete('/api/users/delete')
                         .set('Content-Type', 'application/json')
@@ -467,6 +494,7 @@ describe('API tests', () => {
                             assert.equal(result.status, 400)
                         })
 
+                    //Remove other user
                     await request(app)
                         .delete('/api/users/delete')
                         .set('Content-Type', 'application/json')
@@ -479,6 +507,7 @@ describe('API tests', () => {
                     userEmails = userEmails.filter(email => email !== deletedUser)
                 })
             
+            //Try to remove user without access token
             await request(app)
                 .delete('/api/users/delete')
                 .set('Content-Type', 'application/json')
@@ -505,6 +534,7 @@ describe('API tests', () => {
                         })
                 })
 
+            //Try to read team without access token
             await request(app)
                 .get('/api/users/team')
                 .set('Content-Type', 'application/json')
@@ -548,12 +578,9 @@ describe('API tests', () => {
 
         test('Adding tables to the restaurant', async() => {
 
-            const restaurant = await Restaurant.findOne({
-                ownerEmail: adminEmail
-            }).exec()
+            const restaurant = await Restaurant.findOne({ownerEmail: adminEmail}).exec()
 
             const tables = createTables()
-            console.log(tables)
             
             const loginResult = await request(app)
                 .post('/api/users/login')
@@ -577,7 +604,7 @@ describe('API tests', () => {
             const DBtables = await Table.find({RestaurantId: restaurant._id}).exec()
             assert.equal(tables.length, DBtables.length)
 
-            const newTables = createTables()
+            const newTables = createTables(tables.length)
 
             const updateTablesResult = await request(app)
                 .post('/api/layouts/save')
@@ -618,9 +645,6 @@ describe('API tests', () => {
         test('Normal user try to modify layout', async() => {
         
             let normalUser = faker.random.arrayElement(userEmails)
-            while(normalUser === soonPromoted) {
-                normalUser = faker.random.arrayElement(userEmails)
-            }
 
             const loginResult = await request(app)
                 .post('/api/users/login')
@@ -722,6 +746,7 @@ describe('API tests', () => {
             const category = faker.random.word()
             const categoryIcon = faker.random.arrayElement(foodIcons)
 
+            //Try to add category with few informations
             await request(app)
                 .post('/api/menu/add-category')
                 .set('Content-Type', 'application/json')
@@ -732,6 +757,7 @@ describe('API tests', () => {
                     assert.equal(result.status, 400)
                 })
 
+            //Creating new category
             const result = await request(app)
                 .post('/api/menu/add-category')
                 .set('Content-Type', 'application/json')
@@ -744,6 +770,7 @@ describe('API tests', () => {
             assert.equal(result.status, 201)
             assert.equal(result.body.success, true)
 
+            //Add new item
             const itemName = faker.random.word()
             const itemResult = await request(app)
                 .post('/api/menu/add-item')
@@ -760,6 +787,7 @@ describe('API tests', () => {
             assert.equal(itemResult.status, 201)
             assert.equal(itemResult.body.success, true)
             
+            //Modifying previously created item
             const itemResult2 = await request(app)
                 .post('/api/menu/modify-item')
                 .set('Content-Type', 'application/json')
@@ -776,6 +804,7 @@ describe('API tests', () => {
             assert.equal(itemResult2.status, 200)
             assert.equal(itemResult2.body.success, true)
 
+            //Modifying category
             const newCategory = 'New ' + faker.random.word()
             const modifyCategoryResult = await request(app)
                 .post('/api/menu/modify-category')
@@ -786,10 +815,10 @@ describe('API tests', () => {
                     oldCategory: category,
                     categoryIcon: categoryIcon
                 })
-
             assert.equal(modifyCategoryResult.status, 200)
             assert.equal(modifyCategoryResult.body.success, true)
 
+            //Try to modify unexisting category
             const modifyBadCategoryResult = await request(app)
                 .post('/api/menu/modify-category')
                 .set('Content-Type', 'application/json')
@@ -799,10 +828,10 @@ describe('API tests', () => {
                     oldCategory: 'asdhakjsd',
                     categoryIcon: categoryIcon
                 })
-
             assert.equal(modifyBadCategoryResult.status, 404)
             assert.equal(modifyBadCategoryResult.body.success, false)
             
+            //Try to modify category without posted data
             const modifyEmptyCategoryResult = await request(app)
                 .post('/api/menu/modify-category')
                 .set('Content-Type', 'application/json')
@@ -853,6 +882,8 @@ describe('API tests', () => {
                 .post('/api/users/login')
                 .send({email: faker.random.arrayElement(userEmails), password: "123456"})
                 .then(async loginResult => {
+
+                    //Booked twice
                     await request(app)
                         .post('/api/tables/book')
                         .set('Cookie', loginResult.headers['set-cookie'])
@@ -897,10 +928,12 @@ describe('API tests', () => {
                     await request(app)
                         .post('/api/tables/order')
                         .set('Cookie', loginResult.headers['set-cookie'])
-                        .send({tableId: table._id, item: {
-                            name: itemName,
-                            category: itemCategory,
-                            quantity: 1
+                        .send({
+                            tableId: table._id, 
+                            item: {
+                                name: itemName,
+                                category: itemCategory,
+                                quantity: 1
                             },
                             socketId: 'my-socket-id'
                         })
@@ -916,6 +949,7 @@ describe('API tests', () => {
                 .send({email: adminEmail, password: "123456"})
                 .then(async loginResult => {
 
+                    //Book the table
                     await request(app)
                         .post('/api/tables/book')
                         .set('Cookie', loginResult.headers['set-cookie'])
@@ -925,6 +959,7 @@ describe('API tests', () => {
                             assert.equal(result.body.success, true)
                         })
 
+                    //Try to book it again
                     await request(app)
                         .post('/api/tables/book')
                         .set('Cookie', loginResult.headers['set-cookie'])
@@ -933,10 +968,13 @@ describe('API tests', () => {
                             assert.equal(result.body.success, false)
                         })
 
+                    //Try to add non existing food
                     await request(app)
                         .post('/api/tables/order')
                         .set('Cookie', loginResult.headers['set-cookie'])
-                        .send({tableId: table._id, item: {
+                        .send({
+                            tableId: table._id, 
+                            item: {
                                 name: itemName + 'nem letezo',
                                 category: itemCategory,
                                 quantity: 1
@@ -948,11 +986,13 @@ describe('API tests', () => {
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
                         })
-
+                    
+                    //Add order to table
                     await request(app)
                         .post('/api/tables/order')
                         .set('Cookie', loginResult.headers['set-cookie'])
-                        .send({tableId: table._id, item: {
+                        .send({tableId: table._id, 
+                            item: {
                                 name: itemName,
                                 category: itemCategory,
                                 quantity: 1
@@ -964,7 +1004,8 @@ describe('API tests', () => {
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
                         })
-
+                    
+                    //Try to free table with orders
                     await request(app)
                         .post('/api/tables/free-table')
                         .set('Cookie', loginResult.headers['set-cookie'])
@@ -974,7 +1015,8 @@ describe('API tests', () => {
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
                         })
-
+                    
+                    //Increase order quantity
                     await request(app)
                         .post('/api/tables/increase-order')
                         .set('Cookie', loginResult.headers['set-cookie'])
@@ -987,7 +1029,8 @@ describe('API tests', () => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
                         })
-
+                    
+                    //Decrease order quantity
                     await request(app)
                         .post('/api/tables/decrease-order')
                         .set('Cookie', loginResult.headers['set-cookie'])
@@ -1001,7 +1044,7 @@ describe('API tests', () => {
                             assert.equal(result.body.success, true)
                         })
                     
-                    
+                    //Get orders from table
                     await request(app)
                         .get('/api/tables/orders/' + table._id)
                         .set('Cookie', loginResult.headers['set-cookie'])
@@ -1012,6 +1055,7 @@ describe('API tests', () => {
                             assert.equal(result.body.message[0].name, itemName)
                         })
 
+                    //Remove order from table
                     await request(app)
                         .delete('/api/tables/remove-order/')
                         .set('Cookie', loginResult.headers['set-cookie'])
@@ -1020,25 +1064,30 @@ describe('API tests', () => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
                         })
-                    
+
+                    //Order food again
                     await request(app)
                         .post('/api/tables/order')
                         .set('Cookie', loginResult.headers['set-cookie'])
-                        .send({tableId: table._id, item: {
-                            name: itemName,
-                            category: itemCategory,
-                            quantity: 1
-                        }, socketId: 'my-socket-id'})
+                        .send({
+                            tableId: table._id, 
+                            item: {
+                                name: itemName,
+                                category: itemCategory,
+                                quantity: 1
+                            }, 
+                            socketId: 'my-socket-id'
+                        })
                         .then(result => {
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
                         })
                     
+                    //Generate invoice
                     await request(app)
                         .get('/api/tables/' + table._id)
                         .set('Cookie', loginResult.headers['set-cookie'])
                         .then(result => {
-                            console.warn(result.body)
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
                         })
@@ -1059,6 +1108,7 @@ describe('API tests', () => {
             
             const table = faker.random.arrayElement(tables)
 
+            //Booking for past
             await request(app)
                 .post('/api/appointments/book')
                 .send({
@@ -1073,6 +1123,7 @@ describe('API tests', () => {
                     assert.equal(result.body.success, false)
                 })
 
+            //Booking for over two months
             await request(app)
                 .post('/api/appointments/book')
                 .send({
@@ -1145,7 +1196,7 @@ describe('API tests', () => {
                     assert.equal(result.body.success, true)
                 })
 
-            //Book for the same date twice
+            //Book for the same date twice - it is ok
             await request(app)
                 .post('/api/appointments/book')
                 .send({
@@ -1159,14 +1210,30 @@ describe('API tests', () => {
                     assert.equal(result.status, 201)
                     assert.equal(result.body.success, true)
                 })
+            
+            //Book several dates with random date
+            for(let i = 0; i < 15; ++i) {
+                await request(app)
+                    .post('/api/appointments/book')
+                    .send({
+                        tableId: table.TableId,
+                        date: getRandomDate(new Date(new Date().getTime() + 3_600_000 * 2), new Date(new Date().getTime() + 3_600_000 * 50)),
+                        peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
+                        restaurantId: restaurant._id,
+                        email: "guest@gmail.com"
+                    })
+                    .then(result => {
+                        assert.equal(result.status, 201)
+                        assert.equal(result.body.success, true)
+                    })
+            }
         })
 
         test('Disclaiming appointment', async() => {
 
             const appointment = await Appointment.findOne({}).exec()
-            console.warn(appointment)
-            console.warn(appointment.TableId)
 
+            //Disclaiming with bad tableId 
             await request(app)
                 .delete('/api/appointments/disclaim')
                 .send({
@@ -1180,6 +1247,7 @@ describe('API tests', () => {
                     assert.equal(result.body.success, false)
                 })
 
+            //Disclaiming with false code
             await request(app)
                 .delete('/api/appointments/disclaim')
                 .send({
@@ -1193,6 +1261,7 @@ describe('API tests', () => {
                     assert.equal(result.body.success, false)
                 })
 
+            //Good disclaiming
             await request(app)
                 .delete('/api/appointments/disclaim')
                 .send({
@@ -1211,6 +1280,7 @@ describe('API tests', () => {
 
             const appointment = await Appointment.findOne({}).exec()
 
+            //Removing appointment as user
             await request(app)
                 .post('/api/users/login/')
                 .send({email: faker.random.arrayElement(userEmails), password: "123456"})
@@ -1229,20 +1299,22 @@ describe('API tests', () => {
 
             const appointments = await Appointment.find({}).exec()
 
-            for(const appointment of appointments) {
+            for(let i = 0; i < appointments.length; ++i) {
+                const appointment = appointments[i]
                 await request(app)
                     .post('/api/users/login')
                     .send({email: faker.random.arrayElement(userEmails), password: "123456"})
                     .then(async loginResult => {
                         await request(app)
-                            .post('/api/appointments/accept-appointment/')
+                            .put('/api/appointments/accept-appointment/')
                             .set('Cookie', loginResult.headers['set-cookie'])
                             .send({
-                                accept: faker.datatype.boolean(),
+                                accept: i < appointments.length/2,
                                 tableId: appointment.TableId,
                                 appointmentId: appointment._id
                             })
                             .then(result => {
+                                console.info(result.body)
                                 assert.equal(result.status, 200)
                                 assert.equal(result.body.success, true)
                             })
@@ -1256,16 +1328,37 @@ describe('API tests', () => {
             
             await request(app)
                 .post('/api/appointments/search-tables')
+                .set('Content-Type', 'application/json')
                 .send({
                     restaurantId: restaurant._id,
                     date: new Date().setTime(new Date().getTime() + 24 * 4 * 3600 * 1000).toString(),
                     peopleCount: 1
                 })
                 .then(result => {
-                    console.warn(result.body.message)
                     assert.equal(result.status, 200)
                     assert.equal(result.body.success, true)
                 })
+        })
+
+        test('Booking conflicts', async() => {
+            
+            const appointment = await Appointment.findOne({confirmed: true}).exec()
+
+            await request(app)
+                .post('/api/users/login')
+                .set('Content-Type', 'application/json')
+                .send({email: faker.random.arrayElement(userEmails), password: "123456"})
+                .then(async loginData => {
+                    await request(app)
+                        .post('/api/appointments/booking-conflicts')
+                        .set('Content-Type', 'application/json')
+                        .set('Cookie', loginData.headers['set-cookie'])
+                        .send({tableId: appointment.TableId, date: appointment.date, peopleCount: appointment.peopleCount})
+                        .then(result => {
+                                assert.equal(result.status, 200)
+                            assert.equal(result.body.message.length > 0, true)
+                        })
+                }) 
         })
     })
 
@@ -1310,6 +1403,526 @@ describe('API tests', () => {
             const menuAfter = await Menu.findOne({RestaurantId: restaurant._id}).exec()
             assert.equal(Object.keys(menuAfter.items).length, 0)
             assert.equal(Object.keys(menuAfter.icons).length, 0)
+        })
+    })
+
+    describe('Information router test', () => {
+
+        test('Getting informations data', async() => {
+            //Try to get informations without logging in
+            await request(app)
+            .get('/api/informations')
+                .set('Content-Type', 'application/json')
+                .then(result => {
+                    assert.equal(result.status, 401)
+                })
+    
+            //Get informations after logging in
+            await request(app)
+                .post('/api/users/login')
+                .set('Content-Type', 'application/json')
+                .send({email: faker.random.arrayElement(userEmails), password: "123456"})
+                .then(async loginData => {
+                    await request(app)
+                    .get('/api/informations')
+                        .set('Content-Type', 'application/json')
+                        .set('Cookie', loginData.headers['set-cookie'])
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.message !== null, true)
+                        })
+                })
+        })
+
+        test('Get currency', async() => {
+            //Try to get informations without logging in
+            await request(app)
+            .get('/api/informations/currency')
+                .set('Content-Type', 'application/json')
+                .then(result => {
+                    assert.equal(result.status, 401)
+                })
+    
+            //Get informations after logging in
+            await request(app)
+                .post('/api/users/login')
+                .set('Content-Type', 'application/json')
+                .send({email: faker.random.arrayElement(userEmails), password: "123456"})
+                .then(async loginData => {
+                    await request(app)
+                    .get('/api/informations/currency')
+                        .set('Content-Type', 'application/json')
+                        .set('Cookie', loginData.headers['set-cookie'])
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                            assert.equal(result.body.message, 'Ft')
+                        })
+                })
+        })
+        
+        test('Modifiy informations', async() => {
+            
+            //Try to update informations without logging in
+            await request(app)
+                .post('/api/informations/update')
+                .set('Content-Type', 'application/json')
+                .then(result => {
+                    assert.equal(result.status, 401)
+                })
+    
+            //Try to update informations as normal user
+            await request(app)
+                .post('/api/users/login')
+                .set('Content-Type', 'application/json')
+                .send({email: faker.random.arrayElement(userEmails.filter(email => email !== soonPromoted)), password: "123456"})
+                .then(async loginData => {
+                    await request(app)
+                        .post('/api/informations/update')
+                        .set('Content-Type', 'application/json')
+                        .set('Cookie', loginData.headers['set-cookie'])
+                        .then(result => {
+                            assert.equal(result.status, 401)
+                        })
+                })
+            
+            //Update informations as admin
+            await request(app)
+                .post('/api/users/login')
+                .set('Content-Type', 'application/json')
+                .send({email: adminEmail, password: "123456"})
+                .then(async loginData => {
+                    await request(app)
+                        .post('/api/informations/update')
+                        .set('Content-Type', 'application/json')
+                        .set('Cookie', loginData.headers['set-cookie'])
+                        .send({
+                            taxNumber: faker.datatype.number({min: 10000000, max: 1000000000}).toString(),
+                            address: faker.address.streetAddress(),
+                            city: faker.address.city(),
+                            postalCode: faker.address.zipCode(),
+                            phoneNumber: faker.phone.phoneNumber(),
+                            currency: 'HUF',
+                            openingTimes: [
+                                //Monday
+                                {
+                                    open: {
+                                        hours: "00",
+                                        minutes: "00"
+                                    },
+                                    close: {
+                                        hours: "00",
+                                        minutes: "00"
+                                    }
+                                },
+                                //Tuesday
+                                {
+                                    open: {
+                                        hours: "08",
+                                        minutes: "00"
+                                    },
+                                    close: {
+                                        hours: "16",
+                                        minutes: "00"
+                                    }
+                                },
+                                //Wednesday
+                                {
+                                    open: {
+                                        hours: "05",
+                                        minutes: "30"
+                                    },
+                                    close: {
+                                        hours: "20",
+                                        minutes: "15"
+                                    }
+                                },
+                                //Thursday
+                                {
+                                    open: {
+                                        hours: "08",
+                                        minutes: "00"
+                                    },
+                                    close: {
+                                        hours: "16",
+                                        minutes: "00"
+                                    }
+                                },
+                                //Friday
+                                {
+                                    open: {
+                                        hours: "12",
+                                        minutes: "00"
+                                    },
+                                    close: {
+                                        hours: "05",
+                                        minutes: "00"
+                                    }
+                                },
+                                //Saturday
+                                {
+                                    open: {
+                                        hours: "12",
+                                        minutes: "00"
+                                    },
+                                    close: {
+                                        hours: "02",
+                                        minutes: "00"
+                                    }
+                                },
+                                //Sunday
+                                {
+                                    open: {
+                                        hours: "05",
+                                        minutes: "00"
+                                    },
+                                    close: {
+                                        hours: "02",
+                                        minutes: "00"
+                                    }
+                                },
+                            ]
+                        })
+                        .then(result => {
+                            assert.equal(result.status, 200)
+                        })
+                })
+        })
+    })
+
+    describe('Test restaurant opens', () => {
+
+        beforeEach(() => {
+            jest.setTimeout(10000)
+        })
+
+        test('Restaurant not open on Monday from 02:00-24:00', async() => {
+            const monday = getNextGivenDay(1)
+
+            const table = await Table.findOne({}).exec()
+            for(let i = 3; i < 24; ++i) {
+                monday.setHours(i, faker.datatype.number({min: 0, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: monday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }
+
+            monday.setHours(0, faker.datatype.number({min: 0, max: 59}), 0, 0)
+            await request(app)
+                .post('/api/appointments/book')
+                .set('Content-Type', 'application/json')
+                .send({
+                        tableId: table._id,
+                        restaurantId: table.RestaurantId,
+                        date: monday.toString(),
+                        peopleCount: 1,
+                        email: faker.internet.email()
+                    })
+                .then(result => {
+                    assert.equal(result.status, 201)
+                })                
+        })
+
+        test('Restaurant open on Tuesday from 08:00-16:00', async() => {
+            const tuesday = getNextGivenDay(2)
+
+            const table = await Table.findOne({}).exec()
+            for(let i = 0; i < 8; ++i) {
+                tuesday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: tuesday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }         
+            for(let i = 8; i < 16; ++i) {
+                tuesday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: tuesday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 201)
+                    })
+            }         
+            for(let i = 16; i < 24; ++i) {
+                tuesday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: tuesday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }         
+        })
+        
+        test('Restaurant open on Wednesday from 05:30-20:15', async() => {
+
+            const wednesday = getNextGivenDay(3)
+
+            const table = await Table.findOne({}).exec()
+            for(let i = 0; i < 6; ++i) {
+                wednesday.setHours(i, faker.datatype.number({min: 1, max: i == 5 ? 30 : 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: wednesday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }         
+            for(let i = 6; i < 21; ++i) {
+                wednesday.setHours(i, faker.datatype.number({min: 1, max: i == 20 ? 15 : 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: wednesday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 201)
+                    })
+            }         
+            for(let i = 21; i < 24; ++i) {
+                wednesday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: wednesday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }
+        })
+        test('Restaurant open on Thursday from 08:00-16:00', async() => {
+
+            const thursday = getNextGivenDay(4)
+
+            const table = await Table.findOne({}).exec()
+            for(let i = 0; i < 8; ++i) {
+                thursday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: thursday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }         
+            for(let i = 8; i < 16; ++i) {
+                thursday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: thursday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 201)
+                    })
+            }         
+            for(let i = 16; i < 24; ++i) {
+                thursday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: thursday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }
+        })
+        test('Restaurant open on Friday from 12:00-05:00', async() => {
+
+            const friday = getNextGivenDay(5)
+
+            const table = await Table.findOne({}).exec()
+            for(let i = 0; i < 24; ++i) {
+                friday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: friday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, i < 12 ? 400 : 201)
+                    })
+            }
+        })
+        test('Restaurant open on Saturday from 12:00-02:00', async() => {
+
+            const saturday = getNextGivenDay(6)
+
+            const table = await Table.findOne({}).exec()
+            for(let i = 0; i < 5; ++i) {
+                saturday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: saturday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 201)
+                    })
+            }
+            for(let i = 5; i < 12; ++i) {
+                saturday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: saturday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }
+            for(let i = 12; i < 24; ++i) {
+                saturday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: saturday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 201)
+                    })
+            }
+        })
+        test('Restaurant open on Sunday from 05:00-02:00', async() => {
+
+            const saturday = getNextGivenDay(7)
+
+            const table = await Table.findOne({}).exec()
+            for(let i = 0; i < 2; ++i) {
+                saturday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: saturday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 201)
+                    })
+            }
+            for(let i = 2; i < 5; ++i) {
+                saturday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: saturday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 400)
+                    })
+            }
+            for(let i = 5; i < 24; ++i) {
+                saturday.setHours(i, faker.datatype.number({min: 1, max: 59}), 0, 0)
+                await request(app)
+                    .post('/api/appointments/book')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                            tableId: table._id,
+                            restaurantId: table.RestaurantId,
+                            date: saturday.toString(),
+                            peopleCount: 1,
+                            email: faker.internet.email()
+                        })
+                    .then(result => {
+                        assert.equal(result.status, 201)
+                    })
+            }
         })
     })
 })

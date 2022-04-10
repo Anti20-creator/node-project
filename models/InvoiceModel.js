@@ -21,7 +21,7 @@ const InvoiceModel = new mongoose.Schema({
 
 const invoiceMongooseModel = mongoose.model('invoice', InvoiceModel)
 
-invoiceMongooseModel.collection.createIndex( { email: 1, invoiceName: 1 }, { unique: true, sparse: false } )
+if (process.env.TESTING === '0') invoiceMongooseModel.collection.createIndex( { email: 1, invoiceName: 1 }, { unique: true, sparse: false } )
 /*try {
     invoiceMongooseModel.collection.dropIndexes()
 }catch(e) {}*/

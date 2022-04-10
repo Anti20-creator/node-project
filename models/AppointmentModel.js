@@ -31,7 +31,7 @@ const AppointmentModel = new mongoose.Schema({
 
 const appointmentMongooseModel = mongoose.model('Appointment', AppointmentModel)
 
-appointmentMongooseModel.collection.createIndex( { RestaurantId: 1, TableId: 1, date: 1 } )
+if (process.env.TESTING === '0') appointmentMongooseModel.collection.createIndex( { RestaurantId: 1, TableId: 1, date: 1 } )
 /*try {
     appointmentMongooseModel.collection.dropIndexes()
 }catch(e) {}*/

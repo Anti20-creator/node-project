@@ -37,6 +37,6 @@ const TableModel = new mongoose.Schema({
 
 const tableMongooseModel = mongoose.model('Table', TableModel)
 
-tableMongooseModel.collection.createIndex( { RestaurantId: 1 } )
+if (process.env.TESTING === '0') tableMongooseModel.collection.createIndex( { RestaurantId: 1 } )
 
 module.exports = tableMongooseModel
