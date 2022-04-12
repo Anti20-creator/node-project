@@ -19,10 +19,6 @@ const events = io => {
 			console.log(socket.rooms)
         })
 
-        // Users will be notified, if a new guest arrives
-        socket.on('new-guest', ({selectedTable, socketId}) => {
-        })
-
 		socket.on('guest-leaved', ({tableId}) => {
             console.log(tableId)
 			const cookies = cookie.parse(socket.handshake.headers.cookie)
@@ -47,35 +43,35 @@ const events = io => {
 			socket.broadcast.to('restaurant:' + restaurantId).emit('layout-modified', tables)
 		})
 
-	socket.on('order-removed', ({tableId, name}) => {
-	    socket.broadcast.to('table:' + tableId).emit('order-removed', name)
-	})
+		socket.on('order-removed', ({tableId, name}) => {
+			socket.broadcast.to('table:' + tableId).emit('order-removed', name)
+		})
 
-	socket.on('order-added', ({tableId, name}) => {
-	    console.log(name)
-	    socket.broadcast.to('table:' + tableId).emit('order-added', name)
-	})
+		socket.on('order-added', ({tableId, name}) => {
+			console.log(name)
+			socket.broadcast.to('table:' + tableId).emit('order-added', name)
+		})
 
-	socket.on('join-appointment', () => {
-	    const cookies = cookie.parse(socket.handshake.headers.cookie)
-	    const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId
-	    console.log('Joined to appointments')
-	    socket.join('appointment:' + restaurantId)
-	})
+		socket.on('join-appointment', () => {
+			const cookies = cookie.parse(socket.handshake.headers.cookie)
+			const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId
+			console.log('Joined to appointments')
+			socket.join('appointment:' + restaurantId)
+		})
 
-	socket.on('leave-appointment', () => {
-	    const cookies = cookie.parse(socket.handshake.headers.cookie)
-	    const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId
-	    console.log('Leaved appointments')
-	    socket.leave('appointment:' + restaurantId)
-	})
+		socket.on('leave-appointment', () => {
+			const cookies = cookie.parse(socket.handshake.headers.cookie)
+			const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId
+			console.log('Leaved appointments')
+			socket.leave('appointment:' + restaurantId)
+		})
 
-	socket.on('new-appointment', () => {
-	    const cookies = cookie.parse(socket.handshake.headers.cookie)
-	    const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId
-	    console.log('New appointment')
-	    socket.broadcast.to('restaurant:' + restaurantId).emit('new-appointment')
-	})
+		socket.on('new-appointment', () => {
+			const cookies = cookie.parse(socket.handshake.headers.cookie)
+			const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId
+			console.log('New appointment')
+			socket.broadcast.to('restaurant:' + restaurantId).emit('new-appointment')
+		})
 
     })
 }

@@ -3,7 +3,6 @@ const {authenticateAccessToken}           = require("../middlewares/auth");
 const router                              = express.Router()
 const Httpresponse                        = require('../utils/ErrorCreator')
 const TableController                     = require('../controller/tableController')
-const RestaurantController                = require('../controller/restaurantController')
 const RequestValidator                    = require('../controller/bodychecker')
 const MenuController                      = require('../controller/menuController')
 const { createInvoiceName }               = require('../utils/invoiceName')
@@ -140,7 +139,7 @@ router.get('/:tableId', authenticateAccessToken, catchErrors(async(req, res) => 
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
 
     const table = await TableController.findById(tableId)
-    const restaurant = await RestaurantController.findByAuth(req, res)
+    //const restaurant = await RestaurantController.findByAuth(req, res)
 
     TableController.checkIsTableInUse(table)
 

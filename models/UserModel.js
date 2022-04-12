@@ -61,8 +61,5 @@ User.methods.comparePassword = function(plainPass) {
 const userMongooseModel = mongoose.model('User', User)
 
 if (process.env.TESTING === '0') userMongooseModel.collection.createIndex( { email: 1 }, { unique: true } )
-/*try {
-    userMongooseModel.collection.dropIndexes()
-}catch(e) {}*/
 
 module.exports = userMongooseModel

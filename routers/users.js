@@ -78,27 +78,21 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
     const { name, email, password, secretPin } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', secretPin: 'string'})
 
     const restaurantId = req.params.id
-    let restaurantName = null
-    let restaurantsPin = null
 
     const restaurant = await Restaurant.findById(restaurantId).exec()
-
-    restaurantsPin = restaurant.secretPin
 
     if(!restaurant){
         return res.status(400).send({
             success: false,
             message: "Restaurant doesn't exist with the given id."
         })
-    }else if(restaurantsPin !== secretPin){
+    }else if(restaurant.secretPin !== secretPin){
         return Httpresponse.BadRequest(res, "The secret PIN doesn't match")
     }else{
 
         if(!restaurant.invited.includes(email)) {
             return Httpresponse.NotFound(res, "The given email has not been invited!")
         }
-
-        restaurantName = restaurant.restaurantName
 
         const salt = bcrypt.genSaltSync(10)
         const hashedPassword = bcrypt.hashSync(password, salt)
@@ -107,12 +101,12 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
             email: email,
             fullName: name,
             password: hashedPassword,
-            restaurantName: restaurantName,
+            restaurantName: restaurant.restaurantName,
             restaurantId: restaurantId,
             isAdmin: false
         })
 
-        await newUser.validate().catch((err) => {
+        /*await newUser.validate().catch((err) => {
             const {email, fullName, password, restaurantName} = err.errors
             const errors = [
                 {email: email ? email.message : ''},
@@ -121,7 +115,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
                 {restaurantName: restaurantName ? restaurantName.message : ''}
             ]
             return Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
-        })
+        })*/
 
         await newUser.save((err) => {
             if (err) {
@@ -188,16 +182,6 @@ router.post('/login', catchErrors(async(req, res) => {
         }
 
     })
-}))
-
-router.get('/getdata', authenticateAccessToken, catchErrors(async(req, res) => {
-
-    const user = req.user
-    const data = await UserModel.findOne({_id: user.userId}).exec()
-    if(!data)
-	    return Httpresponse.Unauthorized(res, "Unathorized!")
-
-    return Httpresponse.OK(res, data.email)
 }))
 
 router.get('/is-admin', authenticateAccessToken, catchErrors(async(req, res) => {

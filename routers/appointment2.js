@@ -26,24 +26,23 @@ function checkRestaurantOpen(infos, givenDate) {
 
     if((Number(closeTimeOnGivenDay.open.hours) < givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.open.hours) === givenDate.getUTCHours() && Number(closeTimeOnGivenDay.open.minutes) <= givenDate.getUTCMinutes())) &&
             (Number(closeTimeOnGivenDay.close.hours) > givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.close.hours) === givenDate.getUTCHours() && Number(closeTimeOnGivenDay.close.minutes) >= givenDate.getUTCMinutes())) && !((Number(closeTimeOnGivenDay.open.hours) === Number(closeTimeOnGivenDay.close.hours) && Number(closeTimeOnGivenDay.open.minutes) === Number(closeTimeOnGivenDay.close.minutes)) && Number(closeTimeOnGivenDay.open.hours) === 0) ) {
-            console.log('open on same day')
+            //open on same day
             return true
     }else if( (Number(closeTimeOnPastDay.open.hours) > givenDate.getUTCHours() || (Number(closeTimeOnPastDay.open.hours) === givenDate.getUTCHours() && Number(closeTimeOnPastDay.open.minutes) >= givenDate.getUTCMinutes())) && 
         (Number(closeTimeOnPastDay.close.hours) > givenDate.getUTCHours() || (Number(closeTimeOnPastDay.close.hours) === givenDate.getUTCHours() && Number(closeTimeOnPastDay.close.minutes) >= givenDate.getUTCMinutes())) && Number(closeTimeOnPastDay.close.hours) < Number(closeTimeOnPastDay.open.hours)) {
-        console.log('open on day before')
+        //open on day before
         return true
     }else if( (Number(closeTimeOnGivenDay.open.hours) > Number(closeTimeOnGivenDay.close.hours) || (Number(closeTimeOnGivenDay.open.hours) === Number(closeTimeOnGivenDay.close.hours) && Number(closeTimeOnGivenDay.open.minutes > Number(closeTimeOnGivenDay.close.minutes))) ) && (Number(closeTimeOnGivenDay.open.hours) < givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.open.hours) === givenDate.getUTCHours()  && Number(closeTimeOnGivenDay.open.minutes) < givenDate.getUTCMinutes() )) ) {
-        console.log('open on long day for example: 02:00-05:00')
+        //open on long day for example: 02:00-05:00
         return true
     }else{
-        console.log('Restaurant is not open')
+        // Restaurant is not open
         return false
     }
 }
 
 router.post('/book', catchErrors(async(req, res) => {
 
-    console.warn(req.body)
     const { email, date, restaurantId, tableId, peopleCount } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', restaurantId: 'string', tableId: 'string', peopleCount: 'number'})
 
     const formattedDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset())
@@ -148,7 +147,7 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
 router.delete('/disclaim', catchErrors(async(req, res) => {
     const { date, tableId, restaurantId, pin } = RequestValidator.destructureBody(req, res, {date: 'string', tableId: 'string', restaurantId: 'string', pin: 'string'})
 
-    // Finding the appointment
+    //Finding the appointment
     const appointment = await Appointments.findOne({
         RestaurantId: restaurantId,
         TableId: tableId,

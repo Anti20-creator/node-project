@@ -21,7 +21,6 @@ const getAllFoodNames = (menu) => {
     Object.keys(menu.items).map(category => {
         result.concat(Object.keys(menu.items[category]))
     })
-    console.log(result)
     return result
 }
 

@@ -33,7 +33,6 @@ const createXLS = async (id) => {
     const now = new Date()
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
 
-    console.log(id)
     const layout = await Layouts.findOne({RestaurantId: id}).exec()
     const appointments = await Appointments.collection.find({
         RestaurantId: {
@@ -64,7 +63,6 @@ const createXLS = async (id) => {
 
     fs.writeFileSync(path.join(__dirname,'/..', '/public', '/xls', '/' + id + '.xlsx'), buffer, function(err) {
         if (err) {
-            console.err(err)
             throw err
         }
     })

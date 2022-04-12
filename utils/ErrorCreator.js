@@ -1,7 +1,3 @@
-/*
-* @param statusCode = the returned status
-* */
-
 class HttpResponse {
 
     static Created(res, message) {

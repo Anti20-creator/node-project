@@ -1586,7 +1586,103 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                         })
+                    const data = {
+                        taxNumber: faker.datatype.number({min: 10000000, max: 1000000000}).toString(),
+                        address: faker.address.streetAddress(),
+                        city: faker.address.city(),
+                        postalCode: faker.address.zipCode(),
+                        phoneNumber: faker.phone.phoneNumber(),
+                        currency: 'HUF',
+                        openingTimes: [
+                            //Monday
+                            {
+                                open: {
+                                    hours: "01",
+                                    minutes: "00"
+                                },
+                                close: {
+                                    hours: "15",
+                                    minutes: "00"
+                                }
+                            },
+                            //Tuesday
+                            {
+                                open: {
+                                    hours: "08",
+                                    minutes: "00"
+                                },
+                                close: {
+                                    hours: "16",
+                                    minutes: "00"
+                                }
+                            },
+                            //Wednesday
+                            {
+                                open: {
+                                    hours: "05",
+                                    minutes: "30"
+                                },
+                                close: {
+                                    hours: "20",
+                                    minutes: "15"
+                                }
+                            },
+                            //Thursday
+                            {
+                                open: {
+                                    hours: "08",
+                                    minutes: "00"
+                                },
+                                close: {
+                                    hours: "16",
+                                    minutes: "00"
+                                }
+                            },
+                            //Friday
+                            {
+                                open: {
+                                    hours: "12",
+                                    minutes: "00"
+                                },
+                                close: {
+                                    hours: "05",
+                                    minutes: "00"
+                                }
+                            },
+                            //Saturday
+                            {
+                                open: {
+                                    hours: "12",
+                                    minutes: "00"
+                                },
+                                close: {
+                                    hours: "02",
+                                    minutes: "00"
+                                }
+                            },
+                            //Sunday
+                            {
+                                open: {
+                                    hours: "05",
+                                    minutes: "00"
+                                },
+                                close: {
+                                    hours: "02",
+                                    minutes: "00"
+                                }
+                            },
+                        ]
+                    }
+                    await request(app)
+                        .post('/api/informations/update')
+                        .set('Content-Type', 'application/json')
+                        .set('Cookie', loginData.headers['set-cookie'])
+                        .send(data)
+                        .then(result => {
+                            assert.equal(result.status, 400)
+                        })
                 })
+
         })
     })
 

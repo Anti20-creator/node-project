@@ -30,7 +30,6 @@ router.post('/update', authenticateAdminAccessToken, catchErrors(async(req, res)
 
     const infos = await InformationsController.findById(req.user.restaurantId)
     infos.taxNumber = taxNumber; infos.address = address; infos.city = city; infos.postalCode = postalCode; infos.phoneNumber = phoneNumber; infos.openingTimes = openingTimes; infos.currency = currency;
-    infos.markModified('openingTimes')
 
     await infos.save()
 

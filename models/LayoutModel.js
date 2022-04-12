@@ -23,7 +23,8 @@ const tableSchema = new mongoose.Schema({
 	    type: String,
     },
     direction: {
-        type: Number
+        type: Number,
+        enum: [0, 90, 180, 270]
     },
     TableId: {
         type: String,
@@ -31,7 +32,8 @@ const tableSchema = new mongoose.Schema({
     },
     localId: {
         type: Number,
-        required: true
+        required: true,
+        unique: true //új
     }
 })
 
@@ -57,8 +59,5 @@ const LayoutSchema = new mongoose.Schema({
 const layoutMongooseModel = mongoose.model('layout', LayoutSchema)
 
 if (process.env.TESTING === '0') layoutMongooseModel.collection.createIndex( { RestaurantId: 1 }, { unique: true } )
-/*try {
-    layoutMongooseModel.collection.dropIndexes()
-}catch(e) {}*/
 
 module.exports = layoutMongooseModel

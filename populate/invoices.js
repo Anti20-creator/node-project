@@ -33,9 +33,9 @@ const main = async() => {
             .set('Content-Type', 'application/json')
             .send({email: users[i].email, password: "123456"})
             .then(async loginData => {
-                await createInvoiceForOneTable(loginData)
-                await createInvoiceForOneTable(loginData)
-                await createInvoiceForOneTable(loginData)
+                for(let i = 0; i < 20; ++i) {
+                    await createInvoiceForOneTable(loginData)
+                }
             })
     }
 } 
@@ -67,7 +67,6 @@ const createInvoiceForOneTable = async (loginData) => {
             .set('Cookie', loginData.headers['set-cookie'])
             .set('Content-Type', 'application/json')
             .send({tableId: table._id, item: {category: itemCategory, name: item, quantity: 1}, socketId: 'socket-id'})
-            .then(result => {console.log(result.body)})
     }
 
     await request(app)

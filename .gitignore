@@ -1,3 +1,6 @@
 /node_modules
 .env
-/public
+public/invoices/*
+public/xls/*
+public/invoice_zips/*
+/.idea

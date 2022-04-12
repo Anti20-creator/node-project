@@ -27,7 +27,6 @@ const exportToZip = async(id) => {
     zip.writeZip(__dirname + '/../public/invoice_zips/' + id + '.zip')
 
     if(fs.existsSync(__dirname + '/../public/invoice_zips/' + id + '.zip')) {
-        console.log('Clearing up...')
         await Invoices.deleteMany({RestaurantId: id}).exec()
     }
 
