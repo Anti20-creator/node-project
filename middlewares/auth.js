@@ -7,7 +7,7 @@ function authenticateAccessToken (req, res, next) {
         req.user = validate
         next();
     }else{
-        Httpresponse.Unauthorized(res, "Unathorized user!")
+        Httpresponse.Unauthorized(res, "unathorized-user")
     }
 }
 
@@ -17,7 +17,7 @@ function authenticateRefreshToken (req, res, next) {
         req.user = validate
         next();
     }else{
-        Httpresponse.Unauthorized(res, "Unathorized user!")
+        Httpresponse.Unauthorized(res, "unathorized-user")
     }
 }
 
@@ -27,7 +27,7 @@ function authenticateAdminAccessToken (req, res, next) {
         req.user = validate
         next();
     }else{
-        Httpresponse.Unauthorized(res, "You don't have access to that resource!")
+        Httpresponse.Unauthorized(res, "no-access")
     }
 }
 
@@ -37,7 +37,7 @@ async function authenticateOwnerAccessToken (req, res, next) {
         req.user = validate
         next();
     }else{
-        Httpresponse.Unauthorized(res, "You don't have access to that resource!")
+        Httpresponse.Unauthorized(res, "no-access")
     }
 }
 
@@ -46,7 +46,7 @@ async function authenticateFilePermission (req, res, next) {
     const restaurantId = req.user.restaurantId
 
     if(req.url.split('.')[0].split('_')[2] !== restaurantId) {
-        return Httpresponse.Forbidden(res, "You don't have access to this!")
+        return Httpresponse.Forbidden(res, "no-access")
     }else{
         next()
     }

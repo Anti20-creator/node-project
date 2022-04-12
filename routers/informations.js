@@ -33,7 +33,7 @@ router.post('/update', authenticateAdminAccessToken, catchErrors(async(req, res)
 
     await infos.save()
 
-    return Httpresponse.OK(res, "Updated!")
+    return Httpresponse.OK(res, "informations-updated")
 }))
 
 module.exports = router

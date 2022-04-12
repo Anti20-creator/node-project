@@ -9,7 +9,7 @@ const User = new mongoose.Schema({
             validator: function(v) {
                 return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v);
             },
-            message: "Please enter a valid email!"
+            message: "invalid-email"
         },
         trim: true
     },
@@ -21,7 +21,7 @@ const User = new mongoose.Schema({
             validator: function(name) {
                 return name.length > 4
             },
-            message: "Your name must be longer!"
+            message: "invalid-username"
         }
     },
     password: {
@@ -31,7 +31,7 @@ const User = new mongoose.Schema({
             validator: function(password) {
                 return password.length > 5
             },
-            message: "Your email should be longer than 5 characters!"
+            message: "short-password"
         }
     },
     restaurantName: {
@@ -40,7 +40,7 @@ const User = new mongoose.Schema({
             validator: function(restaurant) {
                 return restaurant.length > 1
             },
-            message: "Your email should be longer than one character!"
+            message: "short-restaurantname"
         },
         required: true
     },

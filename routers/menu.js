@@ -21,7 +21,7 @@ router.post('/add-category', authenticateAccessToken, catchErrors(async(req, res
 
     await menu.save()
 
-    return Httpresponse.Created(res, "Category added!")
+    return Httpresponse.Created(res, "category-added")
 }))
 
 router.post('/modify-category', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -31,7 +31,7 @@ router.post('/modify-category', authenticateAccessToken, catchErrors(async(req, 
     const menu = await MenuController.findById(req.user.restaurantId)
 
     if(!menu.items[oldCategory]) {
-        return Httpresponse.NotFound(res, "No category found to update!")
+        return Httpresponse.NotFound(res, "category-not-found")
     }
 
     if(category !== oldCategory) {
@@ -46,7 +46,7 @@ router.post('/modify-category', authenticateAccessToken, catchErrors(async(req, 
 
     await menu.save()
 
-    return Httpresponse.OK(res, "Category updated!")
+    return Httpresponse.OK(res, "category-updated")
 }))
 
 router.post('/modify-item', authenticateAccessToken, async(req, res) => {
@@ -56,7 +56,7 @@ router.post('/modify-item', authenticateAccessToken, async(req, res) => {
     const menu = await MenuController.findById(req.user.restaurantId)
 
     if(!Object.keys(menu.items).includes(category) || !menu.items[category][oldName]) {
-        return Httpresponse.NotFound(res, "No item found to update!")
+        return Httpresponse.NotFound(res, "food-not-found")
     }
 
     menu.items[category][name] = { unit, amount, price }
@@ -67,7 +67,7 @@ router.post('/modify-item', authenticateAccessToken, async(req, res) => {
 
     await menu.save()
 
-    return Httpresponse.OK(res, "Item modified!")
+    return Httpresponse.OK(res, "food-modified")
 })
 
 
@@ -78,15 +78,19 @@ router.post('/add-item', authenticateAccessToken, async(req, res) => {
     const menu = await MenuController.findById(req.user.restaurantId)
     const allFoodNames = MenuController.getAllFoodNames(menu)
 
-    if(!Object.keys(menu.items).includes(category) || allFoodNames.includes(name)) {
-        return Httpresponse.Conflict(res, "There is already a product with that name on the menu or category don't exist!")
+    if(!Object.keys(menu.items).includes(category)) {
+        return Httpresponse.BadRequest(res, "category-not-found")
+    }
+    
+    if(allFoodNames.includes(name)) {
+        return Httpresponse.Conflict(res, "food-name-exists")
     }
 
     menu.items[category][name] = { unit, amount, price }
     menu.markModified('items')
     await menu.save()
 
-    return Httpresponse.Created(res, "Item added!")
+    return Httpresponse.Created(res, "food-added")
 })
 
 router.delete('/delete-category', authenticateAccessToken, async(req, res) => {
@@ -100,12 +104,12 @@ router.delete('/delete-category', authenticateAccessToken, async(req, res) => {
         menu.markModified('items')
         menu.markModified('icons')
     }else{
-        return Httpresponse.NotFound(res, "No item found with given parameters!")
+        return Httpresponse.NotFound(res, "category-not-found")
     }
 
     await menu.save()
 
-    return Httpresponse.OK(res, "Category deleted!")
+    return Httpresponse.OK(res, "category-deleted")
 })
 
 router.delete('/delete-item', authenticateAccessToken, async(req, res) => {
@@ -117,12 +121,12 @@ router.delete('/delete-item', authenticateAccessToken, async(req, res) => {
         delete(menu.items[category][name])
         menu.markModified('items')
     }else{
-        return Httpresponse.NotFound(res, "No item found with given parameters!")
+        return Httpresponse.NotFound(res, "food-not-found")
     }
 
     await menu.save()
 
-    return Httpresponse.OK(res, "Item deleted!")
+    return Httpresponse.OK(res, "food-deleted")
 })
 
 router.get('/categories', async(req, res) => {

@@ -60,7 +60,6 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
     }
 
     for(let i = 0; i < peopleCount; ++i) {
-        console.log('new page')
         await generateHeader(doc, invoiceId, restaurantId, restaurant, informations);
         generateInvoiceTable(doc, invoice, peopleCount, currency);
         generateFooter(doc);

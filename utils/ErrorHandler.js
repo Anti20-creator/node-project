@@ -1,7 +1,6 @@
 const Httpresponse = require('../utils/ErrorCreator')
 
 const catchErrors = action => (req, res, next) => action(req, res).catch((err) => {
-    console.log(err)
     switch(err.name) {
         case 'MissingFieldError': {
             return Httpresponse.BadRequest(res, err.message)
@@ -26,6 +25,10 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
         case 'TableNotFoundError': {
             return Httpresponse.NotFound(res, err.message)
         }
+
+        case 'TableNotFound': {
+            return Httpresponse.NotFound(res, err.message)
+        }
         
         case 'RestaurantNotFoundError': {
             return Httpresponse.NotFound(res, err.message)
@@ -35,8 +38,20 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
             return Httpresponse.BadRequest(res, err.message)
         }
 
+        case 'ValidationError': {
+            return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
+        }
+
+        case 'DateError': {
+            return Httpresponse.BadRequest(res, err.message)
+        }
+
+        case 'TableSeatError': {
+            return Httpresponse.BadRequest(res, err.message)
+        }
+
         default: {
-            return Httpresponse.BadRequest(res, "unexpected-error")
+            return Httpresponse.BadRequest(res, err.message)
         }
     }
 })

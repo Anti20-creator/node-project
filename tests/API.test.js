@@ -88,7 +88,7 @@ beforeAll( async function() {
 const adminEmail = faker.unique(() => faker.internet.email())
 let userEmails = Array.from(Array(faker.datatype.number({min: 3, max: 6}))).map((_, i) => faker.unique(() => faker.internet.email()))
 const soonPromoted = faker.random.arrayElement(userEmails)
-const deletedUser = faker.random.arrayElement(userEmails)
+const deletedUser = faker.random.arrayElement(userEmails.filter(email => email !== soonPromoted))
 
 describe('API tests', () => {
 
@@ -1140,6 +1140,7 @@ describe('API tests', () => {
                     email: "guest@gmail.com"
                 })
                 .then(result => {
+                    console.warn(result.body)
                     assert.equal(result.status, 404)
                     assert.equal(result.body.success, false)
                 })

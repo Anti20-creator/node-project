@@ -21,7 +21,13 @@ const AppointmentModel = new mongoose.Schema({
         required: true
     },
     email: {
-	    type: String
+	    type: String,
+        validate: {
+            validator: function(email) {
+                return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email);
+            },
+            message: 'invalid-email'
+        }
     },
     confirmed: {
         type: Boolean,

@@ -6,19 +6,49 @@ const InformationsModel = new mongoose.Schema({
         required: true
     },
     city: {
-        type: String
+        type: String,
+        validate: {
+            validator: function(field) {
+                return field.length > 0
+            },
+            message: 'short-city'
+        }
     },
     postalCode: {
-        type: String
+        type: String,
+        validate: {
+            validator: function(field) {
+                return field.length > 0
+            },
+            message: 'short-postalcode'
+        }
     },
     address: {
-        type: String
+        type: String,
+        validate: {
+            validator: function(field) {
+                return field.length > 0
+            },
+            message: 'short-address'
+        }
     },
     taxNumber: {
-        type: String
+        type: String,
+        validate: {
+            validator: function(field) {
+                return field.length > 0
+            },
+            message: 'short-taxnumber'
+        }
     },
     phoneNumber: {
-        type: String
+        type: String,
+        validate: {
+            validator: function(field) {
+                return field.length > 0
+            },
+            message: 'short-phonenumber'
+        }
     },
     openingTimes: {
         type: Array,

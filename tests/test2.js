@@ -97,7 +97,6 @@ const validate = (openingTimes) => {
             || openingTimesClone[i].close.hours.length !== 2 || isNaN(openingTimesClone[i].close.hours)
             || openingTimesClone[i].close.minutes.length !== 2 || isNaN(openingTimesClone[i].close.minutes) 
             ) {
-                console.log('anyád')
                 return false
             }
     }
@@ -117,10 +116,3 @@ const validate = (openingTimes) => {
 
     return true
 }
-
-console.log(validate(Array.from(Array(7)).map(() => {return {
-    "open": {"hours": "00", "minutes": "00"},
-    "close": {"hours": "24", "minutes": "00"}
-}})))
-
-console.log(validate(data.openingTimes))

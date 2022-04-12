@@ -1,8 +1,28 @@
-const excel        = require('excel4node')
-const Appointments = require('../models/AppointmentModel')
-const Layouts      = require('../models/LayoutModel')
-const path         = require('path')
-const fs           = require('fs')
+const excel            = require('excel4node')
+const Appointments     = require('../models/AppointmentModel')
+const LayoutController = require('../controller/layoutController')
+const Layouts          = require('../models/LayoutModel')
+const path             = require('path')
+const fs               = require('fs')
+
+class DateError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'DateError'
+    }
+}
+class TableNotFound extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'TableNotFound'
+    }
+}
+class TableSeatError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'TableSeatError'
+    }
+}
 
 const findConflicts = async (restaurantId, tableId, startDate, endDate, returnType) => {
     const results = await Appointments.collection.find({
@@ -25,6 +45,35 @@ const findConflicts = async (restaurantId, tableId, startDate, endDate, returnTy
         return results.length
     }else{
         return results
+    }
+}
+
+const checkDate = (date) => {
+    const formattedDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset())
+    const now = new Date()
+    if(formattedDate.getTime() < now.getTime()) {
+        throw new DateError("book-for-past")
+    }
+    if(formattedDate.getTime() > now.getTime() + 3_600_000 * 24 * 60) {
+        throw new DateError("book-too-far")
+    }
+
+    return formattedDate
+}
+
+const checkTable = async(tableId, restaurantId, peopleCount) => {
+    console.warn(tableId)
+    if(tableId !== 'any') {
+        const layout = await LayoutController.findById(restaurantId)
+        const table = layout.tables.find(table => table.TableId === tableId)
+
+        if(!table) {
+            throw new TableNotFound()
+        }
+
+        if(table.tableCount < peopleCount) {
+            throw new TableSeatError()
+    	}
     }
 }
 
@@ -77,4 +126,4 @@ const createXLS = async (id) => {
 
 }
 
-module.exports = { findConflicts, createXLS }
+module.exports = { findConflicts, createXLS, checkDate, checkTable }

@@ -23,7 +23,7 @@ router.post('/book', authenticateAccessToken, catchErrors(async(req, res) => {
     TableController.checkIsTableInUse(table, true)
     await TableController.modifyTableUse(req, table, true)
 
-    return Httpresponse.OK(res, "Table booked for live use!")
+    return Httpresponse.OK(res, "table-booked-live")
 }))
 
 router.post('/free-table', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -32,12 +32,12 @@ router.post('/free-table', authenticateAccessToken, catchErrors(async(req, res) 
 
     const table = await TableController.findById(tableId)
     if(table.liveOrders.length > 0) {
-	    return Httpresponse.BadRequest(res, "Table have orders!")
+	    return Httpresponse.BadRequest(res, "table-have-orders")
     }
 
     await TableController.modifyTableUse(req, table, false)
 
-    return Httpresponse.OK(res, "Table updated!")
+    return Httpresponse.OK(res, "table-updated")
 }))
 
 router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -51,7 +51,7 @@ router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
 
     if(!Object.keys(menu.items).includes(item.category)){
         if(!Object.keys(menu.items[item.category]).includes(item.name)) {
-            return Httpresponse.BadRequest(res, "One or more items are not represented in the menu.")
+            return Httpresponse.BadRequest(res, "food-menu-not-found")
         }
     }
     const price = menu.items[item.category][item.name].price
@@ -68,10 +68,9 @@ router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
     }
 
     await table.save()
-    console.log(process.env.PRODUCTION)
-    if (process.env.PRODUCTION != '0') req.app.get('socketio').to('table:' + tableId).emit('order-added', item, socketId)
+    req.app.get('socketio').to('table:' + tableId).emit('order-added', item, socketId)
 
-    return Httpresponse.Created(res, "Orders added!")
+    return Httpresponse.Created(res, "order-added")
 }))
 
 router.delete('/remove-order', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -85,7 +84,7 @@ router.delete('/remove-order', authenticateAccessToken, catchErrors(async(req, r
     await table.save()
     req.app.get('socketio').to('table:' + tableId).emit('order-removed', name, socketId)
 
-    return Httpresponse.OK(res, "Order removed!")
+    return Httpresponse.OK(res, "order-removed")
 }))
 
 router.post('/increase-order', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -101,7 +100,7 @@ router.post('/increase-order', authenticateAccessToken, catchErrors(async(req, r
     await table.save()
     req.app.get('socketio').to('table:' + tableId).emit('increase-order', name, socketId)
 
-    return Httpresponse.OK(res, "Order quantity increased!")
+    return Httpresponse.OK(res, "order-increased")
 }))
 
 router.post('/decrease-order', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -121,7 +120,7 @@ router.post('/decrease-order', authenticateAccessToken, catchErrors(async(req, r
     await table.save()
     req.app.get('socketio').to('table:' + tableId).emit('decrease-order', name, socketId)
 
-    return Httpresponse.OK(res, "Order quantity decreased!")
+    return Httpresponse.OK(res, "order-decreased")
 }))
 
 router.get('/orders/:tableId', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -139,13 +138,12 @@ router.get('/:tableId', authenticateAccessToken, catchErrors(async(req, res) => 
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
 
     const table = await TableController.findById(tableId)
-    //const restaurant = await RestaurantController.findByAuth(req, res)
 
     TableController.checkIsTableInUse(table)
 
     const items = table.liveOrders
     if(items.length === 0) {
-        return Httpresponse.BadRequest(res, "No items were ordered!")
+        return Httpresponse.BadRequest(res, "no-orders")
     }
 
     const { invoiceId, invoicePrefix, invoiceName } = createInvoiceName(req.user.restaurantId)
@@ -170,10 +168,10 @@ router.post('/:tableId/split', authenticateAccessToken, catchErrors(async(req, r
     for(const item of items) {
         const searchForItem = tableItems.findIndex(tableItem => tableItem.name === item.name)
         if(searchForItem === -1) {
-            return Httpresponse.BadRequest(res, "Couldn't find given orders!")
+            return Httpresponse.BadRequest(res, "bad-orders")
         }
         if(item.quantity > tableItems[searchForItem].quantity) {
-            return Httpresponse.BadRequest(res, "Too much items!")
+            return Httpresponse.BadRequest(res, "invalid-orders")
         }
 
         if(item.quantity === tableItems[searchForItem].quantity) {
@@ -204,7 +202,7 @@ router.post('/:tableId/split-equal', authenticateAccessToken, catchErrors(async(
 
     const items = table.liveOrders
     if(items.length === 0) {
-        return Httpresponse.BadRequest(res, "No items were ordered!")
+        return Httpresponse.BadRequest(res, "no-orders")
     }
 
     const { invoiceId, invoicePrefix, invoiceName } = createInvoiceName(req.user.restaurantId)

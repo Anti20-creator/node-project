@@ -1,6 +1,4 @@
 const mongoose = require('mongoose')
-const Layout   = require('../models/LayoutModel')
-const Menu   = require('../models/MenuModel')
 
 const Restaurant = new mongoose.Schema({
     ownerId: {

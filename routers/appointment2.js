@@ -7,9 +7,9 @@ const TableController             = require('../controller/tableController')
 const LayoutController            = require('../controller/layoutController')
 const InformationsController      = require('../controller/informationsController')
 const RequestValidator            = require('../controller/bodychecker')
-const {sendMail, sendBookedAppointmentEmail}                  = require('../utils/EmailSender')
 const { authenticateAccessToken } = require('../middlewares/auth')
 const { catchErrors }             = require('../utils/ErrorHandler')
+const { sendMail, sendBookedAppointmentEmail, sendDeletedAppointmentEmail } = require('../utils/EmailSender')
 
 function createPin() {
     const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -26,8 +26,8 @@ function checkRestaurantOpen(infos, givenDate) {
 
     if((Number(closeTimeOnGivenDay.open.hours) < givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.open.hours) === givenDate.getUTCHours() && Number(closeTimeOnGivenDay.open.minutes) <= givenDate.getUTCMinutes())) &&
             (Number(closeTimeOnGivenDay.close.hours) > givenDate.getUTCHours() || (Number(closeTimeOnGivenDay.close.hours) === givenDate.getUTCHours() && Number(closeTimeOnGivenDay.close.minutes) >= givenDate.getUTCMinutes())) && !((Number(closeTimeOnGivenDay.open.hours) === Number(closeTimeOnGivenDay.close.hours) && Number(closeTimeOnGivenDay.open.minutes) === Number(closeTimeOnGivenDay.close.minutes)) && Number(closeTimeOnGivenDay.open.hours) === 0) ) {
-            //open on same day
-            return true
+        //open on same day
+        return true
     }else if( (Number(closeTimeOnPastDay.open.hours) > givenDate.getUTCHours() || (Number(closeTimeOnPastDay.open.hours) === givenDate.getUTCHours() && Number(closeTimeOnPastDay.open.minutes) >= givenDate.getUTCMinutes())) && 
         (Number(closeTimeOnPastDay.close.hours) > givenDate.getUTCHours() || (Number(closeTimeOnPastDay.close.hours) === givenDate.getUTCHours() && Number(closeTimeOnPastDay.close.minutes) >= givenDate.getUTCMinutes())) && Number(closeTimeOnPastDay.close.hours) < Number(closeTimeOnPastDay.open.hours)) {
         //open on day before
@@ -45,30 +45,12 @@ router.post('/book', catchErrors(async(req, res) => {
 
     const { email, date, restaurantId, tableId, peopleCount } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', restaurantId: 'string', tableId: 'string', peopleCount: 'number'})
 
-    const formattedDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset())
-    const now = new Date()
-    if(formattedDate.getTime() < now.getTime()) {
-        return Httpresponse.BadRequest(res, "You can't book for the past!")
-    }
-    if(formattedDate.getTime() > now.getTime() + 3_600_000 * 24 * 60) {
-        return Httpresponse.BadRequest(res, "You can't book more than 60 days ahead!")
-    }
-
-    if(tableId !== 'any') {
-        const layout = await LayoutController.findById(restaurantId)
-        const table = layout.tables.find(table => table.TableId === tableId)
-        if(!table) {
-            return Httpresponse.NotFound(res, "No table found!")
-        }
-
-        if(table.tableCount < peopleCount) {
-            return Httpresponse.BadRequest(res, "Not enough seats!")
-    	}
-    }
+    const formattedDate = AppointmentsController.checkDate(date)
+    await AppointmentsController.checkTable(tableId, restaurantId, peopleCount)
 
     const informations = await InformationsController.findById(restaurantId)
     if(!checkRestaurantOpen(informations, formattedDate)) {
-        return Httpresponse.BadRequest(res, "Restaurant is closed!")
+        return Httpresponse.BadRequest(res, "restaurant-closed")
     }
 
     const pinCode = createPin()
@@ -83,7 +65,7 @@ router.post('/book', catchErrors(async(req, res) => {
     })
     await appointment.save()
 
-    sendMail(email, 'Appointment booked', `<p>${pinCode}</p>`, null, res)
+    sendBookedAppointmentEmail(email, {date: formattedDate, peopleCount, code: pinCode, accepted: false})
 
     return Httpresponse.Created(res, appointment)
 }))
@@ -91,13 +73,11 @@ router.post('/book', catchErrors(async(req, res) => {
 router.post('/booking-conflicts', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { date, tableId, peopleCount } = RequestValidator.destructureBody(req, res, {date: 'string', tableId: 'string', peopleCount: 'number'})
+    
     const startDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() - 3_600_000 * 12)
     const endDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() + 3_600_000 * 12)
 
-    const table = await TableController.findById(tableId)
-    if(table.tableCount < peopleCount) {
-	    return Httpresponse.BadRequest(res, "Not enough seats!")
-    }
+    await AppointmentsController.checkTable(tableId, req.user.restaurantId, peopleCount)
     const optionalConflicts = await AppointmentsController.findConflicts(req.user.restaurantId, tableId, startDate, endDate)
 
     return Httpresponse.OK(res, optionalConflicts)
@@ -129,7 +109,7 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
     const {accept, appointmentId, tableId} = req.body
 
     if(accept === undefined || !appointmentId) {
-        return Httpresponse.BadRequest("Missing parameters!")
+        return Httpresponse.BadRequest("missing-parameters")
     }
 
     if(accept) {
@@ -141,7 +121,7 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
         await Appointments.findByIdAndDelete(appointmentId)
     }
 
-    return Httpresponse.OK(res, "Appointment status has been updated.")
+    return Httpresponse.OK(res, "appointment-updated")
 }))
 
 router.delete('/disclaim', catchErrors(async(req, res) => {
@@ -155,15 +135,15 @@ router.delete('/disclaim', catchErrors(async(req, res) => {
     })
 
     if(!appointment) {
-        return Httpresponse.NotFound(res, "No data exist with given parameters!");
+        return Httpresponse.NotFound(res, "appointment-not-found");
     }
 
     if(appointment.code !== pin) {
-        return Httpresponse.BadRequest(res, "The entered PIN is incorrect!")
+        return Httpresponse.BadRequest(res, "bad-appointment-pin")
     }
 
     await appointment.deleteOne();
-    return Httpresponse.OK(res, "Your appointment has been deleted!")
+    return Httpresponse.OK(res, "appointment-deleted")
 }))
 
 router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -180,32 +160,17 @@ router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(as
     const email = appointment.email
 
     await appointment.delete()
-    sendMail(email, 'Appointment cancelled', 'A rendelése törlésre került!', null, res)
+    sendDeletedAppointmentEmail(email)
 
-    return Httpresponse.OK(res, "Appointment deleted!")
+    return Httpresponse.OK(res, "appointment-deleted")
 }))
 
 router.post('/book-for-guest', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { email, date, tableId, peopleCount } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', tableId: 'string', peopleCount: 'number'})
 
-    const formattedDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset())
-    if(formattedDate.getTime() < new Date().getTime()) {
-        return Httpresponse.BadRequest(res, "You can't book for the past!")
-    }
-
-    // Check if given table exists
-    if(tableId !== 'any') {
-        const layout = await LayoutController.findById(req.user.restaurantId)
-        const table = layout.tables.find(table => table.TableId === tableId)
-        if(!table) {
-            return Httpresponse.NotFound(res, "No table found!")
-        }
-
-        if(table.tableCount < peopleCount) {
-            return Httpresponse.BadRequest(res, "Not enough seats!")
-    	}
-    }
+    const formattedDate = AppointmentsController.checkDate(date)
+    await AppointmentsController.checkTable(tableId, req.user.restaurantId, peopleCount)
 
     const informations = await InformationsController.findById(req.user.restaurantId)
     if(!checkRestaurantOpen(informations, formattedDate)) {
@@ -224,8 +189,7 @@ router.post('/book-for-guest', authenticateAccessToken, catchErrors(async(req, r
     })
     await appointment.save()
 
-    //await removed
-    sendBookedAppointmentEmail(email, {date: formattedDate, peopleCount, code: pinCode})
+    sendBookedAppointmentEmail(email, {date: formattedDate, peopleCount, code: pinCode, accepted: true})
 
     return Httpresponse.Created(res, appointment)
 }))
@@ -234,17 +198,10 @@ router.post('/is-open', catchErrors(async(req, res) => {
 
     const {date, restaurantId} = RequestValidator.destructureBody(req, res, {date: 'string', restaurantId: 'string'})
 
-    const formattedDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset())
-    if(formattedDate.getTime() < new Date().getTime()) {
-        return Httpresponse.BadRequest(res, "You can't book for the past!")
-    }
+    checkDate(date)
 
     const informations = await InformationsController.findByAuth(restaurantId)
-    if(!checkRestaurantOpen(informations, formattedDate)) {
-        return Httpresponse.BadRequest(res, "Restaurant is closed!")
-    }else{
-	    return Httpresponse.OK(res, "Restaurant is open!")
-    }
+    return Httpresponse.OK(res, checkRestaurantOpen(informations, formattedDate))
 }))
 
 module.exports = router

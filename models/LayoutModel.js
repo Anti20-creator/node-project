@@ -13,7 +13,8 @@ const tableSchema = new mongoose.Schema({
     },
     tableCount: {
         type: Number,
-        required: true
+        required: true,
+        min: [1, 'invalid-tablecount']
     },
     tableType: {
         type: String,
@@ -21,6 +22,7 @@ const tableSchema = new mongoose.Schema({
     },
     size: {
 	    type: String,
+        enum: ['small', 'average', 'large']
     },
     direction: {
         type: Number,
@@ -46,10 +48,14 @@ const LayoutSchema = new mongoose.Schema({
         type: tableSchema
     }],
     sizeX: {
-	    type: Number
+	    type: Number,
+        min: [200, 'small-x'],
+        default: 1000
     },
     sizeY: {
-	    type: Number
+	    type: Number,
+        min: [200, 'small-y'],
+        default: 1000
     },
     backgroundImage: {
 	    type: String

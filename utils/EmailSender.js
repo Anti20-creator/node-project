@@ -26,13 +26,10 @@ async function sendMail(emailTo, subject, htmlContent, fileName) {
         }] : []
     })
 
-    console.log(info)
-
     return info
 }
 
 function sendBookedAppointmentEmail(emailTo, appointmentData, language='hu') {
-
     if(language === 'hu') {
         transporter.sendMail({
             from: process.env.NODEMAILER_SENDER,
@@ -45,7 +42,8 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='hu') {
                         <li>Időpont: ${appointmentData.date}</li>
                         <li>Vendégek száma: ${appointmentData.peopleCount}</li>
                         <li>Kód: ${appointmentData.code}</li>
-                    </ul>`
+                    </ul>` 
+            + appointmentData.accepted ? '<p>Várjuk a foglalt időpontban!</p>' : '' 
         })
     }else{
         transporter.sendMail({
@@ -60,8 +58,62 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='hu') {
                         <li>People: ${appointmentData.peopleCount}</li>
                         <li>Code: ${appointmentData.code}</li>
                     </ul>`
+            + appointmentData.accepted ? '<p>We are waiting for you at the booked time.</p>' : '' 
+
+        })
+    }
+}
+function sendDeletedAppointmentEmail(emailTo, language='hu') {
+    if(language === 'hu') {
+        transporter.sendMail({
+            from: process.env.NODEMAILER_SENDER,
+            to: emailTo,
+            subject: 'Foglalásának állapota módosult',
+            html: `<h1>Foglalása törlésre került.</h1>
+                    <p>Amennyiben úgy érzi, hogy hiba történhetett, kérjük vegye fel a kapcsolatot a megfelelő vendéglátó hellyel.</p>`
+        })
+    }else{
+        transporter.sendMail({
+            from: process.env.NODEMAILER_SENDER,
+            to: emailTo,
+            subject: 'Your appointment has been removed',
+            html: `<h1>Your appointment has been removed from the system.</h1>
+                    <p>If you think there might be an issue, please contact the corresponding catering unit!</p>`
+        })
+    }
+}
+function sendUpdatedAppointmentEmail(emailTo, accepted, language='hu') {
+    if(language === 'hu') {
+        transporter.sendMail({
+            from: process.env.NODEMAILER_SENDER,
+            to: emailTo,
+            subject: 'Foglalásának állapota módosult',
+            html: accepted ? 
+            `<h1>Foglalása jóvá lett hagyva!</h1>
+            <p>Várjuk a korábban foglalt időpontban!</p>` 
+                : 
+            `<h1>Foglalása elutasításra került.</h1>
+            <p>Amennyiben úgy érzi, hogy hiba történhetett, kérjük vegye fel a kapcsolatot a megfelelő vendéglátó hellyel.</p>`
+        })
+    }else{
+        transporter.sendMail({
+            from: process.env.NODEMAILER_SENDER,
+            to: emailTo,
+            subject: 'Your appointment\'s status has been updated',
+            html: accepted ?
+            `<h1>Your appointment has been accepted.</h1>
+            <p>We are waiting for you at the booked time!</p>`
+                :
+            `<h1>Your appointment has been declined.</h1>
+                    <p>If you think there might be an issue, please contact the corresponding catering unit!</p>`
         })
     }
 }
 
-module.exports = {sendMail, sendBookedAppointmentEmail};
+
+module.exports = {
+    sendMail, 
+    sendBookedAppointmentEmail, 
+    sendDeletedAppointmentEmail,
+    sendUpdatedAppointmentEmail
+};

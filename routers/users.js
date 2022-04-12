@@ -41,9 +41,9 @@ router.post('/register-admin', catchErrors(async(req, res) => {
     await newUser.save(async (err, document) => {
         if(err){
             if(err.name === 'ValidationError') {
-                return Httpresponse.BadRequest(res, "Fields error!")
+                return Httpresponse.BadRequest(res, "badly-formatted-data")
             }else{
-                return Httpresponse.Conflict(res, "User already exists with the given email!")
+                return Httpresponse.Conflict(res, "user-email-conflict")
             }
             
         }else{
@@ -68,7 +68,7 @@ router.post('/register-admin', catchErrors(async(req, res) => {
                 RestaurantId: restaurant._id
             })
 
-            return Httpresponse.Created(res, "User has been added!")
+            return Httpresponse.Created(res, "user-created")
         }
     })
 }))
@@ -82,16 +82,13 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
     const restaurant = await Restaurant.findById(restaurantId).exec()
 
     if(!restaurant){
-        return res.status(400).send({
-            success: false,
-            message: "Restaurant doesn't exist with the given id."
-        })
+        return Httpresponse.BadRequest(res, "restaurant-not-found")
     }else if(restaurant.secretPin !== secretPin){
-        return Httpresponse.BadRequest(res, "The secret PIN doesn't match")
+        return Httpresponse.BadRequest(res, "restaurant-bad-pin")
     }else{
 
         if(!restaurant.invited.includes(email)) {
-            return Httpresponse.NotFound(res, "The given email has not been invited!")
+            return Httpresponse.NotFound(res, "no-invitation")
         }
 
         const salt = bcrypt.genSaltSync(10)
@@ -119,7 +116,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
 
         await newUser.save((err) => {
             if (err) {
-                return Httpresponse.Conflict(res, "User already exists with the given email!")
+                return Httpresponse.Conflict(res, "user-email-conflict")
             }
         })
 
@@ -127,7 +124,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
     restaurant.invited = restaurant.invited.filter(inv => inv !== email)
     await restaurant.save()
 
-    return Httpresponse.Created(res, "User has been added!")
+    return Httpresponse.Created(res, "user-created")
 }))
 
 /*
@@ -140,20 +137,16 @@ router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res
     const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
 
     if(!restaurant) {
-	    return Httpresponse.BadRequest(res, "No restaurant found with the given information")
+	    return Httpresponse.BadRequest(res, "restaurant-not-found")
     }
     restaurant.invited.push(emailTo)
 
-    const emailSuccess = await sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
+    sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
                 <a href="http://192.168.31.161:3000/invite/${restaurant._id}">Kattints ide a csatlakozáshoz</a>
                 Étterem PIN kódja: ${restaurant.secretPin}`, null, res)
 
-    if(emailSuccess) {
-	    await restaurant.save()
-        return Httpresponse.OK(res, "User invited!")
-    }else{
-        return Httpresponse.BadRequest(res, "Failed to send e-mail!")
-    }
+    await restaurant.save()
+    return Httpresponse.OK(res, "user-invited")
 
 }))
 
@@ -175,10 +168,10 @@ router.post('/login', catchErrors(async(req, res) => {
 
                 Httpresponse.OK(res, "User has logged in!")
             }else{
-                Httpresponse.Unauthorized(res, "Password is incorrect!")
+                Httpresponse.Unauthorized(res, "wrong-password")
             }
         }else{
-            Httpresponse.Unauthorized(res, "Authentication failed!")
+            Httpresponse.Unauthorized(res, "login-user-not-found")
         }
 
     })
@@ -201,7 +194,7 @@ router.post('/refresh-token', authenticateRefreshToken, catchErrors(async(req, r
 
     const dbUser = await UserModel.findOne({_id: user.userId}).exec()
     if(!dbUser) {
-	return Httpresponse.Unauthorized(res, "Failed to refresh token")
+	    return Httpresponse.Unauthorized(res, "refresh-token-failed-refresh")
     }
 
     const accessToken = Tokens.generateAccessToken(dbUser)
@@ -216,17 +209,17 @@ router.post('/update-rank', authenticateAdminAccessToken, catchErrors(async (req
     const user = await UserModel.findOne({email}).exec()
 
     if(!user) {
-        return Httpresponse.NotFound(res, "No user found with given email!")
+        return Httpresponse.NotFound(res, "user-not-found")
     }
     const userRestaurant = await Restaurant.findOne({ownerId: user._id}).exec()
     const requestRestaraunt = await Restaurant.findById(req.user.restaurantId).exec()
 
     if(user.isAdmin && !promote && userRestaurant) {
-        return Httpresponse.BadRequest(res, "You can't change owner's rank!")
+        return Httpresponse.BadRequest(res, "user-rank-permission-denied")
     }
 
     if(user.isAdmin && !promote && requestRestaraunt.ownerId !== req.user.userId) {
-        return Httpresponse.BadRequest(res, "You can't change another admin's rank!")
+        return Httpresponse.BadRequest(res, "user-rank-permission-denied")
     }
 
     if(promote) {
@@ -237,7 +230,7 @@ router.post('/update-rank', authenticateAdminAccessToken, catchErrors(async (req
         await user.save()
     }
 
-    return Httpresponse.OK(res, "User's role has been changed!")
+    return Httpresponse.OK(res, "user-role-update")
 }))
 
 router.get('/logout', catchErrors(async(req, res) => {
@@ -251,11 +244,11 @@ router.delete('/delete', authenticateOwnerAccessToken, catchErrors(async(req, re
     const { email } = RequestValidator.destructureBody(req, res, {email: 'string'})
 
     if(req.user.email === email) {
-	    return Httpresponse.BadRequest(res, "You can't remove yourself!")
+	    return Httpresponse.BadRequest(res, "user-delete-yourself")
     }
     await UserModel.deleteOne({email}).exec()
 
-    return Httpresponse.OK(res, "User has been removed!")
+    return Httpresponse.OK(res, "user-removed")
 }))
 
 router.get('/team', authenticateAccessToken, catchErrors(async(req, res) => {

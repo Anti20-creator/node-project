@@ -26,7 +26,7 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
         }).toArray()
         
         if (askedForRemoveTables.filter(table => table.inLiveUse).length > 0) {
-            return Httpresponse.Conflict(res, "You can't remove a table which is in live use!")
+            return Httpresponse.Conflict(res, "remove-live-table")
         }
 
         const appointment = await Appointment.collection.findOne({
@@ -37,7 +37,7 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
         })
 
         if(appointment) {
-            return Httpresponse.Conflict(res, "You can't remove a table which has booking for the future!")
+            return Httpresponse.Conflict(res, "remove-booked-table")
         }
     }
 
@@ -144,7 +144,7 @@ router.post('/update', authenticateAdminAccessToken, upload.single('image'), cat
     }
     await layout.save()
 
-    return Httpresponse.OK(res, "Layout size updated!")
+    return Httpresponse.OK(res, "layout-updated")
 }))
 
 module.exports = router
