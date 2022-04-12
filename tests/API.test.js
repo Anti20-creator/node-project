@@ -291,28 +291,6 @@ describe('API tests', () => {
             
             assert.equal(result.status, 401)
         })
-
-        test('Get data route with and without headers', async() => {
-
-            await request(app)
-                .post('/api/users/login')
-                .set('Content-Type', 'application/json')
-                .send({email: faker.random.arrayElement(userEmails), password: "123456"})
-                .then(async loginData => {
-                    const result = await request(app)
-                        .get('/api/users/getdata')
-                        .set('Content-Type', 'application/json')
-                        .set('Cookie', loginData.headers['set-cookie'])
-                    
-                    assert.equal(result.status, 200)
-                })
-                
-                const result = await request(app)
-                .get('/api/users/getdata')
-                .set('Content-Type', 'application/json')
-                
-                assert.equal(result.status, 401)
-            })
             
         test('GET isadmin', async() => {
         
@@ -367,7 +345,7 @@ describe('API tests', () => {
                     
                     
                     const loggedOutRequest = await request(app)
-                        .get('/api/users/getdata')
+                        .get('/api/users/is-admin')
                         .set('Content-Type', 'application/json')
                         .set('Cookie', result.headers['set-cookie'])
                     

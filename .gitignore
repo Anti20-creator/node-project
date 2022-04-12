@@ -4,3 +4,4 @@ public/invoices/*
 public/xls/*
 public/invoice_zips/*
 /.idea
+/models/DiscountModel.js
