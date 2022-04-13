@@ -35,7 +35,6 @@ const tableSchema = new mongoose.Schema({
     localId: {
         type: Number,
         required: true,
-        unique: true //új
     }
 })
 

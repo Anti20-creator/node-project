@@ -46,8 +46,8 @@ const createTables = (startIndex = 0) => {
     return Array.from(Array(faker.datatype.number({min: 3, max: 5}))).map((_, i) => {
         return {
             coordinates: {
-                x: faker.unique(() => faker.datatype.number({min: 0, max: 1000})),
-                y: faker.unique(() => faker.datatype.number({min: 0, max: 1000}))
+                x: faker.unique(() => faker.datatype.number({min: 0, max: 800})),
+                y: faker.unique(() => faker.datatype.number({min: 0, max: 800}))
             },
             tableCount: faker.datatype.number({min: 1, max: 8}),
             tableType: faker.random.arrayElement(['rounded', 'normal', 'wide']),
@@ -851,7 +851,6 @@ describe('API tests', () => {
                             tableId
                         })
                         .then(result => {
-                            console.log(result.body.message)
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
                         })
@@ -870,7 +869,6 @@ describe('API tests', () => {
                             tableId
                         })
                         .then(result => {
-                            console.log(result.body)
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
                         })
@@ -961,7 +959,6 @@ describe('API tests', () => {
                             socketId: 'my-socket-id'
                         })
                         .then(result => {
-                            console.log(result.body)
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
                         })
@@ -979,7 +976,6 @@ describe('API tests', () => {
                             socketId: 'my-socket-id'
                         })
                         .then(result => {
-                            console.log(result.body)
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
                         })
@@ -990,7 +986,6 @@ describe('API tests', () => {
                         .set('Cookie', loginResult.headers['set-cookie'])
                         .send({tableId: table._id})
                         .then(result => {
-                            console.log(result.body)
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
                         })
@@ -1127,7 +1122,6 @@ describe('API tests', () => {
             const layout     = await Layout.findOne({RestaurantId: restaurant._id}).exec()
             
             const table = faker.random.arrayElement(layout.tables)
-            console.warn(table)
 
             //Booking with bad tableid
             await request(app)
@@ -1140,7 +1134,6 @@ describe('API tests', () => {
                     email: "guest@gmail.com"
                 })
                 .then(result => {
-                    console.warn(result.body)
                     assert.equal(result.status, 404)
                     assert.equal(result.body.success, false)
                 })
@@ -1171,7 +1164,6 @@ describe('API tests', () => {
                     email: "guest@gmail.com"
                 })
                 .then(result => {
-                    console.log(result.body)
                     assert.equal(result.status, 201)
                     assert.equal(result.body.success, true)
                 })
@@ -1294,7 +1286,6 @@ describe('API tests', () => {
                                 appointmentId: appointment._id
                             })
                             .then(result => {
-                                console.info(result.body)
                                 assert.equal(result.status, 200)
                                 assert.equal(result.body.success, true)
                             })

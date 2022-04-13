@@ -42,6 +42,7 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
     }
 
     let resultTables = layout.tables.filter(x => !removedTables.includes(x)).slice()
+    const newIds = []
 
     for (const updatedTable of updatedTables) {
         // Maybe we should check if the table exists
@@ -53,19 +54,27 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
         const table = await new Table({
             RestaurantId: req.user.restaurantId
         }).save()
+        newIds.push(table._id)
         resultTables.push({
             ...newTable,
             TableId: table._id
         })
     }
 
-    for(const table of removedTables) {
-    	const dbTable = await Table.findOne({ _id: table }).exec()
-        await dbTable.deleteOne({})
+    layout.tables = resultTables.filter(table => !removedTables.includes(table.TableId))
+    if(!LayoutController.validateTables(layout.tables, layout.sizeX, layout.sizeY)) {
+        for(const newId of newIds) {
+            await Table.deleteOne({_id: newId})
+        }
+        return Httpresponse.BadRequest(res, "bad-layout-tables")
     }
 
-    layout.tables = resultTables.filter(table => !removedTables.includes(table.TableId))
     await layout.save()
+
+    for(const table of removedTables) {
+    	const dbTable = await Table.findOne({ _id: table }).exec()
+        if(dbTable) await dbTable.deleteOne({})
+    }
 
     return Httpresponse.OK(res, resultTables)
 }))
