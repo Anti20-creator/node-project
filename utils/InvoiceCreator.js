@@ -83,8 +83,12 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
 }
 
 async function generateHeader(doc, invoiceId, restaurant, informations) {
+    if(process.env.TESTING === '0') {
+        doc
+            .font(__dirname + '\\Arimo-Regular.ttf')
+    }
+
     doc
-	    .font(__dirname + '\\Arimo-Regular.ttf')
         .fillColor("#000")
         .fontSize(20)
         .text("", 110, 57)
