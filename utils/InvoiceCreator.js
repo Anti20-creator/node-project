@@ -1,4 +1,4 @@
-const PDFDocument = require("pdfkit");
+﻿const PDFDocument = require("pdfkit");
 const fs = require("fs");
 const path = require('path')
 const Informations = require('../models/InformationsModel')
@@ -87,6 +87,7 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
 
 async function generateHeader(doc, invoiceId, restaurantId, restaurant, informations) {
     doc
+	.font('./Arimo-Regular.ttf')
         .fillColor("#444444")
         .fontSize(20)
         .text("", 110, 57)
