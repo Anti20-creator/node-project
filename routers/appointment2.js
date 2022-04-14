@@ -109,7 +109,7 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
     const {accept, appointmentId, tableId} = req.body
 
     if(accept === undefined || !appointmentId) {
-        return Httpresponse.BadRequest("missing-parameters")
+        return Httpresponse.BadRequest("appointments-missing-parameters")
     }
 
     if(accept) {
@@ -174,7 +174,7 @@ router.post('/book-for-guest', authenticateAccessToken, catchErrors(async(req, r
 
     const informations = await InformationsController.findById(req.user.restaurantId)
     if(!checkRestaurantOpen(informations, formattedDate)) {
-        return Httpresponse.BadRequest(res, "Restaurant is closed!")
+        return Httpresponse.BadRequest(res, "restaurant-closed")
     }
 
     const pinCode = createPin()

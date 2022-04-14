@@ -27,7 +27,7 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
         }
 
         case 'TableNotFound': {
-            return Httpresponse.NotFound(res, err.message)
+            return Httpresponse.NotFound(res, "table-not-found")
         }
         
         case 'RestaurantNotFoundError': {
@@ -47,7 +47,7 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
         }
 
         case 'TableSeatError': {
-            return Httpresponse.BadRequest(res, err.message)
+            return Httpresponse.BadRequest(res, "too-many-people")
         }
 
         default: {

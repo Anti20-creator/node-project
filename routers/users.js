@@ -103,17 +103,6 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
             isAdmin: false
         })
 
-        /*await newUser.validate().catch((err) => {
-            const {email, fullName, password, restaurantName} = err.errors
-            const errors = [
-                {email: email ? email.message : ''},
-                {fullName: fullName ? fullName.message : ''},
-                {password: password ? password.message : ''},
-                {restaurantName: restaurantName ? restaurantName.message : ''}
-            ]
-            return Httpresponse.Conflict(res, "Error while trying to create your account!", errors)
-        })*/
-
         await newUser.save((err) => {
             if (err) {
                 return Httpresponse.Conflict(res, "user-email-conflict")
@@ -166,7 +155,7 @@ router.post('/login', catchErrors(async(req, res) => {
                 res.cookie('Authorization', 'Bearer '.concat(accessToken), {httpOnly: false, sameSite: 'none', path: '/', secure: true})
                 res.cookie('Refresh-token', 'Bearer '.concat(refreshToken), {httpOnly: false, sameSite: 'none', path: '/', secure: true})
 
-                Httpresponse.OK(res, "User has logged in!")
+                Httpresponse.OK(res, "user-logged-in")
             }else{
                 Httpresponse.Unauthorized(res, "wrong-password")
             }
