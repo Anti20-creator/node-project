@@ -129,14 +129,14 @@ var upload = multer({
             cb(null, true);
         } else {
             cb(null, false);
-            return cb(new Error('Only .png, .jpg and .jpeg format allowed!'));
+            return cb(new Error('image-format-error'));
         }
     }
 });
 
 router.post('/update', authenticateAdminAccessToken, upload.single('image'), catchErrors(async(req, res) => {
 
-    const { sizeX, sizeY, sentImage, deleteImage, extName } = RequestValidator.destructureBody(req, res, {sizeX: 'number', sizeY: 'number', sentImage: 'string', deleteImage: 'string', extName: 'string'})
+    const { sizeX, sizeY, sentImage, deleteImage, extName } = RequestValidator.destructureBody(req, res, {sizeX: 'string', sizeY: 'string', sentImage: 'string', deleteImage: 'string', extName: 'string'})
 
     const layout = await LayoutController.findById(req.user.restaurantId)
 

@@ -45,7 +45,7 @@ main()
 const createInvoiceForOneTable = async (loginData) => {
 
     const result = await request(app)
-        .get('/api/tables/tables')
+        .get('/api/tables/')
         .set('Cookie', loginData.headers['set-cookie'])
         .set('Content-Type', 'application/json')
     

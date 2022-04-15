@@ -4,13 +4,14 @@ const mongoose = require('mongoose')
 const { faker } = require('@faker-js/faker')
 const bcrypt = require('bcrypt')
 
-const User        = require('../models/UserModel')
-const Restaurant  = require('../models/RestaurantModel')
-const Table       = require('../models/TableModel')
-const Appointment = require('../models/AppointmentModel')
-const Layout      = require('../models/LayoutModel')
-const Menu        = require('../models/MenuModel')
-const Informations= require('../models/InformationsModel')
+const User         = require('../models/UserModel')
+const Restaurant   = require('../models/RestaurantModel')
+const Table        = require('../models/TableModel')
+const Appointment  = require('../models/AppointmentModel')
+const Layout       = require('../models/LayoutModel')
+const Menu         = require('../models/MenuModel')
+const Informations = require('../models/InformationsModel')
+const Invoices     = require('../models/InvoiceModel')
 
 const generateOpeningTime = () => {
     return [
@@ -338,6 +339,7 @@ mongoose.connect(process.env.MONGODB_URI, {
     await Layout.deleteMany({}).exec()
     await Menu.deleteMany({}).exec()
     await Informations.deleteMany({}).exec()
+    await Invoices.deleteMany({}).exec()
     
 
     const count = process.argv[process.argv.length - 1].includes('\\') ? 1 : Number(process.argv[process.argv.length - 1])

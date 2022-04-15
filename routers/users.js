@@ -123,11 +123,13 @@ router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res
 
     const { emailTo } = RequestValidator.destructureBody(req, res, {emailTo: 'string'})
 
-    const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
+    const restaurant = await RestaurantController.findByAuth(req.user.restaurantId)
+    const conflictingUser = await UserModel.findOne({email: emailTo}).exec()
 
-    if(!restaurant) {
-	    return Httpresponse.BadRequest(res, "restaurant-not-found")
+    if(conflictingUser) {
+        return Httpresponse.Conflict(res, "user-email-conflict")
     }
+
     restaurant.invited.push(emailTo)
 
     sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
@@ -136,7 +138,6 @@ router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res
 
     await restaurant.save()
     return Httpresponse.OK(res, "user-invited")
-
 }))
 
 router.post('/login', catchErrors(async(req, res) => {
