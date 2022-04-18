@@ -14,6 +14,7 @@ const {sendMail}   = require("../utils/EmailSender")
 const crypto       = require('crypto')
 const { catchErrors } = require('../utils/ErrorHandler')
 const RequestValidator = require('../controller/bodychecker')
+const RestaurantController = require('../controller/restaurantController')
 
 
 router.get('/restaurant-id', authenticateAccessToken, catchErrors((req, res) => {
@@ -123,10 +124,10 @@ router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res
 
     const { emailTo } = RequestValidator.destructureBody(req, res, {emailTo: 'string'})
 
-    const restaurant = await RestaurantController.findByAuth(req.user.restaurantId)
-    const conflictingUser = await UserModel.findOne({email: emailTo}).exec()
+    const restaurant = await RestaurantController.findByAuth(req)
+    const conflictingUser = await UserModel.countDocuments({email: emailTo}).exec()
 
-    if(conflictingUser) {
+    if(conflictingUser > 0) {
         return Httpresponse.Conflict(res, "user-email-conflict")
     }
 

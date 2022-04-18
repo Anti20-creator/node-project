@@ -62,7 +62,6 @@ const checkDate = (date) => {
 }
 
 const checkTable = async(tableId, restaurantId, peopleCount) => {
-    console.warn(tableId)
     if(tableId !== 'any') {
         const layout = await LayoutController.findById(restaurantId)
         const table = layout.tables.find(table => table.TableId === tableId)

@@ -125,14 +125,14 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
 }))
 
 router.delete('/disclaim', catchErrors(async(req, res) => {
-    const { date, tableId, restaurantId, pin } = RequestValidator.destructureBody(req, res, {date: 'string', tableId: 'string', restaurantId: 'string', pin: 'string'})
+    const { id, restaurantId, email, pin } = RequestValidator.destructureBody(req, res, {id: 'string', email: 'string', restaurantId: 'string', pin: 'string'})
 
     //Finding the appointment
     const appointment = await Appointments.findOne({
         RestaurantId: restaurantId,
-        TableId: tableId,
-        date: date,
-    })
+        _id: id,
+        email: email
+    }).exec()
 
     if(!appointment) {
         return Httpresponse.NotFound(res, "appointment-not-found");
@@ -156,7 +156,6 @@ router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const appointment = await Appointments.findById(req.params.id).exec()
-
     const email = appointment.email
 
     await appointment.delete()

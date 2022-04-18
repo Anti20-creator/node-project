@@ -7,7 +7,7 @@ class RestaurantNotFoundError extends Error {
     }
 }
 
-const findByAuth = async(req, res) => {
+const findByAuth = async(req) => {
     const restaurant = await Restaurant.findById(req.user.restaurantId)
 
     if(!restaurant) {

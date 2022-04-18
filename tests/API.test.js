@@ -164,7 +164,8 @@ describe('API tests', () => {
                     .send({
                         emailTo: userEmails[i]
                     })
-
+                
+                console.warn(result.body)
                 assert.equal(result.status, 200)
             }
 
@@ -1205,14 +1206,14 @@ describe('API tests', () => {
 
             const appointment = await Appointment.findOne({}).exec()
 
-            //Disclaiming with bad tableId 
+            //Disclaiming with bad restaurantId
             await request(app)
                 .delete('/api/appointments/disclaim')
                 .send({
-                    tableId: appointment.TableId + '1',
-                    restaurantId: appointment.RestaurantId,
-                    date: new Date(appointment.date).toString(),
-                    pin: appointment.code
+                    id: appointment._id,
+                    restaurantId: appointment.RestaurantId + '1',
+                    pin: appointment.code,
+                    email: appointment.email
                 })
                 .then(result => {
                     assert.equal(result.status, 404)
@@ -1223,10 +1224,10 @@ describe('API tests', () => {
             await request(app)
                 .delete('/api/appointments/disclaim')
                 .send({
-                    tableId: appointment.TableId,
+                    id: appointment._id,
                     restaurantId: appointment.RestaurantId,
-                    date: new Date(appointment.date).toString(),
-                    pin: appointment.code + '1'
+                    pin: appointment.code + '1',
+                    email: appointment.email
                 })
                 .then(result => {
                     assert.equal(result.status, 400)
@@ -1237,10 +1238,10 @@ describe('API tests', () => {
             await request(app)
                 .delete('/api/appointments/disclaim')
                 .send({
-                    tableId: appointment.TableId,
+                    id: appointment._id,
                     restaurantId: appointment.RestaurantId,
-                    date: new Date(appointment.date).toString(),
-                    pin: appointment.code
+                    pin: appointment.code,
+                    email: appointment.email
                 })
                 .then(result => {
                     assert.equal(result.status, 200)
@@ -1759,7 +1760,7 @@ describe('API tests', () => {
 
             const table = await Table.findOne({}).exec()
             for(let i = 0; i < 6; ++i) {
-                wednesday.setHours(i, faker.datatype.number({min: 1, max: i == 5 ? 30 : 59}), 0, 0)
+                wednesday.setHours(i, faker.datatype.number({min: 1, max: i == 5 ? 29 : 59}), 0, 0)
                 await request(app)
                     .post('/api/appointments/book')
                     .set('Content-Type', 'application/json')
