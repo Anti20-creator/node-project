@@ -11,7 +11,9 @@ const transporter = nodemailer.createTransport({
     },
     pool: true,
     maxMessages: Infinity
-});
+})
+
+const FRONTEND_URL = 'https://192.168.31.161:3000/'
 
 async function sendMail(emailTo, subject, htmlContent, fileName) {
 
@@ -29,7 +31,7 @@ async function sendMail(emailTo, subject, htmlContent, fileName) {
     return info
 }
 
-function sendBookedAppointmentEmail(emailTo, appointmentData, language='hu') {
+function sendBookedAppointmentEmail(emailTo, appointmentData, language='en') {
     if(language === 'hu') {
         transporter.sendMail({
             from: process.env.NODEMAILER_SENDER,
@@ -42,8 +44,9 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='hu') {
                         <li>Időpont: ${appointmentData.date}</li>
                         <li>Vendégek száma: ${appointmentData.peopleCount}</li>
                         <li>Kód: ${appointmentData.code}</li>
-                    </ul>` 
-            + appointmentData.accepted ? '<p>Várjuk a foglalt időpontban!</p>' : '' 
+                    </ul>
+                    <p>${appointmentData.accepted ? '<p>Várjuk a foglalt időpontban!</p>' : ''}</p>
+                    <p>Foglalás lemondása itt: ${FRONTEND_URL + 'remove-appointment/' + appointmentData._id}</p>` 
         })
     }else{
         transporter.sendMail({
@@ -57,13 +60,13 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='hu') {
                         <li>Date: ${appointmentData.date}</li>
                         <li>People: ${appointmentData.peopleCount}</li>
                         <li>Code: ${appointmentData.code}</li>
-                    </ul>`
-            + appointmentData.accepted ? '<p>We are waiting for you at the booked time.</p>' : '' 
-
+                    </ul>
+                    <p>${appointmentData.accepted ? '<p>We are waiting for you at the booked time.</p>' : ''}</p>
+                    <p>Remove appointment here: ${FRONTEND_URL + 'remove-appointment/' + appointmentData._id}</p>` 
         })
     }
 }
-function sendDeletedAppointmentEmail(emailTo, language='hu') {
+function sendDeletedAppointmentEmail(emailTo, language='en') {
     if(language === 'hu') {
         transporter.sendMail({
             from: process.env.NODEMAILER_SENDER,
@@ -82,7 +85,7 @@ function sendDeletedAppointmentEmail(emailTo, language='hu') {
         })
     }
 }
-function sendUpdatedAppointmentEmail(emailTo, accepted, language='hu') {
+function sendUpdatedAppointmentEmail(emailTo, accepted, language='en') {
     if(language === 'hu') {
         transporter.sendMail({
             from: process.env.NODEMAILER_SENDER,
@@ -110,10 +113,61 @@ function sendUpdatedAppointmentEmail(emailTo, accepted, language='hu') {
     }
 }
 
+function sendWelcomeEmail(emailTo, language='en') {
+    if(language === 'hu') {
+        transporter.sendMail({
+            from: process.env.NODEMAILER_SENDER,
+            to: emailTo,
+            subject: 'Sikeres regisztráció',
+            html: `
+                <h1>A felhasználó fiókja sikeresen létre lett hozva!</h1>
+                <p>Most már be tud jelentkezni a korábban megadott adataival.</p>
+                `
+            })
+    }else{
+        transporter.sendMail({
+            from: process.env.NODEMAILER_SENDER,
+            to: emailTo,
+            subject: 'Successful registration',
+            html: `
+                <h1>Your account has been created successfully!</h1>
+                <p>Now you can log in to your account with your credentials.</p>
+            `
+        })
+    }
+}
+
+function sendInvitationEmail(emailTo, restaurantId, pin, language='en') {
+    if(language === 'hu') {
+        transporter.sendMail({
+            from: process.env.NODEMAILER_SENDER,
+            to: emailTo,
+            subject: 'Meghívó',
+            html: `
+                <h1>Önnek meghívója érkezett!</h1>
+                <p>Itt tud regisztrálni: ${FRONTEND_URL + '/invite/' + restaurantId}</p>
+                <p>Kód a csatlakozáshoz: ${pin}</p>
+                `
+            })
+    }else{
+        transporter.sendMail({
+            from: process.env.NODEMAILER_SENDER,
+            to: emailTo,
+            subject: 'Invitation',
+            html: `
+                <h1>You have an invitation!</h1>
+                <p>You can register here: ${FRONTEND_URL + '/invite/' + restaurantId}</p>
+                <p>Pin to join: ${pin}</p>
+            `
+        })
+    }
+}
 
 module.exports = {
     sendMail, 
     sendBookedAppointmentEmail, 
     sendDeletedAppointmentEmail,
-    sendUpdatedAppointmentEmail
+    sendUpdatedAppointmentEmail,
+    sendWelcomeEmail,
+    sendInvitationEmail
 };

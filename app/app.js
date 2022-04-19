@@ -42,6 +42,9 @@ mongoose.connection.on('error', (error) => {
     console.log('Error while connecting to DB...')
 })
 
+app.get('/', (req, res) => {
+    return res.sendStatus(200)
+})
 app.use('/api/users', usersRouter)
 app.use('/api/appointments', appointmentsRouter)
 app.use('/api/layouts', layoutsRouter)
