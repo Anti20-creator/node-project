@@ -9,7 +9,7 @@ const InformationsController      = require('../controller/informationsControlle
 const RequestValidator            = require('../controller/bodychecker')
 const { authenticateAccessToken } = require('../middlewares/auth')
 const { catchErrors }             = require('../utils/ErrorHandler')
-const { sendMail, sendBookedAppointmentEmail, sendDeletedAppointmentEmail } = require('../utils/EmailSender')
+const { sendBookedAppointmentEmail, sendDeletedAppointmentEmail, sendUpdatedAppointmentEmail } = require('../utils/EmailSender')
 
 function createPin() {
     const chars = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -43,7 +43,7 @@ function checkRestaurantOpen(infos, givenDate) {
 
 router.post('/book', catchErrors(async(req, res) => {
 
-    const { email, date, restaurantId, tableId, peopleCount } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', restaurantId: 'string', tableId: 'string', peopleCount: 'number'})
+    const { email, date, restaurantId, tableId, peopleCount, lang } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', restaurantId: 'string', tableId: 'string', peopleCount: 'number', lang: 'string'})
 
     const formattedDate = AppointmentsController.checkDate(date)
     await AppointmentsController.checkTable(tableId, restaurantId, peopleCount)
@@ -65,7 +65,7 @@ router.post('/book', catchErrors(async(req, res) => {
     })
     await appointment.save()
 
-    sendBookedAppointmentEmail(email, {date: formattedDate, peopleCount, code: pinCode, accepted: false})
+    sendBookedAppointmentEmail(email, {date: formattedDate, peopleCount, code: pinCode, accepted: false, _id: appointment._id}, lang)
 
     return Httpresponse.Created(res, appointment)
 }))
@@ -106,7 +106,7 @@ router.post('/search-tables', catchErrors(async(req, res) => {
 
 router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const {accept, appointmentId, tableId} = req.body
+    const {accept, appointmentId, tableId, lang} = req.body
 
     if(accept === undefined || !appointmentId) {
         return Httpresponse.BadRequest("appointments-missing-parameters")
@@ -121,11 +121,12 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
         await Appointments.findByIdAndDelete(appointmentId)
     }
 
+    sendUpdatedAppointmentEmail(email, accept, lang)
     return Httpresponse.OK(res, "appointment-updated")
 }))
 
 router.delete('/disclaim', catchErrors(async(req, res) => {
-    const { id, restaurantId, email, pin } = RequestValidator.destructureBody(req, res, {id: 'string', email: 'string', restaurantId: 'string', pin: 'string'})
+    const { id, restaurantId, email, pin, lang } = RequestValidator.destructureBody(req, res, {id: 'string', email: 'string', restaurantId: 'string', pin: 'string', lang: 'string'})
 
     //Finding the appointment
     const appointment = await Appointments.findOne({
@@ -143,6 +144,7 @@ router.delete('/disclaim', catchErrors(async(req, res) => {
     }
 
     await appointment.deleteOne();
+    sendDeletedAppointmentEmail(email, lang)
     return Httpresponse.OK(res, "appointment-deleted")
 }))
 
@@ -155,6 +157,7 @@ router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 
 router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(async(req, res) => {
 
+    const { lang } = RequestValidator.destructureBody(req, res, {lang: 'string'})
     const appointment = await Appointments.findById(req.params.id).exec()
     const email = appointment.email
 
@@ -166,7 +169,7 @@ router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(as
 
 router.post('/book-for-guest', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { email, date, tableId, peopleCount } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', tableId: 'string', peopleCount: 'number'})
+    const { email, date, tableId, peopleCount, lang } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', tableId: 'string', peopleCount: 'number', lang: 'string'})
 
     const formattedDate = AppointmentsController.checkDate(date)
     await AppointmentsController.checkTable(tableId, req.user.restaurantId, peopleCount)
@@ -188,7 +191,7 @@ router.post('/book-for-guest', authenticateAccessToken, catchErrors(async(req, r
     })
     await appointment.save()
 
-    sendBookedAppointmentEmail(email, {date: formattedDate, peopleCount, code: pinCode, accepted: true})
+    sendBookedAppointmentEmail(email, {date: formattedDate, peopleCount, code: pinCode, accepted: true, _id: appointment._id}, lang)
 
     return Httpresponse.Created(res, appointment)
 }))

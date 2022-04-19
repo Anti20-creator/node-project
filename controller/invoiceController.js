@@ -36,7 +36,7 @@ const exportToZip = async(id) => {
 const sendExportedInMail = async(id) => {
     const zipName = await exportToZip(id)
 
-    //sendMail("amtmannkristof@gmail.com", "Zip", "No content", zipName)
+    sendMail("amtmannkristof@gmail.com", "Zip", "No content", zipName)
 }
 
 const sendReports = async() => {

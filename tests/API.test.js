@@ -102,6 +102,7 @@ describe('API tests', () => {
                     name: "Teszt fiók - hibás",
                     password: "123456",
                     email: adminEmail,
+                    lang: 'en'
                 }).then((result) => {
                     assert.equal(result.body.success, false)
                     assert.equal(result.status, 400)
@@ -119,7 +120,8 @@ describe('API tests', () => {
                 name: "Teszt fiók",
                 password: "123456",
                 email: adminEmail,
-                restaurantName: "Anti Co."
+                restaurantName: "Anti Co.",
+                lang: 'en'
             }).then((result) => {
                 assert.equal(result.body.success, true)
             })
@@ -136,7 +138,8 @@ describe('API tests', () => {
                 name: "Teszt fiók hibás",
                 password: "1234567",
                 email: adminEmail,
-                restaurantName: "Anti 2 Co."
+                restaurantName: "Anti 2 Co.",
+                lang: 'en'
             }).then((result) => {
                 assert.equal(result.body.success, false)
             })
@@ -162,7 +165,8 @@ describe('API tests', () => {
                     .set('Cookie', loginResult.headers['set-cookie'])
                     .set('Content-Type', 'application/json')
                     .send({
-                        emailTo: userEmails[i]
+                        emailTo: userEmails[i],
+                        lang: 'en'
                     })
                 
                 console.warn(result.body)
@@ -185,7 +189,8 @@ describe('API tests', () => {
                         name: `Alkalmazott 1`,
                         password: "123456",
                         email: userEmails[0],
-                        secretPin: restaurant.secretPin + "4"
+                        secretPin: restaurant.secretPin + "4",
+                        lang: 'en'
                     })
 
             assert.equal(result.status, 400)
@@ -205,7 +210,8 @@ describe('API tests', () => {
                         name: `Alkalmazott ${i}`,
                         password: "123456",
                         email: userEmails[i],
-                        secretPin: restaurant.secretPin
+                        secretPin: restaurant.secretPin,
+                        lang: 'en'
                     })
 
                 assert.equal(result.status, 201)
@@ -229,7 +235,8 @@ describe('API tests', () => {
                     name: `Alkalmazott 1`,
                     password: "123456",
                     email: faker.random.arrayElement(userEmails),
-                    secretPin: restaurant.secretPin
+                    secretPin: restaurant.secretPin,
+                    lang: 'en'
                 })
 
             assert.equal(result.status, 404)
@@ -1091,7 +1098,8 @@ describe('API tests', () => {
                     date: past.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                     restaurantId: restaurant._id,
-                    email: "guest@gmail.com"
+                    email: "guest@gmail.com",
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 400)
@@ -1106,7 +1114,8 @@ describe('API tests', () => {
                     date: future.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                     restaurantId: restaurant._id,
-                    email: "guest@gmail.com"
+                    email: "guest@gmail.com",
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 400)
@@ -1132,7 +1141,8 @@ describe('API tests', () => {
                     date: date.toString(),
                     peopleCount: table.tableCount,
                     restaurantId: restaurant._id,
-                    email: "guest@gmail.com"
+                    email: "guest@gmail.com",
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 404)
@@ -1147,7 +1157,8 @@ describe('API tests', () => {
                     date: date.toString(),
                     peopleCount: table.tableCount + 1,
                     restaurantId: restaurant._id,
-                    email: "guest@gmail.com"
+                    email: "guest@gmail.com",
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 400)
@@ -1162,7 +1173,8 @@ describe('API tests', () => {
                     date: date.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                     restaurantId: restaurant._id,
-                    email: "guest@gmail.com"
+                    email: "guest@gmail.com",
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 201)
@@ -1177,7 +1189,8 @@ describe('API tests', () => {
                     date: secondDate.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                     restaurantId: restaurant._id,
-                    email: "guest@gmail.com"
+                    email: "guest@gmail.com",
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 201)
@@ -1193,7 +1206,8 @@ describe('API tests', () => {
                         date: getRandomDate(new Date(new Date().getTime() + 3_600_000 * 2), new Date(new Date().getTime() + 3_600_000 * 50)),
                         peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
                         restaurantId: restaurant._id,
-                        email: "guest@gmail.com"
+                        email: "guest@gmail.com",
+                        lang: 'en'
                     })
                     .then(result => {
                         assert.equal(result.status, 201)
@@ -1213,7 +1227,8 @@ describe('API tests', () => {
                     id: appointment._id,
                     restaurantId: appointment.RestaurantId + '1',
                     pin: appointment.code,
-                    email: appointment.email
+                    email: appointment.email,
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 404)
@@ -1227,7 +1242,8 @@ describe('API tests', () => {
                     id: appointment._id,
                     restaurantId: appointment.RestaurantId,
                     pin: appointment.code + '1',
-                    email: appointment.email
+                    email: appointment.email,
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 400)
@@ -1241,7 +1257,8 @@ describe('API tests', () => {
                     id: appointment._id,
                     restaurantId: appointment.RestaurantId,
                     pin: appointment.code,
-                    email: appointment.email
+                    email: appointment.email,
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 200)
@@ -1260,6 +1277,7 @@ describe('API tests', () => {
                 .then(async loginResult => {
                     await request(app)
                         .delete('/api/appointments/delete-appointment/' + appointment._id)
+                        .send({lang: 'en'})
                         .set('Cookie', loginResult.headers['set-cookie'])
                         .then(result => {
                             assert.equal(result.status, 200)
@@ -1284,7 +1302,8 @@ describe('API tests', () => {
                             .send({
                                 accept: i < appointments.length/2,
                                 tableId: appointment.TableId,
-                                appointmentId: appointment._id
+                                appointmentId: appointment._id,
+                                lang: 'en'
                             })
                             .then(result => {
                                 assert.equal(result.status, 200)
@@ -1304,7 +1323,8 @@ describe('API tests', () => {
                 .send({
                     restaurantId: restaurant._id,
                     date: new Date().setTime(new Date().getTime() + 24 * 4 * 3600 * 1000).toString(),
-                    peopleCount: 1
+                    peopleCount: 1,
+                    lang: 'en'
                 })
                 .then(result => {
                     assert.equal(result.status, 200)
@@ -1677,7 +1697,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: monday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1693,7 +1714,8 @@ describe('API tests', () => {
                         restaurantId: table.RestaurantId,
                         date: monday.toString(),
                         peopleCount: 1,
-                        email: faker.internet.email()
+                        email: faker.internet.email(),
+                        lang: 'en'
                     })
                 .then(result => {
                     assert.equal(result.status, 201)
@@ -1714,7 +1736,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: tuesday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1730,7 +1753,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: tuesday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 201)
@@ -1746,7 +1770,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: tuesday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1769,7 +1794,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: wednesday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1785,7 +1811,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: wednesday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 201)
@@ -1801,7 +1828,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: wednesday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1823,7 +1851,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: thursday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1839,7 +1868,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: thursday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 201)
@@ -1855,7 +1885,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: thursday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1877,7 +1908,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: friday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, i < 12 ? 400 : 201)
@@ -1899,7 +1931,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: saturday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 201)
@@ -1915,7 +1948,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: saturday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1931,7 +1965,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: saturday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 201)
@@ -1953,7 +1988,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: saturday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 201)
@@ -1969,7 +2005,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: saturday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 400)
@@ -1985,7 +2022,8 @@ describe('API tests', () => {
                             restaurantId: table.RestaurantId,
                             date: saturday.toString(),
                             peopleCount: 1,
-                            email: faker.internet.email()
+                            email: faker.internet.email(),
+                            lang: 'en'
                         })
                     .then(result => {
                         assert.equal(result.status, 201)

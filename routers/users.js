@@ -10,7 +10,7 @@ const Informations = require('../models/InformationsModel')
 const Httpresponse = require('../utils/ErrorCreator')
 const Tokens       = require('../utils/TokenFunctions')
 const {authenticateRefreshToken, authenticateAccessToken, authenticateAdminAccessToken, authenticateOwnerAccessToken} = require("../middlewares/auth")
-const {sendMail}   = require("../utils/EmailSender")
+const {sendWelcomeEmail, sendInvitationEmail}   = require("../utils/EmailSender")
 const crypto       = require('crypto')
 const { catchErrors } = require('../utils/ErrorHandler')
 const RequestValidator = require('../controller/bodychecker')
@@ -25,7 +25,7 @@ router.get('/restaurant-id', authenticateAccessToken, catchErrors((req, res) => 
 
 router.post('/register-admin', catchErrors(async(req, res) => {
 
-    const { name, email, password, restaurantName } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', restaurantName: 'string'})
+    const { name, email, password, restaurantName, lang } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', restaurantName: 'string', lang: 'string'})
 
     const salt = bcrypt.genSaltSync(10)
     const hashedPassword = bcrypt.hashSync(password, salt)
@@ -69,6 +69,7 @@ router.post('/register-admin', catchErrors(async(req, res) => {
                 RestaurantId: restaurant._id
             })
 
+            sendWelcomeEmail(email, lang)
             return Httpresponse.Created(res, "user-created")
         }
     })
@@ -76,7 +77,7 @@ router.post('/register-admin', catchErrors(async(req, res) => {
 
 router.post('/register-employee/:id', catchErrors(async(req, res) => {
     
-    const { name, email, password, secretPin } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', secretPin: 'string'})
+    const { name, email, password, secretPin, lang } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', secretPin: 'string', lang: 'string'})
 
     const restaurantId = req.params.id
 
@@ -113,6 +114,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
     }
     restaurant.invited = restaurant.invited.filter(inv => inv !== email)
     await restaurant.save()
+    sendWelcomeEmail(email, lang)
 
     return Httpresponse.Created(res, "user-created")
 }))
@@ -122,7 +124,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
 * */
 router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res) => {
 
-    const { emailTo } = RequestValidator.destructureBody(req, res, {emailTo: 'string'})
+    const { emailTo, lang } = RequestValidator.destructureBody(req, res, {emailTo: 'string', lang: 'string'})
 
     const restaurant = await RestaurantController.findByAuth(req)
     const conflictingUser = await UserModel.countDocuments({email: emailTo}).exec()
@@ -133,11 +135,9 @@ router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res
 
     restaurant.invited.push(emailTo)
 
-    sendMail(emailTo, 'Inviting to Restaurant', `<h1>Invitation</h1>
-                <a href="http://192.168.31.161:3000/invite/${restaurant._id}">Kattints ide a csatlakozáshoz</a>
-                Étterem PIN kódja: ${restaurant.secretPin}`, null, res)
-
     await restaurant.save()
+    sendInvitationEmail(emailTo, restaurant._id, restaurant.secretPin, lang)
+
     return Httpresponse.OK(res, "user-invited")
 }))
 
