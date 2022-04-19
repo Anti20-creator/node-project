@@ -1306,6 +1306,7 @@ describe('API tests', () => {
                                 lang: 'en'
                             })
                             .then(result => {
+                                console.warn(result.body)
                                 assert.equal(result.status, 200)
                                 assert.equal(result.body.success, true)
                             })

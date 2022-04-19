@@ -112,13 +112,18 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
         return Httpresponse.BadRequest("appointments-missing-parameters")
     }
 
+    const appointment = await Appointments.findById(appointmentId)
+    const email = appointment.email.slice()
     if(accept) {
-        await Appointments.findByIdAndUpdate(appointmentId, {
+        appointment.confirmed = true; appointment.TableId = tableId
+        await appointment.save()
+        /*await Appointments.findByIdAndUpdate(appointmentId, {
             confirmed: true,
             TableId: tableId
-        })
+        })*/
     }else{
-        await Appointments.findByIdAndDelete(appointmentId)
+        appointment.deleteOne()
+        //await Appointments.findByIdAndDelete(appointmentId)
     }
 
     sendUpdatedAppointmentEmail(email, accept, lang)
@@ -126,6 +131,7 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
 }))
 
 router.delete('/disclaim', catchErrors(async(req, res) => {
+
     const { id, restaurantId, email, pin, lang } = RequestValidator.destructureBody(req, res, {id: 'string', email: 'string', restaurantId: 'string', pin: 'string', lang: 'string'})
 
     //Finding the appointment
