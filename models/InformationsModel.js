@@ -65,7 +65,6 @@ const InformationsModel = new mongoose.Schema({
                         || openingTimesClone[i].close.hours.length !== 2 || isNaN(openingTimesClone[i].close.hours)
                         || openingTimesClone[i].close.minutes.length !== 2 || isNaN(openingTimesClone[i].close.minutes) 
                         ) {
-                            console.log('anyád')
                             return false
                         }
                 }

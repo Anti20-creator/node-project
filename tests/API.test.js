@@ -169,7 +169,6 @@ describe('API tests', () => {
                         lang: 'en'
                     })
                 
-                console.warn(result.body)
                 assert.equal(result.status, 200)
             }
 
@@ -488,6 +487,7 @@ describe('API tests', () => {
                         .set('Cookie', loginData.headers['set-cookie'])
                         .send({email: deletedUser})
                         .then(result => {
+                            console.warn(result.body)
                             assert.equal(result.status, 200)
                         })
                     
@@ -1306,7 +1306,6 @@ describe('API tests', () => {
                                 lang: 'en'
                             })
                             .then(result => {
-                                console.warn(result.body)
                                 assert.equal(result.status, 200)
                                 assert.equal(result.body.success, true)
                             })

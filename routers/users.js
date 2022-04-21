@@ -1,8 +1,8 @@
 const express      = require('express')
-const bcrypt        = require('bcrypt')
+const bcrypt       = require('bcrypt')
 const router       = express.Router()
 require('dotenv').config()
-const UserModel    = require('../models/UserModel')
+const User         = require('../models/UserModel')
 const Layout       = require('../models/LayoutModel')
 const Menu         = require('../models/MenuModel')
 const Restaurant   = require('../models/RestaurantModel')
@@ -16,11 +16,8 @@ const { catchErrors } = require('../utils/ErrorHandler')
 const RequestValidator = require('../controller/bodychecker')
 const RestaurantController = require('../controller/restaurantController')
 
-
 router.get('/restaurant-id', authenticateAccessToken, catchErrors((req, res) => {
-
 	return Httpresponse.OK(res, req.user.restaurantId)
-
 }))
 
 router.post('/register-admin', catchErrors(async(req, res) => {
@@ -30,7 +27,7 @@ router.post('/register-admin', catchErrors(async(req, res) => {
     const salt = bcrypt.genSaltSync(10)
     const hashedPassword = bcrypt.hashSync(password, salt)
 
-    const newUser = new UserModel({
+    const newUser = new User({
         email: email,
         fullName: name,
         password: hashedPassword,
@@ -96,7 +93,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
         const salt = bcrypt.genSaltSync(10)
         const hashedPassword = bcrypt.hashSync(password, salt)
 
-        const newUser = new UserModel({
+        const newUser = new User({
             email: email,
             fullName: name,
             password: hashedPassword,
@@ -126,8 +123,8 @@ router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res
 
     const { emailTo, lang } = RequestValidator.destructureBody(req, res, {emailTo: 'string', lang: 'string'})
 
-    const restaurant = await RestaurantController.findByAuth(req)
-    const conflictingUser = await UserModel.countDocuments({email: emailTo}).exec()
+    const restaurant = await RestaurantController.findById(req.user.restaurantId)
+    const conflictingUser = await User.countDocuments({email: emailTo}).exec()
 
     if(conflictingUser > 0) {
         return Httpresponse.Conflict(res, "user-email-conflict")
@@ -145,7 +142,7 @@ router.post('/login', catchErrors(async(req, res) => {
 
     const {email, password} = RequestValidator.destructureBody(req, res, {email: 'string', password: 'string'})
 
-    UserModel.findOne({email: email}, (err, data) => {
+    User.findOne({email: email}, (err, data) => {
         /* Case: User existst with the given email */
         if(!err && data) {
 
@@ -170,7 +167,7 @@ router.post('/login', catchErrors(async(req, res) => {
 
 router.get('/is-admin', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const user = await UserModel.findById(req.user.userId).exec()
+    const user = await User.findById(req.user.userId).exec()
 
     if(!user) {
         return Httpresponse.NotFound(res, false)
@@ -183,7 +180,7 @@ router.post('/refresh-token', authenticateRefreshToken, catchErrors(async(req, r
 
     const user = req.user
 
-    const dbUser = await UserModel.findOne({_id: user.userId}).exec()
+    const dbUser = await User.findOne({_id: user.userId}).exec()
     if(!dbUser) {
 	    return Httpresponse.Unauthorized(res, "refresh-token-failed-refresh")
     }
@@ -197,13 +194,13 @@ router.post('/update-rank', authenticateAdminAccessToken, catchErrors(async (req
 
     const { promote, email } = RequestValidator.destructureBody(req, res, {promote: 'boolean', email: 'string'})
 
-    const user = await UserModel.findOne({email}).exec()
+    const user = await User.findOne({email}).exec()
 
     if(!user) {
         return Httpresponse.NotFound(res, "user-not-found")
     }
     const userRestaurant = await Restaurant.findOne({ownerId: user._id}).exec()
-    const requestRestaraunt = await Restaurant.findById(req.user.restaurantId).exec()
+    const requestRestaraunt = await RestaurantController.findById(req.user.restaurantId)
 
     if(user.isAdmin && !promote && userRestaurant) {
         return Httpresponse.BadRequest(res, "user-rank-permission-denied")
@@ -230,22 +227,35 @@ router.get('/logout', catchErrors(async(req, res) => {
     res.end()
 }))
 
-router.delete('/delete', authenticateOwnerAccessToken, catchErrors(async(req, res) => {
+router.delete('/delete', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
     const { email } = RequestValidator.destructureBody(req, res, {email: 'string'})
 
     if(req.user.email === email) {
 	    return Httpresponse.BadRequest(res, "user-delete-yourself")
     }
-    await UserModel.deleteOne({email}).exec()
+
+    const user = await User.findOne({email, restaurantId: req.user.restaurantId}).exec()
+    const restaurant = await RestaurantController.findById(req.user.restaurantId)
+    if(user) {
+        if(restaurant.ownerId === user._id) {
+            return Httpresponse.BadRequest(res, "user-cant-remove")
+        }
+        await user.deleteOne({})
+    }else{
+        if(restaurant.invited.includes(email)) {
+            restaurant.invited = restaurant.invited.filter(e => e !== email)
+            await restaurant.save()
+        }
+    }
 
     return Httpresponse.OK(res, "user-removed")
 }))
 
 router.get('/team', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const team = await UserModel.find({restaurantId: req.user.restaurantId}).exec()
-    const restaurant = await Restaurant.findById(req.user.restaurantId).exec()
+    const team = await User.find({restaurantId: req.user.restaurantId}).exec()
+    const restaurant = await RestaurantController.findById(req.user.restaurantId)
 
     return Httpresponse.OK(res, team.concat(restaurant.invited.map(email => ({email: email}))))
 }))

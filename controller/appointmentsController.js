@@ -44,7 +44,9 @@ const findConflicts = async (restaurantId, tableId, startDate, endDate, returnTy
     if(returnType === 'length') {
         return results.length
     }else{
-        return results
+        const diffedValues = results.map(result => ({...result, diff: Math.abs(new Date() - result.date)}))
+        diffedValues.sort((a, b) => a.diff > b.diff ? 1 : -1)
+        return diffedValues.splice(0, 3)
     }
 }
 
@@ -86,9 +88,9 @@ const createXLS = async (id) => {
         RestaurantId: {
             $eq: id
         },
-        /*date: {
+        date: {
             $lt: firstDayOfMonth
-        }*/
+        }
     }).toArray()
 
     const workbook = new excel.Workbook()
@@ -118,9 +120,9 @@ const createXLS = async (id) => {
         RestaurantId: {
             $eq: id
         },
-        /*date: {
+        date: {
             $lt: firstDayOfMonth
-        }*/
+        }
     })
 
 }
