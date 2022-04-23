@@ -17,31 +17,16 @@ const User = new mongoose.Schema({
         type: String,
         trim: true,
         required: true,
-        validate: {
-            validator: function(name) {
-                return name.length > 4
-            },
-            message: "invalid-username"
-        }
+        min: [4, 'short-username']
     },
     password: {
         type: String,
         required: true,
-        validate: {
-            validator: function(password) {
-                return password.length > 5
-            },
-            message: "short-password"
-        }
+        min: ['short-password']
     },
     restaurantName: {
         type: String,
-        validate: {
-            validator: function(restaurant) {
-                return restaurant.length > 1
-            },
-            message: "short-restaurantname"
-        },
+        min: [1, 'short-restaurantname'],
         required: true
     },
     restaurantId: {

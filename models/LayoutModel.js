@@ -18,15 +18,24 @@ const tableSchema = new mongoose.Schema({
     },
     tableType: {
         type: String,
-        enum: ['rounded', 'normal', 'wide']
+        enum: {
+            values: ['rounded', 'normal', 'wide'],
+            message: "invalid-tabletype"
+        }
     },
     size: {
 	    type: String,
-        enum: ['small', 'average', 'large']
+        enum: {
+            values: ['small', 'average', 'large'],
+            message: "invalid-tablesize"
+        }
     },
     direction: {
-        type: Number,
-        enum: [0, 90, 180, 270]
+        type: String,
+        enum: {
+            values: ['0', '90', '180', '270'],
+            message: "invalid-tabledirection"
+        }
     },
     TableId: {
         type: String,

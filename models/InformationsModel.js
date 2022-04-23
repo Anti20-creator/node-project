@@ -7,48 +7,18 @@ const InformationsModel = new mongoose.Schema({
     },
     city: {
         type: String,
-        validate: {
-            validator: function(field) {
-                return field.length > 0
-            },
-            message: 'short-city'
-        }
     },
     postalCode: {
         type: String,
-        validate: {
-            validator: function(field) {
-                return field.length > 0
-            },
-            message: 'short-postalcode'
-        }
     },
     address: {
         type: String,
-        validate: {
-            validator: function(field) {
-                return field.length > 0
-            },
-            message: 'short-address'
-        }
     },
     taxNumber: {
         type: String,
-        validate: {
-            validator: function(field) {
-                return field.length > 0
-            },
-            message: 'short-taxnumber'
-        }
     },
     phoneNumber: {
         type: String,
-        validate: {
-            validator: function(field) {
-                return field.length > 0
-            },
-            message: 'short-phonenumber'
-        }
     },
     openingTimes: {
         type: Array,
@@ -89,7 +59,10 @@ const InformationsModel = new mongoose.Schema({
     },
     currency: {
         type: String,
-        enum: ['USD', 'EUR', 'HUF'],
+        enum: {
+            values: ['USD', 'EUR', 'HUF'],
+            message: "invalid-currency"
+        },
         default: 'HUF'
     }
 })

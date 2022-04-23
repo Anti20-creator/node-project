@@ -1,9 +1,10 @@
-﻿const PDFDocument = require("pdfkit");
-const fs = require("fs");
-const Informations = require('../models/InformationsModel')
-const Restaurant   = require('../models/RestaurantModel')
-const Invoice      = require('../models/InvoiceModel')
-const translations = require('./InvoiceTranslations')
+﻿const PDFDocument     = require("pdfkit");
+const path            = require("path");
+const fs              = require("fs");
+const Informations    = require('../models/InformationsModel')
+const Restaurant      = require('../models/RestaurantModel')
+const Invoice         = require('../models/InvoiceModel')
+const translations    = require('./InvoiceTranslations')
 const { getCurrency } = require('./CurrencySelector')
 
 async function createInvoice(invoice, path, invoiceId, restaurantId, email, language, callback) {
@@ -66,7 +67,7 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
 function generateHeader(doc, invoiceId, restaurant, informations, language) {
     if(process.env.TESTING === '0') {
         doc
-            .font(__dirname + '\\Arimo-Regular.ttf')
+            .font(path.join(__dirname, 'Arimo-Regular.ttf'))
     }
 
     doc

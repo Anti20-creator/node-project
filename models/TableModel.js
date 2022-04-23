@@ -4,12 +4,7 @@ const OrderModel = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        validate: {
-            validator: function(name) {
-                return name.length > 0
-            },
-            message: 'short-foodname'
-        }
+        min: [1, 'short-foodname']
     },
     price: {
         type: Number,
@@ -23,10 +18,7 @@ const OrderModel = new mongoose.Schema({
     category: {
         type: String,
         required: true,
-        validator: function(name) {
-            return name.length > 0
-        },
-        message: 'short-foodname'
+        min: [1, 'short-categoryname']
     }
 })
 

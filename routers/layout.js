@@ -45,7 +45,6 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
     const newIds = []
 
     for (const updatedTable of updatedTables) {
-        // Maybe we should check if the table exists
         const idx = resultTables.findIndex(table => table.TableId === updatedTable.databaseID)
         resultTables[idx] = {...updatedTable, TableId: updatedTable.databaseID}
     }

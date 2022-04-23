@@ -10,6 +10,8 @@ router.post('/add-category', authenticateAccessToken, catchErrors(async(req, res
 
     const { category, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', categoryIcon: 'string'})
 
+    MenuController.validateCategory(category, categoryIcon)
+
     const menu = await MenuController.findById(req.user.restaurantId)
     if(!menu.items[category]) {
         menu.items[category] = {}
@@ -27,6 +29,8 @@ router.post('/add-category', authenticateAccessToken, catchErrors(async(req, res
 router.post('/modify-category', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { category, oldCategory, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', oldCategory: 'string', categoryIcon: 'string'})
+
+    MenuController.validateCategory(category, categoryIcon)
 
     const menu = await MenuController.findById(req.user.restaurantId)
 
@@ -53,6 +57,8 @@ router.post('/modify-item', authenticateAccessToken, async(req, res) => {
 
     const { name, amount, category, price, unit, oldName } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string', oldName: 'string'})
 
+    MenuController.validateFood(name, amount, unit)
+
     const menu = await MenuController.findById(req.user.restaurantId)
 
     if(!Object.keys(menu.items).includes(category) || !menu.items[category][oldName]) {
@@ -74,6 +80,8 @@ router.post('/modify-item', authenticateAccessToken, async(req, res) => {
 router.post('/add-item', authenticateAccessToken, async(req, res) => {
 
     const { name, amount, category, price, unit } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string'})
+
+    MenuController.validateFood(name, amount, unit)
 
     const menu = await MenuController.findById(req.user.restaurantId)
     const allFoodNames = MenuController.getAllFoodNames(menu)

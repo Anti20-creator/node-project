@@ -49,9 +49,21 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
         case 'TableSeatError': {
             return Httpresponse.BadRequest(res, "too-many-people")
         }
+        
+        case 'CategoryError': {
+            return Httpresponse.BadRequest(res, "too-many-people")
+        }
+
+        case 'FoodError': {
+            return Httpresponse.BadRequest(res, err.message)
+        }
+
+        case 'LanguageError': {
+            return Httpresponse.BadRequest(res, err.message)
+        }
 
         default: {
-            return Httpresponse.BadRequest(res, err.message)
+            return Httpresponse.BadRequest(res, "unexpected-error")
         }
     }
 })

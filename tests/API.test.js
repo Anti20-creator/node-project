@@ -46,13 +46,13 @@ const createTables = (startIndex = 0) => {
     return Array.from(Array(faker.datatype.number({min: 3, max: 5}))).map((_, i) => {
         return {
             coordinates: {
-                x: faker.unique(() => faker.datatype.number({min: 0, max: 800})),
-                y: faker.unique(() => faker.datatype.number({min: 0, max: 800}))
+                x: faker.unique(() => faker.datatype.number({min: 0, max: 750})),
+                y: faker.unique(() => faker.datatype.number({min: 0, max: 750}))
             },
             tableCount: faker.datatype.number({min: 1, max: 8}),
             tableType: faker.random.arrayElement(['rounded', 'normal', 'wide']),
             size: faker.random.arrayElement(['small', 'average', 'large']),
-            direction: faker.random.arrayElement([0, 90, 180, 270]),
+            direction: faker.random.arrayElement(['0', '90', '180', '270']),
             localId: i + startIndex
         }
     })
@@ -585,6 +585,7 @@ describe('API tests', () => {
                     removedTables: []
                 })
                 
+            console.log(saveTablesResult.body)
             assert.equal(saveTablesResult.status, 200)
             assert.equal(saveTablesResult.body.success, true)
 
