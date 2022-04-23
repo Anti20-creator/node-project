@@ -7,6 +7,20 @@ class MenuNotFoundError extends Error {
     }
 }
 
+class CategoryError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'CategoryError'
+    }
+}
+
+class FoodError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'FoodError'
+    }
+}
+
 const findById = async (id) => {
     const menu = await Menu.findOne({RestaurantId: id}).exec()
     if(!menu) {
@@ -24,4 +38,26 @@ const getAllFoodNames = (menu) => {
     return result
 }
 
-module.exports = { findById, getAllFoodNames }
+const validateCategory = (name, icon) => {
+    if (name.length < 1) {
+        throw new CategoryError("short-categoryname")
+    }
+    
+    if(icon.length < 1) {
+        throw new CategoryError("short-iconname")
+    }
+}
+
+const validateFood = (name, quantity, unit) => {
+    if(name.length < 1) {
+        throw new FoodError("short-foodname")
+    }
+    if(quantity < 1) {
+        throw new FoodError("small-quantity")
+    }
+    if(unit.length < 1) {
+        throw new FoodError("short-unitname")
+    }
+}
+
+module.exports = { findById, getAllFoodNames, validateCategory, validateFood }

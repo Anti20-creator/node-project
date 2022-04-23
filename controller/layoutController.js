@@ -24,29 +24,28 @@ const validateTables = (tables, sizeX, sizeY) => {
             switch(table.size) {
 
                 case 'small': {
-                    if(table.sizeX < 0 || table.sizeY < 0) return false
+                    if(table.coordinates.x < 0 || table.coordinates.y < 0) return false
 
-                    if(table.sizeX - 80 > sizeX || table.sizeY - 80 > sizeY) return false
+                    if(table.coordinates.x + 80 > sizeX || table.coordinates.y + 80 > sizeY) return false
                     break;
                 }
 
                 case 'average': {
-                    if(table.sizeX < 0 || table.sizeY < 0) return false
+                    if(table.coordinates.x < 0 || table.coordinates.y < 0) return false
 
-                    if(table.sizeX - 100 > sizeX || table.sizeY - 100 > sizeY) return false
+                    if(table.coordinates.x + 100 > sizeX || table.coordinates.y + 100 > sizeY) return false
                     break;
                 }
 
                 case 'large': {
-                    if(table.sizeX < 0 || table.sizeY < 0) return false
+                    if(table.coordinates.x < 0 || table.coordinates.y < 0) return false
 
-                    if(table.sizeX - 120 > sizeX || table.sizeY - 120 > sizeY) return false
+                    if(table.coordinates.x + 120 > sizeX || table.coordinates.y + 120 > sizeY) return false
                     break;
                 }
 
                 default: {
                     return false;
-                    break;
                 }
             }
 
@@ -55,25 +54,25 @@ const validateTables = (tables, sizeX, sizeY) => {
             switch(table.size) {
                 
                 case 'small': {
-                    if(table.sizeX < 0 || table.sizeY < 0) return false
+                    if(table.coordinates.x < 0 || table.coordinates.y < 0) return false
 
                     if(table.tableCount > 12) {
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 110 > sizeX || table.sizeY - 160 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 110 > sizeX || table.coordinates.y + 160 > sizeY) return false
                         }else{
-                            if(table.sizeX - 160 > sizeX || table.sizeY - 110 > sizeY) return false
+                            if(table.coordinates.x + 160 > sizeX || table.coordinates.y + 110 > sizeY) return false
                         }
                     }else if(table.tableCount > 10) {
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 80 > sizeX || table.sizeY - 160 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 80 > sizeX || table.coordinates.y + 160 > sizeY) return false
                         }else{
-                            if(table.sizeX - 160 > sizeX || table.sizeY - 80 > sizeY) return false
+                            if(table.coordinates.x + 160 > sizeX || table.coordinates.y + 80 > sizeY) return false
                         }
                     }else{
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 80 > sizeX || table.sizeY - 120 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 80 > sizeX || table.coordinates.y + 120 > sizeY) return false
                         }else{
-                            if(table.sizeX - 120 > sizeX || table.sizeY - 80 > sizeY) return false
+                            if(table.coordinates.x + 120 > sizeX || table.coordinates.y + 80 > sizeY) return false
                         }
                     }
 
@@ -82,25 +81,25 @@ const validateTables = (tables, sizeX, sizeY) => {
     
                 case 'average': {
 
-                    if(table.sizeX < 0 || table.sizeY < 0) return false
+                    if(table.coordinates.x < 0 || table.coordinates.y < 0) return false
 
                     if(table.tableCount > 12) {
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 130 > sizeX || table.sizeY - 190 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 130 > sizeX || table.coordinates.y + 190 > sizeY) return false
                         }else{
-                            if(table.sizeX - 190 > sizeX || table.sizeY - 130 > sizeY) return false
+                            if(table.coordinates.x + 190 > sizeX || table.coordinates.y + 130 > sizeY) return false
                         }
                     }else if(table.tableCount > 10) {
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 100 > sizeX || table.sizeY - 190 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 100 > sizeX || table.coordinates.y + 190 > sizeY) return false
                         }else{
-                            if(table.sizeX - 190 > sizeX || table.sizeY - 100 > sizeY) return false
+                            if(table.coordinates.x + 190 > sizeX || table.coordinates.y + 100 > sizeY) return false
                         }
                     }else{
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 100 > sizeX || table.sizeY - 150 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 100 > sizeX || table.coordinates.y + 150 > sizeY) return false
                         }else{
-                            if(table.sizeX - 150 > sizeX || table.sizeY - 100 > sizeY) return false
+                            if(table.coordinates.x + 150 > sizeX || table.coordinates.y + 100 > sizeY) return false
                         }
                     }
 
@@ -108,26 +107,26 @@ const validateTables = (tables, sizeX, sizeY) => {
                 }
     
                 case 'large': {
-                    if(table.sizeX < 0 || table.sizeY < 0) return false
+                    if(table.coordinates.x < 0 || table.coordinates.y < 0) return false
 
 
                     if(table.tableCount > 12) {
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 150 > sizeX || table.sizeY - 220 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 150 > sizeX || table.coordinates.y + 220 > sizeY) return false
                         }else{
-                            if(table.sizeX - 220 > sizeX || table.sizeY - 150 > sizeY) return false
+                            if(table.coordinates.x + 220 > sizeX || table.coordinates.y + 150 > sizeY) return false
                         }
                     }else if(table.tableCount > 10) {
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 120 > sizeX || table.sizeY - 220 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 120 > sizeX || table.coordinates.y + 220 > sizeY) return false
                         }else{
-                            if(table.sizeX - 220 > sizeX || table.sizeY - 120 > sizeY) return false
+                            if(table.coordinates.x + 220 > sizeX || table.coordinates.y + 120 > sizeY) return false
                         }
                     }else{
-                        if(table.direction === 90 || table.direction === 270) {
-                            if(table.sizeX - 120 > sizeX || table.sizeY - 180 > sizeY) return false
+                        if(table.direction === '90' || table.direction === '270') {
+                            if(table.coordinates.x + 120 > sizeX || table.coordinates.y + 180 > sizeY) return false
                         }else{
-                            if(table.sizeX - 180 > sizeX || table.sizeY - 120 > sizeY) return false
+                            if(table.coordinates.x + 180 > sizeX || table.coordinates.y + 120 > sizeY) return false
                         }
                     }
                     break;
@@ -135,7 +134,6 @@ const validateTables = (tables, sizeX, sizeY) => {
     
                 default: {
                     return false;
-                    break;
                 }
 
             }
