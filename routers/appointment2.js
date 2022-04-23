@@ -117,13 +117,8 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
     if(accept) {
         appointment.confirmed = true; appointment.TableId = tableId
         await appointment.save()
-        /*await Appointments.findByIdAndUpdate(appointmentId, {
-            confirmed: true,
-            TableId: tableId
-        })*/
     }else{
         appointment.deleteOne()
-        //await Appointments.findByIdAndDelete(appointmentId)
     }
 
     sendUpdatedAppointmentEmail(email, accept, lang)
@@ -168,7 +163,7 @@ router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(as
     const email = appointment.email
 
     await appointment.delete()
-    sendDeletedAppointmentEmail(email)
+    sendDeletedAppointmentEmail(email, lang)
 
     return Httpresponse.OK(res, "appointment-deleted")
 }))

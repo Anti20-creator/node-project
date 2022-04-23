@@ -133,9 +133,26 @@ router.get('/orders/:tableId', authenticateAccessToken, catchErrors(async(req, r
     return Httpresponse.OK(res, table.liveOrders)
 }))
 
-router.get('/:tableId', authenticateAccessToken, catchErrors(async(req, res) => {
+
+const languages = ['en', 'hu']
+
+class LanguageError extends Error{
+    constructor(message) {
+        super(message)
+        this.name = 'LanguageError'
+    }
+}
+const validateLanguage = (lang) => {
+    if(!languages.includes(lang)) {
+        throw new LanguageError("unexpected-language")
+    }
+}
+
+router.post('/:tableId', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
+    const { lang } = RequestValidator.destructureBody(req, res, {lang: 'string'})
+    validateLanguage(lang)
 
     const table = await TableController.findById(tableId)
 
@@ -147,7 +164,7 @@ router.get('/:tableId', authenticateAccessToken, catchErrors(async(req, res) => 
     }
 
     const { invoiceId, invoicePrefix, invoiceName } = createInvoiceName(req.user.restaurantId)
-    await createInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, async() => {
+    await createInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, lang, async() => {
 
         table.liveOrders = []
         await TableController.modifyTableUse(req, table, false)
@@ -159,7 +176,8 @@ router.get('/:tableId', authenticateAccessToken, catchErrors(async(req, res) => 
 router.post('/:tableId/split', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
-    const { items } = RequestValidator.destructureBody(req, res, {items: 'object'})
+    const { items, lang } = RequestValidator.destructureBody(req, res, {items: 'object', lang: 'string'})
+    validateLanguage(lang)
 
     const table = await TableController.findById(tableId)
     TableController.checkIsTableInUse(table)
@@ -182,7 +200,7 @@ router.post('/:tableId/split', authenticateAccessToken, catchErrors(async(req, r
     }
     
     const { invoiceId, invoicePrefix, invoiceName } = createInvoiceName(req.user.restaurantId)
-    await createInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, async() => {
+    await createInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, lang, async() => {
         
         table.liveOrders = tableItems
         await table.save()
@@ -195,7 +213,8 @@ router.post('/:tableId/split', authenticateAccessToken, catchErrors(async(req, r
 router.post('/:tableId/split-equal', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
-    const { peopleCount } = RequestValidator.destructureBody(req, res, {peopleCount: 'number'})
+    const { peopleCount, lang } = RequestValidator.destructureBody(req, res, {peopleCount: 'number', lang: 'string'})
+    validateLanguage(lang)
 
     const table = await TableController.findById(tableId)
     TableController.checkIsTableInUse(table)
@@ -206,7 +225,7 @@ router.post('/:tableId/split-equal', authenticateAccessToken, catchErrors(async(
     }
 
     const { invoiceId, invoicePrefix, invoiceName } = createInvoiceName(req.user.restaurantId)
-    await createMultiInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, peopleCount, async() => {
+    await createMultiInvoice(items, invoiceName, invoiceId, req.user.restaurantId, req.user.email, peopleCount, lang, async() => {
         table.liveOrders = []
         await TableController.modifyTableUse(req, table, false)
 

@@ -3,28 +3,20 @@ const fs = require("fs");
 const Informations = require('../models/InformationsModel')
 const Restaurant   = require('../models/RestaurantModel')
 const Invoice      = require('../models/InvoiceModel')
+const translations = require('./InvoiceTranslations')
+const { getCurrency } = require('./CurrencySelector')
 
-async function createInvoice(invoice, path, invoiceId, restaurantId, email, callback) {
+async function createInvoice(invoice, path, invoiceId, restaurantId, email, language, callback) {
 
     let doc = new PDFDocument({ size: "A4", margin: 50 });
     
     const restaurant = await Restaurant.findById(restaurantId).exec()
     const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
     let currency = 'Ft'
-    switch(informations.currency) {
-	case 'EUR':
-		currency = '€'
-		break
-	case 'USD':
-		currency = '$'
-		break
-	case 'HUF':
-		currency = 'Ft'
-		break
-    }
+    
 
-    await generateHeader(doc, invoiceId, restaurant, informations);
-    generateInvoiceTable(doc, invoice, 1, currency)
+    generateHeader(doc, invoiceId, restaurant, informations, language)
+    generateInvoiceTable(doc, invoice, 1, currency, language)
 
     await Invoice.create({email: email, RestaurantId: restaurantId, invoiceName: path, date: new Date().toISOString()})
 
@@ -39,27 +31,16 @@ async function createInvoice(invoice, path, invoiceId, restaurantId, email, call
         await callback()
 }
 
-async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email, peopleCount, callback) {
+async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email, peopleCount, language, callback) {
     let doc = new PDFDocument({ size: "A4", margin: 50 });
 
     const restaurant = await Restaurant.findById(restaurantId).exec()
     const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
-    let currency = ''
-    switch(informations.currency) {
-	case 'EUR':
-		currency = '€'
-		break
-	case 'USD':
-		currency = '$'
-		break
-	case 'HUF':
-		currency = 'Ft'
-		break
-    }
+    const currency = getCurrency()
 
     for(let i = 0; i < peopleCount; ++i) {
-        await generateHeader(doc, invoiceId, restaurant, informations);
-        generateInvoiceTable(doc, invoice, peopleCount, currency);
+        generateHeader(doc, invoiceId, restaurant, informations, language)
+        generateInvoiceTable(doc, invoice, peopleCount, currency, language)
 
         if(i !== peopleCount - 1)
             doc.addPage()
@@ -82,7 +63,7 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
     return doc
 }
 
-async function generateHeader(doc, invoiceId, restaurant, informations) {
+function generateHeader(doc, invoiceId, restaurant, informations, language) {
     if(process.env.TESTING === '0') {
         doc
             .font(__dirname + '\\Arimo-Regular.ttf')
@@ -93,9 +74,9 @@ async function generateHeader(doc, invoiceId, restaurant, informations) {
         .fontSize(20)
         .text("", 110, 57)
         .fontSize(10)
-        .text("Számla ID:", 50, 50)
+        .text(`${translations['invoice-id'][language]}:`, 50, 50)
         .text(invoiceId, 150, 50)
-        .text("Dátum:", 50, 65)
+        .text(`${translations['date'][language]}:`, 50, 65)
         .text(formatDate(new Date()), 150, 65)
         .text(`${restaurant.restaurantName ?? ''}`, 200, 50, { align: "right" })
         .text(`${informations.address ?? ''}`, 200, 65, { align: "right" })
@@ -104,19 +85,19 @@ async function generateHeader(doc, invoiceId, restaurant, informations) {
 
     doc
         .fontSize(20)
-        .text("Számla", 50, 120, {align: 'center'});
+        .text(translations['invoice'][language], 50, 120, {align: 'center'});
 }
 
-function generateInvoiceTable(doc, items, divisor=1, currency) {
+function generateInvoiceTable(doc, items, divisor=1, currency, language) {
     let invoiceTableTop = 190;
 
     generateTableRow(
         doc,
         invoiceTableTop,
-        "Termék neve",
-        "Egységár",
-        "Mennyiség",
-        "Részösszeg",
+        translations['product-name'][language],
+        translations['unit-price'][language],
+        translations['quantity'][language],
+        translations['subtotal'][language],
     );
     generateHr(doc, invoiceTableTop + 20);
 
@@ -153,7 +134,7 @@ function generateInvoiceTable(doc, items, divisor=1, currency) {
         doc,
         subtotalPosition,
         "",
-        "Összesen",
+        translations['total'][language],
         "",
         formatCurrency((items.reduce((part, item) => part + item.price * item.quantity, 0)) / divisor, currency)
     );

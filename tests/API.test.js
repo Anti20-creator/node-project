@@ -1067,8 +1067,11 @@ describe('API tests', () => {
                     
                     //Generate invoice
                     await request(app)
-                        .get('/api/tables/' + table._id)
+                        .post('/api/tables/' + table._id)
                         .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({
+                            lang: 'en'
+                        })
                         .then(result => {
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
