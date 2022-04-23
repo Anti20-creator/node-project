@@ -1370,7 +1370,7 @@ describe('API tests', () => {
 
             await request(app)
                 .post('/api/users/login/')
-                .send({email: faker.random.arrayElement(userEmails), password: "123456"})
+                .send({email: adminEmail, password: "123456"})
                 .then(async loginResult => {
                     await request(app)
                         .delete('/api/menu/delete-item')

@@ -3,10 +3,10 @@ const router                    = express.Router()
 const Httpresponse              = require('../utils/ErrorCreator')
 const RequestValidator          = require('../controller/bodychecker')
 const MenuController            = require('../controller/menuController')
-const {authenticateAccessToken} = require("../middlewares/auth");
 const { catchErrors }           = require('../utils/ErrorHandler')
+const {authenticateAccessToken, authenticateAdminAccessToken} = require("../middlewares/auth");
 
-router.post('/add-category', authenticateAccessToken, catchErrors(async(req, res) => {
+router.post('/add-category', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
     const { category, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', categoryIcon: 'string'})
 
@@ -26,7 +26,7 @@ router.post('/add-category', authenticateAccessToken, catchErrors(async(req, res
     return Httpresponse.Created(res, "category-added")
 }))
 
-router.post('/modify-category', authenticateAccessToken, catchErrors(async(req, res) => {
+router.post('/modify-category', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
     const { category, oldCategory, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', oldCategory: 'string', categoryIcon: 'string'})
 
@@ -53,7 +53,7 @@ router.post('/modify-category', authenticateAccessToken, catchErrors(async(req, 
     return Httpresponse.OK(res, "category-updated")
 }))
 
-router.post('/modify-item', authenticateAccessToken, async(req, res) => {
+router.post('/modify-item', authenticateAdminAccessToken, async(req, res) => {
 
     const { name, amount, category, price, unit, oldName } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string', oldName: 'string'})
 
@@ -77,7 +77,7 @@ router.post('/modify-item', authenticateAccessToken, async(req, res) => {
 })
 
 
-router.post('/add-item', authenticateAccessToken, async(req, res) => {
+router.post('/add-item', authenticateAdminAccessToken, async(req, res) => {
 
     const { name, amount, category, price, unit } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string'})
 
@@ -101,7 +101,7 @@ router.post('/add-item', authenticateAccessToken, async(req, res) => {
     return Httpresponse.Created(res, "food-added")
 })
 
-router.delete('/delete-category', authenticateAccessToken, async(req, res) => {
+router.delete('/delete-category', authenticateAdminAccessToken, async(req, res) => {
 
     const { category } = RequestValidator.destructureBody(req, res, {category: 'string'})
     const menu = await MenuController.findById(req.user.restaurantId)
@@ -120,7 +120,7 @@ router.delete('/delete-category', authenticateAccessToken, async(req, res) => {
     return Httpresponse.OK(res, "category-deleted")
 })
 
-router.delete('/delete-item', authenticateAccessToken, async(req, res) => {
+router.delete('/delete-item', authenticateAdminAccessToken, async(req, res) => {
 
     const { name, category } = RequestValidator.destructureBody(req, res, {name: 'string', category: 'string'})
     const menu = await MenuController.findById(req.user.restaurantId)
