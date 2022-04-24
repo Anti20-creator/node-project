@@ -24,8 +24,12 @@ router.post('/register-admin', catchErrors(async(req, res) => {
 
     const { name, email, password, restaurantName, lang } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', restaurantName: 'string', lang: 'string'})
 
+    if(password.length < 5) {
+        return Httpresponse.BadRequest(res, "short-password")
+    }
     const salt = bcrypt.genSaltSync(10)
     const hashedPassword = bcrypt.hashSync(password, salt)
+
 
     const newUser = new User({
         email: email,
@@ -39,6 +43,7 @@ router.post('/register-admin', catchErrors(async(req, res) => {
     await newUser.save(async (err, document) => {
         if(err){
             if(err.name === 'ValidationError') {
+                console.log(err)
                 return Httpresponse.BadRequest(res, "badly-formatted-data")
             }else{
                 return Httpresponse.Conflict(res, "user-email-conflict")
@@ -75,6 +80,9 @@ router.post('/register-admin', catchErrors(async(req, res) => {
 router.post('/register-employee/:id', catchErrors(async(req, res) => {
     
     const { name, email, password, secretPin, lang } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', secretPin: 'string', lang: 'string'})
+    if(password.length < 5) {
+        return Httpresponse.BadRequest(res, "short-password")
+    }
 
     const restaurantId = req.params.id
 
@@ -102,18 +110,23 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
             isAdmin: false
         })
 
-        await newUser.save((err) => {
-            if (err) {
-                return Httpresponse.Conflict(res, "user-email-conflict")
+        await newUser.save(async (err) => {
+            if(err) {
+                if(err.name === 'ValidationError') {
+                    return Httpresponse.BadRequest(res, "badly-formatted-data")
+                }else{
+                    return Httpresponse.Conflict(res, "user-email-conflict")
+                }
+            }else{
+                restaurant.invited = restaurant.invited.filter(inv => inv !== email)
+                await restaurant.save()
+                sendWelcomeEmail(email, lang)
+            
+                return Httpresponse.Created(res, "user-created")
             }
         })
 
     }
-    restaurant.invited = restaurant.invited.filter(inv => inv !== email)
-    await restaurant.save()
-    sendWelcomeEmail(email, lang)
-
-    return Httpresponse.Created(res, "user-created")
 }))
 
 /*

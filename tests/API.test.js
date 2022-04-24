@@ -90,6 +90,7 @@ let userEmails = Array.from(Array(faker.datatype.number({min: 3, max: 6}))).map(
 const soonPromoted = faker.random.arrayElement(userEmails)
 const deletedUser = faker.random.arrayElement(userEmails.filter(email => email !== soonPromoted))
 
+console.log(userEmails)
 describe('API tests', () => {
 
     describe('User router tests', () => {
@@ -102,6 +103,50 @@ describe('API tests', () => {
                     name: "Teszt fiók - hibás",
                     password: "123456",
                     email: adminEmail,
+                    lang: 'en'
+                }).then((result) => {
+                    assert.equal(result.body.success, false)
+                    assert.equal(result.status, 400)
+                })
+
+            const users = await User.countDocuments({}).exec();
+            assert.equal(users, 0)
+        })
+
+        test('Registering with badly formatted date', async() => {
+            await request(app)
+                .post('/api/users/register-admin')
+                .set('Content-Type', 'application/json')
+                .send({
+                    name: "Teszt fiók - hibás #2",
+                    password: "1234",
+                    email: adminEmail,
+                    lang: 'en'
+                }).then((result) => {
+                    assert.equal(result.body.success, false)
+                    assert.equal(result.status, 400)
+                })
+
+            await request(app)
+                .post('/api/users/register-admin')
+                .set('Content-Type', 'application/json')
+                .send({
+                    name: "",
+                    password: "123456",
+                    email: adminEmail,
+                    lang: 'en'
+                }).then((result) => {
+                    assert.equal(result.body.success, false)
+                    assert.equal(result.status, 400)
+                })
+
+            await request(app)
+                .post('/api/users/register-admin')
+                .set('Content-Type', 'application/json')
+                .send({
+                    name: "Teszt fiók - hibás #4",
+                    password: "1234",
+                    email: "no-email-format",
                     lang: 'en'
                 }).then((result) => {
                     assert.equal(result.body.success, false)
@@ -196,13 +241,64 @@ describe('API tests', () => {
 
         })
 
+        test('Trying to accept invite with badly formatted data', async() => {
+
+            const restaurant = await Restaurant.findOne({
+                ownerEmail: adminEmail
+            }).exec();
+
+            await request(app)
+                .post('/api/users/register-employee/' + restaurant._id)
+                .set('Content-Type', 'application/json')
+                .send({
+                    name: `Alk`,
+                    password: "123456",
+                    email: userEmails[0],
+                    secretPin: restaurant.secretPin,
+                    lang: 'en'
+                }).then(result => {
+                    console.warn(result.body)
+                    assert.equal(result.status, 400)
+                })
+
+            await request(app)
+                .post('/api/users/register-employee/' + restaurant._id)
+                .set('Content-Type', 'application/json')
+                .send({
+                    name: `Alkalmazott`,
+                    password: "123",
+                    email: userEmails[0],
+                    secretPin: restaurant.secretPin,
+                    lang: 'en'
+                }).then(result => {
+                    console.warn(result.body)
+                    assert.equal(result.status, 400)
+                })
+
+            await request(app)
+                .post('/api/users/register-employee/' + restaurant._id)
+                .set('Content-Type', 'application/json')
+                .send({
+                    name: `Alkalmazott`,
+                    password: "123456",
+                    email: 'a' + userEmails[0],
+                    secretPin: restaurant.secretPin,
+                    lang: 'en'
+                }).then(result => {
+                    console.warn(result.body)
+                    assert.equal(result.status, 404)
+                })
+
+
+        })
+
         test('Registering people to restaurant', async() => {
             const restaurant = await Restaurant.findOne({
                 ownerEmail: adminEmail
             }).exec();
 
             for(let i = 0; i < userEmails.length; ++i) {
-                const result = await request(app)
+                await request(app)
                     .post('/api/users/register-employee/' + restaurant._id)
                     .set('Content-Type', 'application/json')
                     .send({
@@ -211,9 +307,10 @@ describe('API tests', () => {
                         email: userEmails[i],
                         secretPin: restaurant.secretPin,
                         lang: 'en'
+                    }).then(result => {
+                        assert.equal(result.status, 201)
                     })
 
-                assert.equal(result.status, 201)
             }
 
             const employees = await User.countDocuments({restaurantId: restaurant._id, isAdmin: false}).exec();
@@ -487,7 +584,6 @@ describe('API tests', () => {
                         .set('Cookie', loginData.headers['set-cookie'])
                         .send({email: deletedUser})
                         .then(result => {
-                            console.warn(result.body)
                             assert.equal(result.status, 200)
                         })
                     
@@ -585,7 +681,6 @@ describe('API tests', () => {
                     removedTables: []
                 })
                 
-            console.log(saveTablesResult.body)
             assert.equal(saveTablesResult.status, 200)
             assert.equal(saveTablesResult.body.success, true)
 
@@ -760,7 +855,7 @@ describe('API tests', () => {
 
             //Add new item
             const itemName = faker.random.word()
-            const itemResult = await request(app)
+            await request(app)
                 .post('/api/menu/add-item')
                 .set('Content-Type', 'application/json')
                 .set('Cookie', login.headers['set-cookie'])
@@ -770,10 +865,62 @@ describe('API tests', () => {
                     category: category, 
                     price: faker.datatype.number({min: 149, max: 399}) * 10, 
                     unit: 'db'
+                }).then(response => {
+                    assert.equal(response.status, 201)
+                    assert.equal(response.body.success, true)
                 })
             
-            assert.equal(itemResult.status, 201)
-            assert.equal(itemResult.body.success, true)
+            //Add bad item
+            await request(app)
+                .post('/api/menu/add-item')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+                .send({
+                    name: itemName, 
+                    amount: 0, 
+                    category: category, 
+                    price: faker.datatype.number({min: 149, max: 399}) * 10, 
+                    unit: 'db'
+                }).then(response => {
+                    console.warn(response.body)
+                    assert.equal(response.status, 400)
+                    assert.equal(response.body.success, false)
+                })
+
+            //Add bad item #2
+            await request(app)
+                .post('/api/menu/add-item')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+                .send({
+                    name: "", 
+                    amount: 1, 
+                    category: category, 
+                    price: faker.datatype.number({min: 149, max: 399}) * 10, 
+                    unit: 'db'
+                }).then(response => {
+                    console.warn(response.body)
+                    assert.equal(response.status, 400)
+                    assert.equal(response.body.success, false)
+                })
+
+            //Add bad item #3
+            await request(app)
+                .post('/api/menu/add-item')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+                .send({
+                    name: itemName, 
+                    amount: 1, 
+                    category: category, 
+                    price: faker.datatype.number({min: 149, max: 399}) * 10, 
+                    unit: ""
+                }).then(response => {
+                    console.warn(response.body)
+                    assert.equal(response.status, 400)
+                    assert.equal(response.body.success, false)
+                })
+            
             
             //Modifying previously created item
             const itemResult2 = await request(app)
@@ -805,6 +952,34 @@ describe('API tests', () => {
                 })
             assert.equal(modifyCategoryResult.status, 200)
             assert.equal(modifyCategoryResult.body.success, true)
+            
+            //Modifying category badly
+            await request(app)
+                .post('/api/menu/modify-category')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+                .send({
+                    category: "",
+                    oldCategory: category,
+                    categoryIcon: categoryIcon
+                }).then(response => {
+                    assert.equal(response.status, 400)
+                    assert.equal(response.body.success, false)
+                })
+
+            //Modifying category badly #2
+            await request(app)
+                .post('/api/menu/modify-category')
+                .set('Content-Type', 'application/json')
+                .set('Cookie', login.headers['set-cookie'])
+                .send({
+                    category: newCategory,
+                    oldCategory: category,
+                    categoryIcon: ""
+                }).then(response => {
+                    assert.equal(response.status, 400)
+                    assert.equal(response.body.success, false)
+                })
 
             //Try to modify unexisting category
             const modifyBadCategoryResult = await request(app)
@@ -1117,6 +1292,22 @@ describe('API tests', () => {
                     tableId: table._id,
                     date: future.toString(),
                     peopleCount: faker.datatype.number({min: 1, max: table.tableCount}),
+                    restaurantId: restaurant._id,
+                    email: "guest@gmail.com",
+                    lang: 'en'
+                })
+                .then(result => {
+                    assert.equal(result.status, 400)
+                    assert.equal(result.body.success, false)
+                })
+
+            //Booking for over two months
+            await request(app)
+                .post('/api/appointments/book')
+                .send({
+                    tableId: table._id,
+                    date: getNextGivenDay(0).setHours(14, 0, 0, 0).toString(),
+                    peopleCount: 0,
                     restaurantId: restaurant._id,
                     email: "guest@gmail.com",
                     lang: 'en'
@@ -2034,6 +2225,46 @@ describe('API tests', () => {
                     })
             }
         })
+
+        test('Book appointment for guest', async() => {
+
+            const table = await Table.findOne({}).exec()
+            const saturday = getNextGivenDay(7)
+
+            const appointmentsBefore = await Appointment.countDocuments({confirmed: true}).exec()
+
+            for(let i = 0; i < 10; ++i) {
+                await request(app)
+                    .post('/api/users/login')
+                    .set('Content-Type', 'application/json')
+                    .send({
+                        email: faker.random.arrayElement(userEmails), password: "123456"
+                    })
+                    .then(async loginResult => {
+                        saturday.setHours(faker.datatype.number({min: 6, max: 22}))
+                        await request(app)
+                            .post('/api/appointments/book-for-guest')
+                            .set('Cookie', loginResult.headers['set-cookie'])
+                            .set('Content-Type', 'application/json')
+                            .send({
+                                tableId: table._id,
+                                restaurantId: table.RestaurantId,
+                                date: saturday.toString(),
+                                peopleCount: 1,
+                                email: faker.internet.email(),
+                                lang: 'en'
+                            }).then(result => {
+                                assert.equal(result.status, 201)
+                                assert.equal(result.body.success, true)
+                            })
+                    })
+            }
+
+            const appointmentsAfter = await Appointment.countDocuments({confirmed: true}).exec()
+            assert.equal(appointmentsAfter, appointmentsBefore + 10)
+
+        })
+
     })
 })
 

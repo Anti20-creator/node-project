@@ -64,6 +64,8 @@ const checkDate = (date) => {
 }
 
 const checkTable = async(tableId, restaurantId, peopleCount) => {
+    checkPeoplecount(peopleCount)
+
     if(tableId !== 'any') {
         const layout = await LayoutController.findById(restaurantId)
         const table = layout.tables.find(table => table.TableId === tableId)
@@ -73,8 +75,14 @@ const checkTable = async(tableId, restaurantId, peopleCount) => {
         }
 
         if(table.tableCount < peopleCount) {
-            throw new TableSeatError()
+            throw new TableSeatError("too-many-people")
     	}
+    }
+}
+
+const checkPeoplecount = (peopleCount) => {
+    if(peopleCount < 1) {
+        throw new TableSeatError("too-few-people")
     }
 }
 
@@ -127,4 +135,4 @@ const createXLS = async (id) => {
 
 }
 
-module.exports = { findConflicts, createXLS, checkDate, checkTable }
+module.exports = { findConflicts, createXLS, checkDate, checkTable, checkPeoplecount }

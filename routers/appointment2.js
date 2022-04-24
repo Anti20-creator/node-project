@@ -86,8 +86,11 @@ router.post('/booking-conflicts', authenticateAccessToken, catchErrors(async(req
 router.post('/search-tables', catchErrors(async(req, res) => {
 
     const { date, peopleCount, restaurantId } = RequestValidator.destructureBody(req, res, {date: 'string', peopleCount: 'number', restaurantId: 'string'})
+    
+    AppointmentsController.checkPeoplecount(peopleCount)
     const startDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() - 3_600_000 * 12)
     const endDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() + 3_600_000 * 12)
+
 
     const tables = await TableController.getAll(restaurantId)
     const layout = await LayoutController.findById(restaurantId)

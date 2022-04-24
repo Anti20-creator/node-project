@@ -53,7 +53,7 @@ router.post('/modify-category', authenticateAdminAccessToken, catchErrors(async(
     return Httpresponse.OK(res, "category-updated")
 }))
 
-router.post('/modify-item', authenticateAdminAccessToken, async(req, res) => {
+router.post('/modify-item', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
     const { name, amount, category, price, unit, oldName } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string', oldName: 'string'})
 
@@ -74,10 +74,10 @@ router.post('/modify-item', authenticateAdminAccessToken, async(req, res) => {
     await menu.save()
 
     return Httpresponse.OK(res, "food-modified")
-})
+}))
 
 
-router.post('/add-item', authenticateAdminAccessToken, async(req, res) => {
+router.post('/add-item', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
     const { name, amount, category, price, unit } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string'})
 
@@ -99,9 +99,9 @@ router.post('/add-item', authenticateAdminAccessToken, async(req, res) => {
     await menu.save()
 
     return Httpresponse.Created(res, "food-added")
-})
+}))
 
-router.delete('/delete-category', authenticateAdminAccessToken, async(req, res) => {
+router.delete('/delete-category', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
     const { category } = RequestValidator.destructureBody(req, res, {category: 'string'})
     const menu = await MenuController.findById(req.user.restaurantId)
@@ -118,9 +118,9 @@ router.delete('/delete-category', authenticateAdminAccessToken, async(req, res) 
     await menu.save()
 
     return Httpresponse.OK(res, "category-deleted")
-})
+}))
 
-router.delete('/delete-item', authenticateAdminAccessToken, async(req, res) => {
+router.delete('/delete-item', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
     const { name, category } = RequestValidator.destructureBody(req, res, {name: 'string', category: 'string'})
     const menu = await MenuController.findById(req.user.restaurantId)
@@ -135,19 +135,19 @@ router.delete('/delete-item', authenticateAdminAccessToken, async(req, res) => {
     await menu.save()
 
     return Httpresponse.OK(res, "food-deleted")
-})
-
-router.get('/categories', async(req, res) => {
+}))
+/*
+router.get('/categories', catchErrors(async(req, res) => {
     const menu = await MenuController.findById(req.user.restaurantId)
 
     return Httpresponse.OK(res, {icons: menu.icons})
-})
+}))*/
 
-router.get('/', authenticateAccessToken, async(req, res) => {
+router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const menu = await MenuController.findById(req.user.restaurantId)
 
     return Httpresponse.OK(res, menu)
-})
+}))
 
 module.exports = router

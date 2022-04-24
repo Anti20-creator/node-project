@@ -17,16 +17,15 @@ const User = new mongoose.Schema({
         type: String,
         trim: true,
         required: true,
-        min: [4, 'short-username']
+        minlength: [4, 'short-username']
     },
     password: {
         type: String,
-        required: true,
-        min: ['short-password']
+        required: true
     },
     restaurantName: {
         type: String,
-        min: [1, 'short-restaurantname'],
+        minlength: [1, 'short-restaurantname'],
         required: true
     },
     restaurantId: {

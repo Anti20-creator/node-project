@@ -4,7 +4,7 @@ const OrderModel = new mongoose.Schema({
     name: {
         type: String,
         required: true,
-        min: [1, 'short-foodname']
+        minlength: [1, 'short-foodname']
     },
     price: {
         type: Number,
@@ -18,7 +18,7 @@ const OrderModel = new mongoose.Schema({
     category: {
         type: String,
         required: true,
-        min: [1, 'short-categoryname']
+        minlength: [1, 'short-categoryname']
     }
 })
 

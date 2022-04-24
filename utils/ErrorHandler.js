@@ -47,11 +47,11 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
         }
 
         case 'TableSeatError': {
-            return Httpresponse.BadRequest(res, "too-many-people")
+            return Httpresponse.BadRequest(res, err.message)
         }
         
         case 'CategoryError': {
-            return Httpresponse.BadRequest(res, "too-many-people")
+            return Httpresponse.BadRequest(res, err.message)
         }
 
         case 'FoodError': {
