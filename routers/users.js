@@ -83,8 +83,8 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
     if(password.length < 5) {
         return Httpresponse.BadRequest(res, "short-password")
     }
-
-    const restaurantId = req.params.id
+    const {id: restaurantId} = RequestValidator.destructureParams(req, res, {id: 'string'})
+    console.warn(restaurantId)
 
     const restaurant = await Restaurant.findById(restaurantId).exec()
 

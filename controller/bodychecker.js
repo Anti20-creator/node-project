@@ -17,7 +17,6 @@ const destructureBody = (req, res, items) => {
     for (const key in items) {
         const bodyItem = req.body[key]
         if(bodyItem === undefined || bodyItem === null){
-            console.warn('key -', key)
             throw new MissingFieldError("missing-parameter")
         }
         if(typeof bodyItem !== items[key]) {

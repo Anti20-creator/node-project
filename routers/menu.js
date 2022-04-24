@@ -15,6 +15,8 @@ router.post('/add-category', authenticateAdminAccessToken, catchErrors(async(req
     const menu = await MenuController.findById(req.user.restaurantId)
     if(!menu.items[category]) {
         menu.items[category] = {}
+    }else{
+        return Httpresponse.Conflict(res, "existing-category")
     }
     menu.icons[category] = categoryIcon
 
@@ -58,11 +60,15 @@ router.post('/modify-item', authenticateAdminAccessToken, catchErrors(async(req,
     const { name, amount, category, price, unit, oldName } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string', oldName: 'string'})
 
     MenuController.validateFood(name, amount, unit)
-
+    
     const menu = await MenuController.findById(req.user.restaurantId)
+    const allFoodNames = MenuController.getAllFoodNames(menu)
 
     if(!Object.keys(menu.items).includes(category) || !menu.items[category][oldName]) {
         return Httpresponse.NotFound(res, "food-not-found")
+    }
+    if(allFoodNames.includes(name)) {
+        return Httpresponse.Conflict(res, "food-name-exists")
     }
 
     menu.items[category][name] = { unit, amount, price }

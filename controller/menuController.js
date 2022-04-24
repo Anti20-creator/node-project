@@ -31,9 +31,9 @@ const findById = async (id) => {
 }
 
 const getAllFoodNames = (menu) => {
-    const result = []
+    let result = []
     Object.keys(menu.items).map(category => {
-        result.concat(Object.keys(menu.items[category]))
+        result = result.concat(Object.keys(menu.items[category]))
     })
     return result
 }
