@@ -43,7 +43,6 @@ router.post('/register-admin', catchErrors(async(req, res) => {
     await newUser.save(async (err, document) => {
         if(err){
             if(err.name === 'ValidationError') {
-                console.log(err)
                 return Httpresponse.BadRequest(res, "badly-formatted-data")
             }else{
                 return Httpresponse.Conflict(res, "user-email-conflict")
@@ -84,7 +83,6 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
         return Httpresponse.BadRequest(res, "short-password")
     }
     const {id: restaurantId} = RequestValidator.destructureParams(req, res, {id: 'string'})
-    console.warn(restaurantId)
 
     const restaurant = await Restaurant.findById(restaurantId).exec()
 

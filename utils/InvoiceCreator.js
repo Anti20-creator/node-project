@@ -13,7 +13,7 @@ async function createInvoice(invoice, path, invoiceId, restaurantId, email, lang
     
     const restaurant = await Restaurant.findById(restaurantId).exec()
     const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
-    let currency = 'Ft'
+    const currency = getCurrency(informations.currency)
     
 
     generateHeader(doc, invoiceId, restaurant, informations, language)
@@ -37,7 +37,7 @@ async function createMultiInvoice(invoice, path, invoiceId, restaurantId, email,
 
     const restaurant = await Restaurant.findById(restaurantId).exec()
     const informations = await Informations.findOne({RestaurantId: restaurantId}).exec()
-    const currency = getCurrency()
+    const currency = getCurrency(informations.currency)
 
     for(let i = 0; i < peopleCount; ++i) {
         generateHeader(doc, invoiceId, restaurant, informations, language)

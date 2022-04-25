@@ -257,7 +257,6 @@ describe('API tests', () => {
                     secretPin: restaurant.secretPin,
                     lang: 'en'
                 }).then(result => {
-                    console.warn(result.body)
                     assert.equal(result.status, 400)
                 })
 
@@ -271,7 +270,6 @@ describe('API tests', () => {
                     secretPin: restaurant.secretPin,
                     lang: 'en'
                 }).then(result => {
-                    console.warn(result.body)
                     assert.equal(result.status, 400)
                 })
 
@@ -285,7 +283,6 @@ describe('API tests', () => {
                     secretPin: restaurant.secretPin,
                     lang: 'en'
                 }).then(result => {
-                    console.warn(result.body)
                     assert.equal(result.status, 404)
                 })
 
@@ -882,7 +879,6 @@ describe('API tests', () => {
                     price: faker.datatype.number({min: 149, max: 399}) * 10, 
                     unit: 'db'
                 }).then(response => {
-                    console.warn(response.body)
                     assert.equal(response.status, 400)
                     assert.equal(response.body.success, false)
                 })
@@ -899,7 +895,6 @@ describe('API tests', () => {
                     price: faker.datatype.number({min: 149, max: 399}) * 10, 
                     unit: 'db'
                 }).then(response => {
-                    console.warn(response.body)
                     assert.equal(response.status, 400)
                     assert.equal(response.body.success, false)
                 })
@@ -916,7 +911,6 @@ describe('API tests', () => {
                     price: faker.datatype.number({min: 149, max: 399}) * 10, 
                     unit: ""
                 }).then(response => {
-                    console.warn(response.body)
                     assert.equal(response.status, 400)
                     assert.equal(response.body.success, false)
                 })
@@ -1249,6 +1243,7 @@ describe('API tests', () => {
                             lang: 'en'
                         })
                         .then(result => {
+                            console.warn(result.body)
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
                         })

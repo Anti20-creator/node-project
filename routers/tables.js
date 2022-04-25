@@ -216,6 +216,10 @@ router.post('/:tableId/split-equal', authenticateAccessToken, catchErrors(async(
     const { peopleCount, lang } = RequestValidator.destructureBody(req, res, {peopleCount: 'number', lang: 'string'})
     validateLanguage(lang)
 
+    if(peopleCount < 1) {
+        return Httpresponse.BadRequest(res, "too-few-people")
+    }
+
     const table = await TableController.findById(tableId)
     TableController.checkIsTableInUse(table)
 

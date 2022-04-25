@@ -11,7 +11,8 @@ const AppointmentModel = new mongoose.Schema({
     },
     peopleCount: {
         type: Number,
-        required: true
+        required: true,
+        min: [1, "too-few-people"]
     },
     date: {
 	    type: Date

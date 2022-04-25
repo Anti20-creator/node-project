@@ -1,4 +1,4 @@
-const getCurrency = () => {
+const getCurrency = (currency) => {
     let result = ''
     switch(currency) {
         case 'EUR':

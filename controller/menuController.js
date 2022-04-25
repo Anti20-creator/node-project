@@ -39,23 +39,25 @@ const getAllFoodNames = (menu) => {
 }
 
 const validateCategory = (name, icon) => {
-    if (name.length < 1) {
+    if (name.trim().length < 1) {
         throw new CategoryError("short-categoryname")
     }
     
-    if(icon.length < 1) {
+    if(icon.trim().length < 1) {
         throw new CategoryError("short-iconname")
     }
 }
 
 const validateFood = (name, quantity, unit) => {
-    if(name.length < 1) {
+    if(name.trim().length < 1) {
         throw new FoodError("short-foodname")
     }
+
     if(quantity < 1) {
         throw new FoodError("small-quantity")
     }
-    if(unit.length < 1) {
+    
+    if(unit.trim().length < 1) {
         throw new FoodError("short-unitname")
     }
 }

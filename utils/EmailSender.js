@@ -1,4 +1,5 @@
-const nodemailer = require("nodemailer");
+const nodemailer = require('nodemailer')
+const moment     = require('moment-timezone')
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -13,7 +14,7 @@ const transporter = nodemailer.createTransport({
     maxMessages: Infinity
 })
 
-const FRONTEND_URL = 'https://192.168.31.161:3000/'
+const FRONTEND_URL = 'http://192.168.31.161:3000/'
 
 async function sendMail(emailTo, subject, htmlContent, fileName) {
 
@@ -41,7 +42,7 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='en') {
                     <p>További tájékoztatásokat a megadott e-mail címre küldjük Önnek.</p>
                     <p>Adatok:<p>
                     <ul>
-                        <li>Időpont: ${appointmentData.date}</li>
+                        <li>Időpont: ${moment.utc(appointmentData.date).toString('L HH:mm')}</li>
                         <li>Vendégek száma: ${appointmentData.peopleCount}</li>
                         <li>Kód: ${appointmentData.code}</li>
                     </ul>
@@ -57,7 +58,7 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='en') {
                     <p>We will send you further informations here as well!</p>
                     <p>Details:<p>
                     <ul>
-                        <li>Date: ${appointmentData.date}</li>
+                        <li>Date: ${moment.utc(appointmentData.date).toString('L HH:mm')}</li>
                         <li>People: ${appointmentData.peopleCount}</li>
                         <li>Code: ${appointmentData.code}</li>
                     </ul>
