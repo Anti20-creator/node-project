@@ -99,6 +99,15 @@ router.get('/image', authenticateAccessToken, catchErrors(async(req, res) => {
     return Httpresponse.OK(res, 'https://192.168.31.214:4000/backgrounds/' + layout.backgroundImage)
 }))
 
+
+router.get('/:id/data', catchErrors(async(req, res) => {
+
+    const { id } = RequestValidator.destructureParams(req, res, {id: 'string'})
+    const layout = await LayoutController.findById(id)
+
+    return Httpresponse.OK(res, {sizeX: layout.sizeX, sizeY: layout.sizeY, image: layout.backgroundImage})
+}))
+
 router.get('/:id', catchErrors(async(req, res) => {
 
     const { id } = RequestValidator.destructureParams(req, res, {id: 'string'})
