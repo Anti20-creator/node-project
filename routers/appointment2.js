@@ -204,7 +204,7 @@ router.post('/is-open', catchErrors(async(req, res) => {
 
     const {date, restaurantId} = RequestValidator.destructureBody(req, res, {date: 'string', restaurantId: 'string'})
 
-    const formattedDate = checkDate(date)
+    const formattedDate =  AppointmentsController.checkDate(date)
 
     const informations = await InformationsController.findById(restaurantId)
     return Httpresponse.OK(res, checkRestaurantOpen(informations, formattedDate))
