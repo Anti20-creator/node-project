@@ -715,11 +715,25 @@ describe('API tests', () => {
                     }),
                     removedTables: []
                 })
-            
+                
             const DBtablesUpdated2 = await Table.find({RestaurantId: restaurant._id}).exec()
             assert.equal(DBtablesUpdated2.length, DBtablesUpdated.length)
             assert.equal(modifyTablesResult.status, 200)
             assert.equal(modifyTablesResult.body.success, true)
+            
+            await request(app)
+                .post('/api/layouts/update')
+                .set('Cookie', loginResult.headers['set-cookie'])
+                .set('Content-Type', 'application/json')
+                .send({
+                    sizeX: 250, sizeY: 250, sentImage: false, deleteImage: false, extName: ''
+                })
+                .then(result => {
+                    console.warn(result.body)
+                    assert.equal(result.status, 400)
+                })
+
+
         })
 
         test('Normal user try to modify layout', async() => {

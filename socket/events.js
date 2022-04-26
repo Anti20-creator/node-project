@@ -46,6 +46,12 @@ const events = io => {
 			socket.broadcast.to('table:' + tableId).emit('order-added', name)
 		})
 
+		socket.on('layout-size-modified', ({sizeX, sizeY}) => {
+			const cookies = cookie.parse(socket.handshake.headers.cookie)
+			const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId
+			socket.broadcast.to('restaurant:' + restaurantId).emit('layout-size-modified', {sizeX, sizeY})
+		})
+		
 		socket.on('new-appointment', () => {
 			const cookies = cookie.parse(socket.handshake.headers.cookie)
 			const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId

@@ -229,8 +229,8 @@ const createTables = async(restaurantId) => {
     for(let i = 0; i < tableCount; ++i) {
         const table = {
             coordinates: {
-                x: faker.datatype.number({min: 60, max: 940}),
-                y: faker.datatype.number({min: 60, max: 460})
+                x: faker.datatype.number({min: 60, max: 750}),
+                y: faker.datatype.number({min: 60, max: 350})
             },
             tableCount: tableCounts[i],
             tableType: faker.random.arrayElement(['rounded', 'normal', 'wide']),
@@ -240,8 +240,8 @@ const createTables = async(restaurantId) => {
             localId: i
         }
         while(isOver(table, tableData)) {
-            table.coordinates.x = faker.datatype.number({min: 60, max: 940})
-            table.coordinates.y = faker.datatype.number({min: 60, max: 460})
+            table.coordinates.x = faker.datatype.number({min: 60, max: 750})
+            table.coordinates.y = faker.datatype.number({min: 60, max: 350})
         }
         tableData.push(table)
 

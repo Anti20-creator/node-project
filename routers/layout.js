@@ -155,7 +155,10 @@ router.post('/update', authenticateAdminAccessToken, upload.single('image'), cat
 
     }
 
-    layout.sizeX = sizeX; layout.sizeY = sizeY; 
+    layout.sizeX = sizeX; layout.sizeY = sizeY;
+    if(!LayoutController.validateTables(layout.tables, layout.sizeX, layout.sizeY)) {
+        return Httpresponse.BadRequest(res, "bad-layout-sizes")
+    }
     if(sentImage === 'true') {
         layout.backgroundImage = req.user.restaurantId + '.' + extName;
     }
