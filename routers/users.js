@@ -70,7 +70,7 @@ router.post('/register-admin', catchErrors(async(req, res) => {
                 RestaurantId: restaurant._id
             })
 
-            sendWelcomeEmail(email, lang)
+            sendWelcomeEmail(email, restaurant._id, lang)
             return Httpresponse.Created(res, "user-created")
         }
     })
@@ -118,7 +118,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
             }else{
                 restaurant.invited = restaurant.invited.filter(inv => inv !== email)
                 await restaurant.save()
-                sendWelcomeEmail(email, lang)
+                sendWelcomeEmail(email, restaurantId, lang)
             
                 return Httpresponse.Created(res, "user-created")
             }

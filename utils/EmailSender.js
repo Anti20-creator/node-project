@@ -42,7 +42,7 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='en') {
                     <p>További tájékoztatásokat a megadott e-mail címre küldjük Önnek.</p>
                     <p>Adatok:<p>
                     <ul>
-                        <li>Időpont: ${moment.utc(appointmentData.date).toString('L HH:mm')}</li>
+                        <li>Időpont: ${moment(appointmentData.date).utc(0).format('YYYY-MM-DD HH:mm')}</li>
                         <li>Vendégek száma: ${appointmentData.peopleCount}</li>
                         <li>Kód: ${appointmentData.code}</li>
                     </ul>
@@ -58,7 +58,7 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='en') {
                     <p>We will send you further informations here as well!</p>
                     <p>Details:<p>
                     <ul>
-                        <li>Date: ${moment.utc(appointmentData.date).toString('L HH:mm')}</li>
+                        <li>Date: ${moment(appointmentData.date).utc(0).format('YYYY-MM-DD HH:mm')}</li>
                         <li>People: ${appointmentData.peopleCount}</li>
                         <li>Code: ${appointmentData.code}</li>
                     </ul>
@@ -114,7 +114,7 @@ function sendUpdatedAppointmentEmail(emailTo, accepted, language='en') {
     }
 }
 
-function sendWelcomeEmail(emailTo, language='en') {
+function sendWelcomeEmail(emailTo, restaurantId, language='en') {
     if(language === 'hu') {
         transporter.sendMail({
             from: process.env.NODEMAILER_SENDER,
@@ -122,7 +122,9 @@ function sendWelcomeEmail(emailTo, language='en') {
             subject: 'Sikeres regisztráció',
             html: `
                 <h1>A felhasználó fiókja sikeresen létre lett hozva!</h1>
-                <p>Most már be tud jelentkezni a korábban megadott adataival.</p>
+                <p>Most már be tud jelentkezni a korábban megadott adataival.
+                <br>
+                Éttermének azonosítója: ${restaurantId}.</p>
                 `
             })
     }else{
@@ -132,7 +134,9 @@ function sendWelcomeEmail(emailTo, language='en') {
             subject: 'Successful registration',
             html: `
                 <h1>Your account has been created successfully!</h1>
-                <p>Now you can log in to your account with your credentials.</p>
+                <p>Now you can log in to your account with your credentials.
+                <br>
+                Id of your restastaurant is: ${restaurantId}.</p>
             `
         })
     }

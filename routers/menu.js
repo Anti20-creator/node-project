@@ -72,9 +72,6 @@ router.post('/modify-item', authenticateAdminAccessToken, catchErrors(async(req,
     menu.items[category][name] = { unit, amount, price }
     const allFoodNames = MenuController.getAllFoodNames(menu)
     if(allFoodNames.every(foodName => foodName === name).length > 1) {
-        console.log(name)
-        console.log(allFoodNames)
-        console.log(allFoodNames.every(foodName => foodName === name))
         return Httpresponse.Conflict(res, "food-name-exists")
     }
 
