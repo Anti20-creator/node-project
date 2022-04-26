@@ -944,6 +944,7 @@ describe('API tests', () => {
                     unit: 'db'
                 })
             
+            console.warn(itemResult2.body)
             assert.equal(itemResult2.status, 200)
             assert.equal(itemResult2.body.success, true)
 
@@ -1424,27 +1425,11 @@ describe('API tests', () => {
 
             const appointment = await Appointment.findOne({}).exec()
 
-            //Disclaiming with bad restaurantId
-            await request(app)
-                .delete('/api/appointments/disclaim')
-                .send({
-                    id: appointment._id,
-                    restaurantId: appointment.RestaurantId + '1',
-                    pin: appointment.code,
-                    email: appointment.email,
-                    lang: 'en'
-                })
-                .then(result => {
-                    assert.equal(result.status, 404)
-                    assert.equal(result.body.success, false)
-                })
-
             //Disclaiming with false code
             await request(app)
                 .delete('/api/appointments/disclaim')
                 .send({
                     id: appointment._id,
-                    restaurantId: appointment.RestaurantId,
                     pin: appointment.code + '1',
                     email: appointment.email,
                     lang: 'en'
@@ -1459,7 +1444,6 @@ describe('API tests', () => {
                 .delete('/api/appointments/disclaim')
                 .send({
                     id: appointment._id,
-                    restaurantId: appointment.RestaurantId,
                     pin: appointment.code,
                     email: appointment.email,
                     lang: 'en'

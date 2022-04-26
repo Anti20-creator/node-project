@@ -11,7 +11,7 @@ router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
     if(req.user.isAdmin) {
         invoices = await Invoice.find({RestaurantId: req.user.restaurantId}).sort({date: -1}).exec()
     }else{
-        invoices = await Invoice.find({UserId: req.user.email}).sort({date: -1}).exec()
+        invoices = await Invoice.find({email: req.user.email}).sort({date: -1}).exec()
     }
 
     return Httpresponse.OK(res, invoices.map(invoice => {

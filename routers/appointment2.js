@@ -130,11 +130,9 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
 
 router.delete('/disclaim', catchErrors(async(req, res) => {
 
-    const { id, restaurantId, email, pin, lang } = RequestValidator.destructureBody(req, res, {id: 'string', email: 'string', restaurantId: 'string', pin: 'string', lang: 'string'})
+    const { id, email, pin, lang } = RequestValidator.destructureBody(req, res, {id: 'string', email: 'string', pin: 'string', lang: 'string'})
 
-    //Finding the appointment
     const appointment = await Appointments.findOne({
-        RestaurantId: restaurantId,
         _id: id,
         email: email
     }).exec()

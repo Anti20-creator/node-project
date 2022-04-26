@@ -53,7 +53,7 @@ router.post('/register-admin', catchErrors(async(req, res) => {
                 ownerEmail: email,
                 ownerId: document._id,
                 restaurantName: restaurantName,
-                secretPin: process.env.PRODUCTION === '0' ? '1234' : crypto.randomBytes(5).toString('hex')
+                secretPin: process.env.PRODUCTION === '0' ? '123456' : crypto.randomBytes(3).toString('hex')
             })
 
             await document.updateOne({

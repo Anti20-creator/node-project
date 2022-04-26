@@ -50,6 +50,8 @@ router.post('/modify-category', authenticateAdminAccessToken, catchErrors(async(
         delete(menu.icons[oldCategory])
     }
 
+    menu.markModified('icons')
+    menu.markModified('items')
     await menu.save()
 
     return Httpresponse.OK(res, "category-updated")
@@ -62,21 +64,25 @@ router.post('/modify-item', authenticateAdminAccessToken, catchErrors(async(req,
     MenuController.validateFood(name, amount, unit)
     
     const menu = await MenuController.findById(req.user.restaurantId)
-    const allFoodNames = MenuController.getAllFoodNames(menu)
-
+    
     if(!Object.keys(menu.items).includes(category) || !menu.items[category][oldName]) {
         return Httpresponse.NotFound(res, "food-not-found")
     }
-    if(allFoodNames.includes(name)) {
+    
+    menu.items[category][name] = { unit, amount, price }
+    const allFoodNames = MenuController.getAllFoodNames(menu)
+    if(allFoodNames.every(foodName => foodName === name).length > 1) {
+        console.log(name)
+        console.log(allFoodNames)
+        console.log(allFoodNames.every(foodName => foodName === name))
         return Httpresponse.Conflict(res, "food-name-exists")
     }
-
-    menu.items[category][name] = { unit, amount, price }
 
     if(name !== oldName) {
         delete(menu.items[category][oldName])
     }
 
+    menu.markModified('items')
     await menu.save()
 
     return Httpresponse.OK(res, "food-modified")
