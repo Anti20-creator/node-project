@@ -63,7 +63,6 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
         }
 
         default: {
-            console.warn(err)
             return Httpresponse.BadRequest(res, "unexpected-error")
         }
     }

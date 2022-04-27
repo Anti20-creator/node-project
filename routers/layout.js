@@ -148,16 +148,17 @@ router.post('/update', authenticateAdminAccessToken, upload.single('image'), cat
 
     const layout = await LayoutController.findById(req.user.restaurantId)
 
-    if((sentImage == 'true' && layout.backgroundImage && layout.backgroundImage.split('.').length > 1 && layout.backgroundImage.split('.').pop() !== extName) || deleteImage == 'true') {
-        try {
-            fs.rmSync(path.join(__dirname, '/../public/backgrounds/', layout.backgroundImage))
-        }catch(e) {}
-
-    }
-
     layout.sizeX = sizeX; layout.sizeY = sizeY;
     if(!LayoutController.validateTables(layout.tables, layout.sizeX, layout.sizeY)) {
         return Httpresponse.BadRequest(res, "bad-layout-sizes")
+    }
+    
+    if((sentImage == 'true' && layout.backgroundImage && layout.backgroundImage.split('.').length > 1 && layout.backgroundImage.split('.').pop() !== extName) || deleteImage == 'true') {
+        try {
+            fs.rmSync(path.join(__dirname, '/../public/backgrounds/', layout.backgroundImage))
+        }catch(e) {
+            return Httpresponse.BadRequest(res, "layout-image-not-deleted")
+        }
     }
     if(sentImage === 'true') {
         layout.backgroundImage = req.user.restaurantId + '.' + extName;

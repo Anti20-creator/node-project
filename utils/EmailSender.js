@@ -150,7 +150,7 @@ function sendInvitationEmail(emailTo, restaurantId, pin, language='en') {
             subject: 'Meghívó',
             html: `
                 <h1>Önnek meghívója érkezett!</h1>
-                <p>Itt tud regisztrálni: ${FRONTEND_URL + '/invite/' + restaurantId}</p>
+                <p>Itt tud regisztrálni: ${FRONTEND_URL + 'invite/' + restaurantId}</p>
                 <p>Kód a csatlakozáshoz: ${pin}</p>
                 `
             })
@@ -161,7 +161,7 @@ function sendInvitationEmail(emailTo, restaurantId, pin, language='en') {
             subject: 'Invitation',
             html: `
                 <h1>You have an invitation!</h1>
-                <p>You can register here: ${FRONTEND_URL + '/invite/' + restaurantId}</p>
+                <p>You can register here: ${FRONTEND_URL + 'invite/' + restaurantId}</p>
                 <p>Pin to join: ${pin}</p>
             `
         })
