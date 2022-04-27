@@ -92,19 +92,33 @@ router.post('/search-tables', catchErrors(async(req, res) => {
     const endDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() + 3_600_000 * 12)
 
 
-    const tables = await TableController.getAll(restaurantId)
     const layout = await LayoutController.findById(restaurantId)
-    const resultIds = []
+    const result = []
 
-    for (const table of tables) {
-	    const optionalConflictsLength = await AppointmentsController.findConflicts(restaurantId, table._id, startDate, endDate, 'length')
-        
-        if(optionalConflictsLength === 0 && layout.tables.find(t => t.TableId === table._id.toString()).tableCount >= peopleCount) {
-		    resultIds.push(table._id)
-	    }
+    for (const table of layout.tables) {
+	    if(table.tableCount < peopleCount) {
+            result.push({
+                type: 'not-ok',
+                id: table.TableId
+            })
+        }
+
+        const optionalConflictsLength = await AppointmentsController.findConflicts(restaurantId, table.TableId, startDate, endDate, 'length')
+
+        if(optionalConflictsLength === 0) {
+		    result.push({
+                type: 'ok',
+                id: table.TableId
+            })
+	    }else{
+		    result.push({
+                type: 'probably-ok',
+                id: table.TableId
+            })
+        }
     }
 
-    return Httpresponse.OK(res, resultIds)
+    return Httpresponse.OK(res, result)
 }))
 
 router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req, res) => {
@@ -132,10 +146,12 @@ router.delete('/disclaim', catchErrors(async(req, res) => {
 
     const { id, email, pin, lang } = RequestValidator.destructureBody(req, res, {id: 'string', email: 'string', pin: 'string', lang: 'string'})
 
+    
     const appointment = await Appointments.findOne({
         _id: id,
         email: email
     }).exec()
+    const restaurantId = appointment.RestaurantId.slice()
 
     if(!appointment) {
         return Httpresponse.NotFound(res, "appointment-not-found");
@@ -147,6 +163,7 @@ router.delete('/disclaim', catchErrors(async(req, res) => {
 
     await appointment.deleteOne();
     sendDeletedAppointmentEmail(email, lang)
+    req.app.get('socketio').to('restaurant:' + restaurantId).emit('new-appointment')
     return Httpresponse.OK(res, "appointment-deleted")
 }))
 
