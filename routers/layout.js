@@ -17,6 +17,9 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
 
     const {newTables, removedTables, updatedTables} = RequestValidator.destructureBody(req, res, {newTables: 'object', removedTables: 'object', updatedTables: 'object'})
 
+    if(newTables.some(newTable => newTable.tableCount < 1)) {
+        return Httpresponse.BadRequest(res, "bad-layout-tables")
+    }
     const layout = await LayoutController.findById(req.user.restaurantId)
 
     if(removedTables.length > 0) {

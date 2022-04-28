@@ -268,7 +268,7 @@ router.get('/team', authenticateAccessToken, catchErrors(async(req, res) => {
     const team = await User.find({restaurantId: req.user.restaurantId}).exec()
     const restaurant = await RestaurantController.findById(req.user.restaurantId)
 
-    return Httpresponse.OK(res, team.concat(restaurant.invited.map(email => ({email: email}))))
+    return Httpresponse.OK(res, (team.concat(restaurant.invited.map(email => ({email: email})))))
 }))
 
 

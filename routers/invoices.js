@@ -15,7 +15,11 @@ router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
     }
 
     return Httpresponse.OK(res, invoices.map(invoice => {
-        return {...invoice._doc, invoiceName: invoice._doc.invoiceName.split('.')[0].split('_').filter((_, idx) => idx !== 2).join('_') + '.pdf'}
+        return  {
+            invoiceName: invoice._doc.invoiceName.split('.')[0].split('_').filter((_, idx) => idx !== 2).join('_') + '.pdf',
+            email: invoice._doc.email,
+            date: invoice._doc.date
+        }
     }))
 }))
 

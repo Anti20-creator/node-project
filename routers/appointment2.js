@@ -90,8 +90,10 @@ router.post('/search-tables', catchErrors(async(req, res) => {
     AppointmentsController.checkPeoplecount(peopleCount)
     const startDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() - 3_600_000 * 12)
     const endDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() + 3_600_000 * 12)
+    const formattedDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset())
+    const now = new Date()
 
-
+    const tables = await TableController.getAll(restaurantId)
     const layout = await LayoutController.findById(restaurantId)
     const result = []
 
@@ -101,15 +103,24 @@ router.post('/search-tables', catchErrors(async(req, res) => {
                 type: 'not-ok',
                 id: table.TableId
             })
+            continue
         }
 
         const optionalConflictsLength = await AppointmentsController.findConflicts(restaurantId, table.TableId, startDate, endDate, 'length')
 
+        const isSameDay = now.getMonth() === formattedDate.getMonth() && now.getDate() === formattedDate.getDate()
         if(optionalConflictsLength === 0) {
-		    result.push({
-                type: 'ok',
-                id: table.TableId
-            })
+            if(isSameDay && !tables.find(t => table.TableId === t._id.toString()).inLiveUse) {
+                result.push({
+                    type: 'ok',
+                    id: table.TableId
+                })
+            }else{
+                result.push({
+                    type: 'probably-ok',
+                    id: table.TableId
+                })
+            }
 	    }else{
 		    result.push({
                 type: 'probably-ok',
