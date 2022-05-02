@@ -43,7 +43,7 @@ mongoose.connection.on('error', (error) => {
 })
 
 app.get('/', (req, res) => {
-    return res.sendStatus(200)
+    return res.sendStatus(<p>OK</p>)
 })
 app.use('/api/users', usersRouter)
 app.use('/api/appointments', appointmentsRouter)
