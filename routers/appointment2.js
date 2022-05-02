@@ -110,7 +110,7 @@ router.post('/search-tables', catchErrors(async(req, res) => {
 
         const isSameDay = now.getMonth() === formattedDate.getMonth() && now.getDate() === formattedDate.getDate()
         if(optionalConflictsLength === 0) {
-            if(isSameDay && !tables.find(t => table.TableId === t._id.toString()).inLiveUse) {
+            if((isSameDay && !tables.find(t => table.TableId === t._id.toString()).inLiveUse) || !isSameDay) {
                 result.push({
                     type: 'ok',
                     id: table.TableId
