@@ -82,6 +82,7 @@ function generateHeader(doc, invoiceId, restaurant, informations, language) {
         .text(`${restaurant.restaurantName ?? ''}`, 200, 50, { align: "right" })
         .text(`${informations.address ?? ''}`, 200, 65, { align: "right" })
         .text(`${informations.postalCode ?? ''} ${informations.city ?? ''}`, 200, 80, { align: "right" })
+        .text(`${informations.phoneNumber ?? ''}`, 200, 95, { align: "right" })
         .moveDown();
 
     doc

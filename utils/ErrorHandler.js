@@ -42,6 +42,10 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
             return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
         }
 
+        case 'MongooseOwnTypeError': {
+            return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
+        }
+
         case 'DateError': {
             return Httpresponse.BadRequest(res, err.message)
         }

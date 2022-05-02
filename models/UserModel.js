@@ -16,7 +16,7 @@ const User = new mongoose.Schema({
     fullName: {
         type: String,
         trim: true,
-        required: true,
+        required: [true, 'short-username'],
         minlength: [4, 'short-username']
     },
     password: {
@@ -26,7 +26,7 @@ const User = new mongoose.Schema({
     restaurantName: {
         type: String,
         minlength: [1, 'short-restaurantname'],
-        required: true
+        required: [true, 'short-restaurantname']
     },
     restaurantId: {
         type: String,

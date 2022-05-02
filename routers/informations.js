@@ -5,6 +5,7 @@ const InformationsController                                  = require('../cont
 const {authenticateAccessToken, authenticateAdminAccessToken} = require("../middlewares/auth");
 const { catchErrors }                                         = require('../utils/ErrorHandler')
 const RequestValidator                                        = require('../controller/bodychecker')
+const path                                                    = require('path')
 
 router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 

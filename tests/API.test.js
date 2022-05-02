@@ -107,6 +107,7 @@ describe('API tests', () => {
                 }).then((result) => {
                     assert.equal(result.body.success, false)
                     assert.equal(result.status, 400)
+                    assert.equal(result.body.message, "missing-parameter")
                 })
 
             const users = await User.countDocuments({}).exec();
@@ -121,10 +122,12 @@ describe('API tests', () => {
                     name: "Teszt fiók - hibás #2",
                     password: "1234",
                     email: adminEmail,
+                    restaurantName: "Valid restaurant",
                     lang: 'en'
                 }).then((result) => {
                     assert.equal(result.body.success, false)
                     assert.equal(result.status, 400)
+                    assert.equal(result.body.message, "short-password")
                 })
 
             await request(app)
@@ -134,10 +137,12 @@ describe('API tests', () => {
                     name: "",
                     password: "123456",
                     email: adminEmail,
+                    restaurantName: "Valid restaurant",
                     lang: 'en'
                 }).then((result) => {
                     assert.equal(result.body.success, false)
                     assert.equal(result.status, 400)
+                    assert.equal(result.body.message, "short-username")
                 })
 
             await request(app)
@@ -145,12 +150,14 @@ describe('API tests', () => {
                 .set('Content-Type', 'application/json')
                 .send({
                     name: "Teszt fiók - hibás #4",
-                    password: "1234",
+                    password: "123456",
                     email: "no-email-format",
+                    restaurantName: "Valid-restaurant",
                     lang: 'en'
                 }).then((result) => {
                     assert.equal(result.body.success, false)
                     assert.equal(result.status, 400)
+                    assert.equal(result.body.message, "invalid-email")
                 })
 
             const users = await User.countDocuments({}).exec();
@@ -169,6 +176,7 @@ describe('API tests', () => {
                 lang: 'en'
             }).then((result) => {
                 assert.equal(result.body.success, true)
+                assert.equal(result.body.message, "user-created")
             })
 
             const users = await User.countDocuments({}).exec();
@@ -187,6 +195,7 @@ describe('API tests', () => {
                 lang: 'en'
             }).then((result) => {
                 assert.equal(result.body.success, false)
+                assert.equal(result.body.message, "user-email-conflict")
             })
 
             const users = await User.countDocuments({}).exec();
@@ -215,6 +224,7 @@ describe('API tests', () => {
                     })
                 
                 assert.equal(result.status, 200)
+                assert.equal(result.body.message, "user-invited")
             }
 
         })
@@ -238,6 +248,7 @@ describe('API tests', () => {
                     })
 
             assert.equal(result.status, 400)
+            assert.equal(result.body.message, "restaurant-bad-pin")
 
         })
 
@@ -258,6 +269,7 @@ describe('API tests', () => {
                     lang: 'en'
                 }).then(result => {
                     assert.equal(result.status, 400)
+                    assert.equal(result.body.message, "short-username")
                 })
 
             await request(app)
@@ -271,6 +283,7 @@ describe('API tests', () => {
                     lang: 'en'
                 }).then(result => {
                     assert.equal(result.status, 400)
+                    assert.equal(result.body.message, "short-password")
                 })
 
             await request(app)
@@ -284,6 +297,7 @@ describe('API tests', () => {
                     lang: 'en'
                 }).then(result => {
                     assert.equal(result.status, 404)
+                    assert.equal(result.body.message, "no-invitation")
                 })
 
 
@@ -306,6 +320,7 @@ describe('API tests', () => {
                         lang: 'en'
                     }).then(result => {
                         assert.equal(result.status, 201)
+                        assert.equal(result.body.message, "user-created")
                     })
 
             }
@@ -333,6 +348,7 @@ describe('API tests', () => {
                 })
 
             assert.equal(result.status, 404)
+            assert.equal(result.body.message, "no-invitation")
 
             const employeesAfter = await User.countDocuments({restaurantId: restaurant._id, isAdmin: false}).exec();
             assert.equal(employeesBefore, employeesAfter)
@@ -349,6 +365,7 @@ describe('API tests', () => {
                 })
 
             assert.equal(result.status, 200)
+            assert.equal(result.body.message, "user-logged-in")
         })
 
         test('Failed attempt to login normal user', async() => {
@@ -362,6 +379,7 @@ describe('API tests', () => {
                 })
 
             assert.equal(result.status, 401)
+            assert.equal(result.body.message, "wrong-password")
         })
 
         test('Login normal user and refresh the access token', async() => {
@@ -474,6 +492,7 @@ describe('API tests', () => {
                             promote: true, email: soonPromoted
                         }).then(async result => {
                             assert.equal(result.status, 200)
+                            assert.equal(result.body.message, "user-role-update")
 
                             adminUsers = await User.countDocuments({isAdmin: true}).exec()
                             assert.equal(adminUsers, 2)
@@ -488,6 +507,7 @@ describe('API tests', () => {
                             promote: false, email: adminEmail
                         }).then(async result => {
                             assert.equal(result.status, 400)
+                            assert.equal(result.body.message, "user-rank-permission-denied")
                             
                             adminUsers = await User.countDocuments({isAdmin: true}).exec()
                             assert.equal(adminUsers, 2)
@@ -502,6 +522,7 @@ describe('API tests', () => {
                             promote: false, email: soonPromoted
                         }).then(async result => {
                             assert.equal(result.status, 200)
+                            assert.equal(result.body.message, "user-role-update")
 
                             adminUsers = await User.countDocuments({isAdmin: true}).exec()
                             assert.equal(adminUsers, 1)
@@ -516,6 +537,7 @@ describe('API tests', () => {
                             promote: true, email: soonPromoted
                         }).then(async result => {
                             assert.equal(result.status, 200)
+                            assert.equal(result.body.message, "user-role-update")
 
                             adminUsers = await User.countDocuments({isAdmin: true}).exec()
                             assert.equal(adminUsers, 2)
@@ -537,6 +559,7 @@ describe('API tests', () => {
                             promote: false, email: adminEmail
                         }).then(async result => {
                             assert.equal(result.status, 400)
+                            assert.equal(result.body.message, "user-rank-permission-denied")
                             
                             adminUsers = await User.countDocuments({isAdmin: true}).exec()
                             assert.equal(adminUsers, 2)
@@ -572,8 +595,9 @@ describe('API tests', () => {
                         .send({email: adminEmail})
                         .then(result => {
                             assert.equal(result.status, 400)
+                            assert.equal(result.body.message, "user-delete-yourself")
                         })
-
+                        
                     //Remove other user
                     await request(app)
                         .delete('/api/users/delete')
@@ -582,6 +606,7 @@ describe('API tests', () => {
                         .send({email: deletedUser})
                         .then(result => {
                             assert.equal(result.status, 200)
+                            assert.equal(result.body.message, "user-removed")
                         })
                     
                     userEmails = userEmails.filter(email => email !== deletedUser)
@@ -680,6 +705,7 @@ describe('API tests', () => {
                 
             assert.equal(saveTablesResult.status, 200)
             assert.equal(saveTablesResult.body.success, true)
+            assert.equal(saveTablesResult.body.message.length > 1, true)
 
             const DBtables = await Table.find({RestaurantId: restaurant._id}).exec()
             assert.equal(tables.length, DBtables.length)
@@ -776,7 +802,7 @@ describe('API tests', () => {
                 }) 
         })
         
-        test('Update image', async () => {
+        test('Check layout size', async () => {
 
             await request(app)
                 .post('/api/users/login')
@@ -788,7 +814,8 @@ describe('API tests', () => {
                         .set('Cookie', loginData.headers['set-cookie'])
                         .then(response => {
                             assert.equal(response.status, 200)
-                            //assert.equal(response.body.message.sizeX, 1000)
+                            assert.equal(response.body.message.sizeX, 1000)
+                            assert.equal(response.body.message.sizeY, 1000)
                         }) 
 
                 })
@@ -849,20 +876,23 @@ describe('API tests', () => {
                     category: category,
                 }).then(result => {
                     assert.equal(result.status, 400)
+                    assert.equal(result.body.message, "missing-parameter")
                 })
 
             //Creating new category
-            const result = await request(app)
+            await request(app)
                 .post('/api/menu/add-category')
                 .set('Content-Type', 'application/json')
                 .set('Cookie', login.headers['set-cookie'])
                 .send({
                     category: category,
                     categoryIcon: categoryIcon 
+                }).then(result => {
+                    assert.equal(result.status, 201)
+                    assert.equal(result.body.success, true)
+                    assert.equal(result.body.message, "category-added")
                 })
             
-            assert.equal(result.status, 201)
-            assert.equal(result.body.success, true)
 
             //Add new item
             const itemName = faker.random.word()
@@ -879,6 +909,7 @@ describe('API tests', () => {
                 }).then(response => {
                     assert.equal(response.status, 201)
                     assert.equal(response.body.success, true)
+                    assert.equal(response.body.message, "food-added")
                 })
             
             //Add bad item
@@ -895,6 +926,7 @@ describe('API tests', () => {
                 }).then(response => {
                     assert.equal(response.status, 400)
                     assert.equal(response.body.success, false)
+                    assert.equal(response.body.message, "small-quantity")
                 })
 
             //Add bad item #2
@@ -911,6 +943,7 @@ describe('API tests', () => {
                 }).then(response => {
                     assert.equal(response.status, 400)
                     assert.equal(response.body.success, false)
+                    assert.equal(response.body.message, "short-foodname")
                 })
 
             //Add bad item #3
@@ -927,6 +960,7 @@ describe('API tests', () => {
                 }).then(response => {
                     assert.equal(response.status, 400)
                     assert.equal(response.body.success, false)
+                    assert.equal(response.body.message, "short-unitname")
                 })
             
             
@@ -944,9 +978,9 @@ describe('API tests', () => {
                     unit: 'db'
                 })
             
-            console.warn(itemResult2.body)
             assert.equal(itemResult2.status, 200)
             assert.equal(itemResult2.body.success, true)
+            assert.equal(itemResult2.body.message, "food-modified")
 
             //Modifying category
             const newCategory = 'New ' + faker.random.word()
@@ -961,6 +995,7 @@ describe('API tests', () => {
                 })
             assert.equal(modifyCategoryResult.status, 200)
             assert.equal(modifyCategoryResult.body.success, true)
+            assert.equal(modifyCategoryResult.body.message, "category-updated")
             
             //Modifying category badly
             await request(app)
@@ -974,6 +1009,7 @@ describe('API tests', () => {
                 }).then(response => {
                     assert.equal(response.status, 400)
                     assert.equal(response.body.success, false)
+                    assert.equal(response.body.message, "short-categoryname")
                 })
 
             //Modifying category badly #2
@@ -988,6 +1024,7 @@ describe('API tests', () => {
                 }).then(response => {
                     assert.equal(response.status, 400)
                     assert.equal(response.body.success, false)
+                    assert.equal(response.body.message, "short-iconname")
                 })
 
             //Try to modify unexisting category
@@ -1002,6 +1039,7 @@ describe('API tests', () => {
                 })
             assert.equal(modifyBadCategoryResult.status, 404)
             assert.equal(modifyBadCategoryResult.body.success, false)
+            assert.equal(modifyBadCategoryResult.body.message, "category-not-found")
             
             //Try to modify category without posted data
             const modifyEmptyCategoryResult = await request(app)
@@ -1011,6 +1049,7 @@ describe('API tests', () => {
 
             assert.equal(modifyEmptyCategoryResult.status, 400)
             assert.equal(modifyEmptyCategoryResult.body.success, false)
+            assert.equal(modifyEmptyCategoryResult.body.message, "missing-parameter")
         })
     })
     
@@ -1046,6 +1085,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "table-booked-live")
                         })
                 })
             
@@ -1064,6 +1104,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
+                            assert.equal(result.body.message, "table-use-incorrect")
                         })
                     
                     await request(app)
@@ -1073,6 +1114,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "table-updated")
                         })
                 })
             
@@ -1110,6 +1152,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
+                            assert.equal(result.body.message, "table-use-incorrect")
                         })
 
                 })
@@ -1127,15 +1170,17 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "table-booked-live")
                         })
 
-                    //Try to book it again
+                    //Try to book it again without params
                     await request(app)
                         .post('/api/tables/book')
                         .set('Cookie', loginResult.headers['set-cookie'])
                         .then(result => {
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
+                            assert.equal(result.body.message, "missing-parameter")
                         })
 
                     //Try to add non existing food
@@ -1152,8 +1197,9 @@ describe('API tests', () => {
                             socketId: 'my-socket-id'
                         })
                         .then(result => {
-                            assert.equal(result.status, 400)
+                            assert.equal(result.status, 404)
                             assert.equal(result.body.success, false)
+                            assert.equal(result.body.message, "food-menu-not-found")
                         })
                     
                     //Add order to table
@@ -1171,6 +1217,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "order-added")
                         })
                     
                     //Try to free table with orders
@@ -1181,6 +1228,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 400)
                             assert.equal(result.body.success, false)
+                            assert.equal(result.body.message, "table-have-orders")
                         })
                     
                     //Increase order quantity
@@ -1195,6 +1243,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "order-increased")
                         })
                     
                     //Decrease order quantity
@@ -1209,6 +1258,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "order-decreased")
                         })
                     
                     //Get orders from table
@@ -1230,6 +1280,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "order-removed")
                         })
 
                     //Order food again
@@ -1248,6 +1299,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "order-added")
                         })
                     
                     //Generate invoice
@@ -1293,6 +1345,7 @@ describe('API tests', () => {
                 .then(result => {
                     assert.equal(result.status, 400)
                     assert.equal(result.body.success, false)
+                    assert.equal(result.body.message, "book-for-past")
                 })
 
             //Booking for over two months
@@ -1309,9 +1362,10 @@ describe('API tests', () => {
                 .then(result => {
                     assert.equal(result.status, 400)
                     assert.equal(result.body.success, false)
+                    assert.equal(result.body.message, "book-too-far")
                 })
 
-            //Booking for over two months
+            //Booking with zero people
             await request(app)
                 .post('/api/appointments/book')
                 .send({
@@ -1325,6 +1379,7 @@ describe('API tests', () => {
                 .then(result => {
                     assert.equal(result.status, 400)
                     assert.equal(result.body.success, false)
+                    assert.equal(result.body.message, "too-few-people")
                 })
         })
 
@@ -1368,6 +1423,7 @@ describe('API tests', () => {
                 .then(result => {
                     assert.equal(result.status, 400)
                     assert.equal(result.body.success, false)
+                    assert.equal(result.body.message, "too-many-people")
                 })
 
             //Booking with normal values
@@ -1437,6 +1493,7 @@ describe('API tests', () => {
                 .then(result => {
                     assert.equal(result.status, 400)
                     assert.equal(result.body.success, false)
+                    assert.equal(result.body.message, "bad-appointment-pin")
                 })
 
             //Good disclaiming
@@ -1452,6 +1509,7 @@ describe('API tests', () => {
                     console.warn(result.body)
                     assert.equal(result.status, 200)
                     assert.equal(result.body.success, true)
+                    assert.equal(result.body.message, "appointment-deleted")
                 })
         })
         
@@ -1471,6 +1529,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "appointment-deleted")
                         })
                 })
         })
@@ -1568,6 +1627,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "food-deleted")
                         })
 
                     await request(app)
@@ -1579,6 +1639,7 @@ describe('API tests', () => {
                         .then(result => {
                             assert.equal(result.status, 200)
                             assert.equal(result.body.success, true)
+                            assert.equal(result.body.message, "category-deleted")
                         })
                 })
 
@@ -1766,6 +1827,7 @@ describe('API tests', () => {
                         })
                         .then(result => {
                             assert.equal(result.status, 200)
+                            assert.equal(result.body.message, "informations-updated")
                         })
                     const data = {
                         taxNumber: faker.datatype.number({min: 10000000, max: 1000000000}).toString(),

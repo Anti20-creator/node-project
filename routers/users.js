@@ -9,12 +9,19 @@ const Restaurant   = require('../models/RestaurantModel')
 const Informations = require('../models/InformationsModel')
 const Httpresponse = require('../utils/ErrorCreator')
 const Tokens       = require('../utils/TokenFunctions')
-const {authenticateRefreshToken, authenticateAccessToken, authenticateAdminAccessToken, authenticateOwnerAccessToken} = require("../middlewares/auth")
+const {authenticateRefreshToken, authenticateAccessToken, authenticateAdminAccessToken} = require("../middlewares/auth")
 const {sendWelcomeEmail, sendInvitationEmail}   = require("../utils/EmailSender")
 const crypto       = require('crypto')
 const { catchErrors } = require('../utils/ErrorHandler')
 const RequestValidator = require('../controller/bodychecker')
 const RestaurantController = require('../controller/restaurantController')
+
+class MongooseOwnTypeError extends Error {
+    constructor(message) {
+        super(message)
+        this.name = 'MongooseOwnTypeError'
+    }
+}
 
 router.get('/restaurant-id', authenticateAccessToken, catchErrors((req, res) => {
 	return Httpresponse.OK(res, req.user.restaurantId)
@@ -40,10 +47,10 @@ router.post('/register-admin', catchErrors(async(req, res) => {
         isAdmin: true
     })
 
-    await newUser.save(async (err, document) => {
+    await newUser.save(catchErrors(async (err, document) => {
         if(err){
             if(err.name === 'ValidationError') {
-                return Httpresponse.BadRequest(res, "badly-formatted-data")
+                return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
             }else{
                 return Httpresponse.Conflict(res, "user-email-conflict")
             }
@@ -73,7 +80,7 @@ router.post('/register-admin', catchErrors(async(req, res) => {
             sendWelcomeEmail(email, restaurant._id, lang)
             return Httpresponse.Created(res, "user-created")
         }
-    })
+    }))
 }))
 
 router.post('/register-employee/:id', catchErrors(async(req, res) => {
@@ -108,10 +115,10 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
             isAdmin: false
         })
 
-        await newUser.save(async (err) => {
+        await newUser.save(catchErrors(async (err) => {
             if(err) {
                 if(err.name === 'ValidationError') {
-                    return Httpresponse.BadRequest(res, "badly-formatted-data")
+                    return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
                 }else{
                     return Httpresponse.Conflict(res, "user-email-conflict")
                 }
@@ -122,7 +129,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
             
                 return Httpresponse.Created(res, "user-created")
             }
-        })
+        }))
 
     }
 }))
