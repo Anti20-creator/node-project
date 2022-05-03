@@ -9,19 +9,19 @@ A fejlesztés során a node 16.13.1-es, míg az npm 8.1.2-es verziója volt hasz
 Mivel a Socket.IO szerver megfelelő működéséhez szükséges egy Redis szerver is, ezért annak telepítése is szükséges.\
 [Redis szerver telepítése](https://redis.io/docs/getting-started/installation/)
 
-.env paramétereinek beállítása:
-PORT=ezen a porton fog futni a backend
-NODEMAILER_USER=e-mail fiók felhasználóneve
-NODEMAILER_PWD=e-mail fiók jelszava
-ACCESS_TOKEN_SECRET=tetszőleges legalább 1 hosszú karaktersorozat
-REFRESH_TOKEN_SECRET=tetszőleges legalább 1 hosszú karaktersorozat
-MONGODB_URI=mongodb kapcsolódási URL-je
-APPOINTMENT_PIN_LENGTH=időpontok PIN kódjának hossza (alapértelmezetten 6-ra van állítva a frontenden való ellenőrzése, így eltérés esetén ott is frissíteni kell)
-NODEMAILER_SENDER=e-mail küldőjének neve
-PRODUCTION=0 esetén garantáltan "123456" lesz minden étterem PIN kódja
-TESTING=1 esetén nem fogja előállítani a .pdf fileokat a számlák generálásánál
-REDIS_HOST=a cím, melyen fut a redis szerver
-REDIS_PORT=a port, melyen fut a redis szerver
+.env paramétereinek beállítása: \
+PORT=ezen a porton fog futni a backend \
+NODEMAILER_USER=e-mail fiók felhasználóneve \
+NODEMAILER_PWD=e-mail fiók jelszava \
+ACCESS_TOKEN_SECRET=tetszőleges legalább 1 hosszú karaktersorozat \
+REFRESH_TOKEN_SECRET=tetszőleges legalább 1 hosszú karaktersorozat \
+MONGODB_URI=mongodb kapcsolódási URL-je \
+APPOINTMENT_PIN_LENGTH=időpontok PIN kódjának hossza (alapértelmezetten 6-ra van állítva a frontenden való ellenőrzése, így eltérés esetén ott is frissíteni kell) \
+NODEMAILER_SENDER=e-mail küldőjének neve \
+PRODUCTION=0 esetén garantáltan "123456" lesz minden étterem PIN kódja \
+TESTING=1 esetén nem fogja előállítani a .pdf fileokat a számlák generálásánál \
+REDIS_HOST=a cím, melyen fut a redis szerver \
+REDIS_PORT=a port, melyen fut a redis szerver \
 
 # Futtatás
 
