@@ -755,7 +755,6 @@ describe('API tests', () => {
                     sizeX: 250, sizeY: 250, sentImage: false, deleteImage: false, extName: ''
                 })
                 .then(result => {
-                    console.warn(result.body)
                     assert.equal(result.status, 400)
                 })
 
@@ -1310,7 +1309,6 @@ describe('API tests', () => {
                             lang: 'en'
                         })
                         .then(result => {
-                            console.warn(result.body)
                             assert.equal(result.status, 201)
                             assert.equal(result.body.success, true)
                         })
@@ -1506,7 +1504,6 @@ describe('API tests', () => {
                     lang: 'en'
                 })
                 .then(result => {
-                    console.warn(result.body)
                     assert.equal(result.status, 200)
                     assert.equal(result.body.success, true)
                     assert.equal(result.body.message, "appointment-deleted")
@@ -1575,7 +1572,6 @@ describe('API tests', () => {
                     lang: 'en'
                 })
                 .then(result => {
-                    console.warn(result.body)
                     assert.equal(result.status, 200)
                     assert.equal(result.body.success, true)
                 })
@@ -2319,10 +2315,61 @@ describe('API tests', () => {
 
             const appointmentsAfter = await Appointment.countDocuments({confirmed: true}).exec()
             assert.equal(appointmentsAfter, appointmentsBefore + 10)
+        })
+    })
 
+    describe('Appointment router - extra test for search tables', () => {
+
+        test('Find empty table', async() => {
+            
+            const table = await Table.findOne({inLiveUse: false}).exec()
+            await Appointment.deleteMany({TableId: table._id})
+
+            const date = new Date().toString()
+
+            await request(app)
+                .post('/api/appointments/search-tables')
+                .send({
+                    restaurantId: table.RestaurantId,
+                    date: date,
+                    peopleCount: 1
+                })
+                .then(result => {
+                    assert.equal(result.body.message.find(t => t.id === table._id.toString()).type, "ok")
+                })
         })
 
-    })
+        test('Book table and then search for the same day', async() => {
+            
+            const table = await Table.findOne({inLiveUse: false}).exec()
+            await request(app)
+                .post('/api/users/login')
+                .send({email: adminEmail, password: "123456"})
+                .then(async loginResult => {
+                    await request(app)
+                        .post('/api/tables/book')
+                        .set('Cookie', loginResult.headers['set-cookie'])
+                        .send({tableId: table._id.toString()})
+                        .then(result => {
+                            assert.equal(result.body.message, "table-booked-live")
+                            assert.equal(result.status, 200)
+                        })
+                })
+
+            const date = new Date().toString()
+            await request(app)
+                .post('/api/appointments/search-tables')
+                .send({
+                    restaurantId: table.RestaurantId,
+                    date: date,
+                    peopleCount: 1
+                })
+                .then(result => {
+                    assert.equal(result.body.message.find(t => t.id === table._id.toString()).type, "probably-ok")
+                })
+        })
+
+    }) 
 })
 
 afterAll(async () => {
