@@ -59,7 +59,7 @@ if (cluster.isMaster) {
   app.set('socketio', io)
   app.use('/backgrounds', express.static(__dirname + '/public/backgrounds'));
 
-  io.adapter(redisAdapter({ host: '192.168.31.214', port: 6379 }));
+  io.adapter(redisAdapter({ host: process.env.REDIS_HOST, port: process.env.REDIS_PORT }));
 
   server.listen(port, () => {
       console.log('Server started ' + port)
