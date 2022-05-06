@@ -735,6 +735,7 @@ describe('API tests', () => {
                     newTables: [],
                     updatedTables: createTables().map((table, idx) => {
                         return {
+                            ...table,
                             coordinates: table.coordinates,
                             databaseID: DBtablesUpdated[idx]
                         }
@@ -746,6 +747,32 @@ describe('API tests', () => {
             assert.equal(DBtablesUpdated2.length, DBtablesUpdated.length)
             assert.equal(modifyTablesResult.status, 200)
             assert.equal(modifyTablesResult.body.success, true)
+
+            await request(app)
+                .post('/api/layouts/save')
+                .set('Cookie', loginResult.headers['set-cookie'])
+                .set('Content-Type', 'application/json')
+                .send({
+                    newTables: createTables().map(table => table.localId = 0),
+                    updatedTables: [],
+                    removedTables: []
+                }).then(result => {
+                    assert.equal(result.status, 400)
+                })
+
+            await request(app)
+                .post('/api/layouts/save')
+                .set('Cookie', loginResult.headers['set-cookie'])
+                .set('Content-Type', 'application/json')
+                .send({
+                    newTables: createTables().map(table => table.TableId = 0),
+                    updatedTables: [],
+                    removedTables: []
+                }).then(async result => {
+                    assert.equal(result.status, 400)
+                    const DBtables = await Table.find({RestaurantId: restaurant._id}).exec()
+                    assert.equal(DBtables.length, DBtablesUpdated2.length)
+                })
             
             await request(app)
                 .post('/api/layouts/update')
@@ -757,8 +784,6 @@ describe('API tests', () => {
                 .then(result => {
                     assert.equal(result.status, 400)
                 })
-
-
         })
 
         test('Normal user try to modify layout', async() => {

@@ -49,8 +49,6 @@ router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
 
     TableController.checkIsTableInUse(table)
 
-    console.warn(Object.keys(menu.items).includes(item.category))
-    console.warn(Object.keys(menu.items[item.category]))
     if(!Object.keys(menu.items).includes(item.category) || !Object.keys(menu.items[item.category]).includes(item.name)){
         return Httpresponse.NotFound(res, "food-menu-not-found")
     }

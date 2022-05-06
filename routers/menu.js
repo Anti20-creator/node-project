@@ -145,12 +145,6 @@ router.delete('/delete-item', authenticateAdminAccessToken, catchErrors(async(re
 
     return Httpresponse.OK(res, "food-deleted")
 }))
-/*
-router.get('/categories', catchErrors(async(req, res) => {
-    const menu = await MenuController.findById(req.user.restaurantId)
-
-    return Httpresponse.OK(res, {icons: menu.icons})
-}))*/
 
 router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 

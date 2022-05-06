@@ -15,7 +15,8 @@ const AppointmentModel = new mongoose.Schema({
         min: [1, "too-few-people"]
     },
     date: {
-	    type: Date
+	    type: Date,
+        required: true
     },
     code: {
         type: String,
@@ -32,7 +33,8 @@ const AppointmentModel = new mongoose.Schema({
     },
     confirmed: {
         type: Boolean,
-        default: false
+        default: false,
+        required: true
     }
 })
 

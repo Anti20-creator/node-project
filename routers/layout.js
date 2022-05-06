@@ -17,9 +17,10 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
 
     const {newTables, removedTables, updatedTables} = RequestValidator.destructureBody(req, res, {newTables: 'object', removedTables: 'object', updatedTables: 'object'})
 
-    if(newTables.some(newTable => newTable.tableCount < 1)) {
+    if(newTables.some(table => table.tableCount < 1) || updatedTables.some(table => table.tableCount < 1)) {
         return Httpresponse.BadRequest(res, "bad-layout-tables")
     }
+
     const layout = await LayoutController.findById(req.user.restaurantId)
 
     if(removedTables.length > 0) {
@@ -64,6 +65,7 @@ router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) 
     }
 
     layout.tables = resultTables.filter(table => !removedTables.includes(table.TableId))
+
     if(!LayoutController.validateTables(layout.tables, layout.sizeX, layout.sizeY)) {
         for(const newId of newIds) {
             await Table.deleteOne({_id: newId})
@@ -99,7 +101,7 @@ router.get('/image', authenticateAccessToken, catchErrors(async(req, res) => {
 
     const layout = await LayoutController.findById(req.user.restaurantId)
 
-    return Httpresponse.OK(res, 'https://192.168.31.214:4000/backgrounds/' + layout.backgroundImage)
+    return Httpresponse.OK(res, 'https://' + req.get('host') + '/backgrounds/' + layout.backgroundImage)
 }))
 
 

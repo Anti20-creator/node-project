@@ -212,7 +212,7 @@ router.post('/update-rank', authenticateAdminAccessToken, catchErrors(async (req
 
     const { promote, email } = RequestValidator.destructureBody(req, res, {promote: 'boolean', email: 'string'})
 
-    const user = await User.findOne({email}).exec()
+    const user = await User.findOne({email, restaurantId: req.user.restaurantId}).exec()
 
     if(!user) {
         return Httpresponse.NotFound(res, "user-not-found")

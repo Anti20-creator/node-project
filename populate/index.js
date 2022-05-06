@@ -190,12 +190,19 @@ const createTables = async(restaurantId) => {
                 const itemsCount = faker.datatype.number({min: 1, max: 5})
 
                 const categories = Object.keys(menu.items)
+                const orderedFoods = []
 
                 for(let i = 0; i < itemsCount; ++i) {
-                    const category = faker.random.arrayElement(categories)
-
-                    const foods = Object.keys(menu.items[category])
-                    const food = faker.random.arrayElement(foods)
+                    
+                    let category = faker.random.arrayElement(categories)
+                    let foods = Object.keys(menu.items[category])
+                    let food = faker.random.arrayElement(foods)
+                    while(orderedFoods.includes(food)) {
+                        category = faker.random.arrayElement(categories)
+                        foods = Object.keys(menu.items[category])
+                        food = faker.random.arrayElement(foods)
+                    }
+                    orderedFoods.push(food)
 
                     liveOrders.push({
                         category,
@@ -204,8 +211,8 @@ const createTables = async(restaurantId) => {
                         quantity: faker.datatype.number({min: 1, max: 10})
                     })
                 }
-
             }
+
             return {
                 insertOne: {
                     document: {

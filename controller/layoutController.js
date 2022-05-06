@@ -17,6 +17,19 @@ const findById = async(id) => {
 }
 
 const validateTables = (tables, sizeX, sizeY) => {
+
+    for(const table of tables) {
+        let localIdCount = 0
+        let tableIdCount = 0
+        for(const otherTable of tables) {
+            if(table.localId === otherTable.localId) localIdCount++
+            if(table.TableId === otherTable.TableId) tableIdCount++
+
+            if(localIdCount === 2) return false
+            if(tableIdCount === 2) return false
+        }
+    }
+
     for(const table of tables) {
 
         if(table.tableType !== 'wide') {

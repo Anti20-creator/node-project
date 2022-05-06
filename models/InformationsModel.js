@@ -55,7 +55,8 @@ const InformationsModel = new mongoose.Schema({
                 return true
             },
             message: "opening-times-invalid"
-        }
+        },
+        required: [true, "opening-times-invalid"]
     },
     currency: {
         type: String,
@@ -63,6 +64,7 @@ const InformationsModel = new mongoose.Schema({
             values: ['USD', 'EUR', 'HUF'],
             message: "invalid-currency"
         },
+        required: [true, 'invalid-currency'],
         default: 'HUF'
     }
 })
