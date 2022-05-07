@@ -34,3 +34,8 @@ Az `npm run test` parancs hatására lefutnak a tesztek, melyek előtte teljesen
 .env fájl megkötései a backenden a tesztek megfelelő futásához: \
 - TESTING: 1 \
 - PRODUCTION: 0 \
+
+# Adatbázis feltöltése adatokkal
+
+Az `npm run populate {COUNT}` parancs segítségével mintaadatokkal tölthető fel az adatbázis. A paraméter helyére tetszőleges egész szám kerülhet, annak üresen hagyása esetén egyetlen étterem regisztrálása szimulálódik. A felhasználói fiókok admin{x}@gmail.com alakú e-mail címmel és 123456 jelszóval jönnek létre.
+Az `npm run generate-invoices` parancs kiadásával pedig számlák is generálhatók az éttermekhez.

@@ -8,7 +8,7 @@ require('dotenv').config()
 
 /* Importing routers */
 const usersRouter = require('../routers/users')
-const appointmentsRouter = require('../routers/appointment2')
+const appointmentsRouter = require('../routers/appointment')
 const layoutsRouter = require('../routers/layout')
 const tablesRouter = require('../routers/tables')
 const menuRouter = require('../routers/menu')

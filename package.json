@@ -7,7 +7,8 @@
     "test": "jest",
     "normal": "nodemon server.js",
     "start": "redis-server --daemonize yes --protected-mode no && nodemon server.js",
-    "populate": "node populate/index.js"
+    "populate": "node populate/index.js",
+    "generate-invoices": "node populate/invoices.js"
   },
   "keywords": [],
   "author": "",

@@ -1,15 +1,4 @@
 module.exports = menu = {
-    'Levesek': {
-        items: [
-            'Marhahúsleves házi májgobmóccal',
-            'Fokhagyma krémleves, házi stangli',
-            'Vadragu leves, burgonya gombóc',
-            'Újházi tyúkhúsleves',
-            'Ázsiai currys halleves',
-            'Szürkemarha-gulyásleves'
-        ],
-        icon: 'Noodles'
-    },
     'Előételek': {
         items: [
             'Charolais marhatatár',
