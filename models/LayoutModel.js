@@ -4,11 +4,13 @@ const tableSchema = new mongoose.Schema({
     coordinates: {
         x: {
             type: Number,
-            required: true
+            required: true,
+            min: [0, "bad-layout-tables"]
         },
         y: {
             type: Number,
-            required: true
+            required: true,
+            min: [0, "bad-layout-tables"]
         }
     },
     tableCount: {
