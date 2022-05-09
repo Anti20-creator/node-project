@@ -22,6 +22,7 @@ PRODUCTION=0 esetén garantáltan "123456" lesz minden étterem PIN kódja \
 TESTING=1 esetén nem fogja előállítani a .pdf fileokat a számlák generálásánál \
 REDIS_HOST=a cím, melyen fut a redis szerver \
 REDIS_PORT=a port, melyen fut a redis szerver \
+FRONTEND_URL=a frontend címe, melyen fut, ez kerül majd kiküldésre a felhasználóknak az e-mailekben az URL-ek prefixeként
 
 # Futtatás
 

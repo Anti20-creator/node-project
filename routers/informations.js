@@ -27,7 +27,7 @@ router.get('/currency', authenticateAccessToken, catchErrors(async(req, res) => 
 
 router.post('/update', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-    const {taxNumber, address, city, postalCode, phoneNumber, openingTimes, currency} = RequestValidator.destructureBody(req, res, {taxNumber: 'string', address: 'string', city: 'string', postalCode: 'string', phoneNumber: 'string', openingTimes: 'object', currency: 'string'})
+    const {taxNumber, address, city, postalCode, phoneNumber, openingTimes, currency} = RequestValidator.destructureBody(req, {taxNumber: 'string', address: 'string', city: 'string', postalCode: 'string', phoneNumber: 'string', openingTimes: 'object', currency: 'string'})
 
     const infos = await InformationsController.findById(req.user.restaurantId)
     infos.taxNumber = taxNumber; infos.address = address; infos.city = city; infos.postalCode = postalCode; infos.phoneNumber = phoneNumber; infos.openingTimes = openingTimes; infos.currency = currency;

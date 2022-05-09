@@ -14,8 +14,6 @@ const transporter = nodemailer.createTransport({
     maxMessages: Infinity
 })
 
-const FRONTEND_URL = 'http://192.168.31.161:3000/'
-
 async function sendMail(emailTo, subject, htmlContent, fileName) {
 
     const info = await transporter.sendMail({
@@ -47,7 +45,7 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='en') {
                         <li>Kód: ${appointmentData.code}</li>
                     </ul>
                     <p>${appointmentData.accepted ? '<p>Várjuk a foglalt időpontban!</p>' : ''}</p>
-                    <p>Foglalás lemondása itt: ${FRONTEND_URL + 'remove-appointment/' + appointmentData._id}</p>` 
+                    <p>Foglalás lemondása itt: ${process.env.FRONTEND_URL + 'remove-appointment/' + appointmentData._id}</p>` 
         })
     }else{
         transporter.sendMail({
@@ -63,7 +61,7 @@ function sendBookedAppointmentEmail(emailTo, appointmentData, language='en') {
                         <li>Code: ${appointmentData.code}</li>
                     </ul>
                     <p>${appointmentData.accepted ? '<p>We are waiting for you at the booked time.</p>' : ''}</p>
-                    <p>Remove appointment here: ${FRONTEND_URL + 'remove-appointment/' + appointmentData._id}</p>` 
+                    <p>Remove appointment here: ${process.env.FRONTEND_URL + 'remove-appointment/' + appointmentData._id}</p>` 
         })
     }
 }
@@ -150,7 +148,7 @@ function sendInvitationEmail(emailTo, restaurantId, pin, language='en') {
             subject: 'Meghívó',
             html: `
                 <h1>Önnek meghívója érkezett!</h1>
-                <p>Itt tud regisztrálni: ${FRONTEND_URL + 'invite/' + restaurantId}</p>
+                <p>Itt tud regisztrálni: ${process.env.FRONTEND_URL + 'invite/' + restaurantId}</p>
                 <p>Kód a csatlakozáshoz: ${pin}</p>
                 `
             })
@@ -161,7 +159,7 @@ function sendInvitationEmail(emailTo, restaurantId, pin, language='en') {
             subject: 'Invitation',
             html: `
                 <h1>You have an invitation!</h1>
-                <p>You can register here: ${FRONTEND_URL + 'invite/' + restaurantId}</p>
+                <p>You can register here: ${process.env.FRONTEND_URL + 'invite/' + restaurantId}</p>
                 <p>Pin to join: ${pin}</p>
             `
         })

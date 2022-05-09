@@ -8,7 +8,7 @@ const {authenticateAccessToken, authenticateAdminAccessToken} = require("../midd
 
 router.post('/add-category', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-    const { category, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', categoryIcon: 'string'})
+    const { category, categoryIcon } = RequestValidator.destructureBody(req, {category: 'string', categoryIcon: 'string'})
 
     MenuController.validateCategory(category, categoryIcon)
 
@@ -30,7 +30,7 @@ router.post('/add-category', authenticateAdminAccessToken, catchErrors(async(req
 
 router.post('/modify-category', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-    const { category, oldCategory, categoryIcon } = RequestValidator.destructureBody(req, res, {category: 'string', oldCategory: 'string', categoryIcon: 'string'})
+    const { category, oldCategory, categoryIcon } = RequestValidator.destructureBody(req, {category: 'string', oldCategory: 'string', categoryIcon: 'string'})
 
     MenuController.validateCategory(category, categoryIcon)
 
@@ -59,7 +59,7 @@ router.post('/modify-category', authenticateAdminAccessToken, catchErrors(async(
 
 router.post('/modify-item', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-    const { name, amount, category, price, unit, oldName } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string', oldName: 'string'})
+    const { name, amount, category, price, unit, oldName } = RequestValidator.destructureBody(req, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string', oldName: 'string'})
 
     MenuController.validateFood(name, amount, unit)
     
@@ -88,7 +88,7 @@ router.post('/modify-item', authenticateAdminAccessToken, catchErrors(async(req,
 
 router.post('/add-item', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-    const { name, amount, category, price, unit } = RequestValidator.destructureBody(req, res, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string'})
+    const { name, amount, category, price, unit } = RequestValidator.destructureBody(req, {name: 'string', amount: 'number', category: 'string', price: 'number', unit: 'string'})
 
     MenuController.validateFood(name, amount, unit)
 
@@ -112,7 +112,7 @@ router.post('/add-item', authenticateAdminAccessToken, catchErrors(async(req, re
 
 router.delete('/delete-category', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-    const { category } = RequestValidator.destructureBody(req, res, {category: 'string'})
+    const { category } = RequestValidator.destructureBody(req, {category: 'string'})
     const menu = await MenuController.findById(req.user.restaurantId)
 
     if(menu.items[category]) {
@@ -131,7 +131,7 @@ router.delete('/delete-category', authenticateAdminAccessToken, catchErrors(asyn
 
 router.delete('/delete-item', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-    const { name, category } = RequestValidator.destructureBody(req, res, {name: 'string', category: 'string'})
+    const { name, category } = RequestValidator.destructureBody(req, {name: 'string', category: 'string'})
     const menu = await MenuController.findById(req.user.restaurantId)
 
     if(menu.items[category] && menu.items[category][name]) {

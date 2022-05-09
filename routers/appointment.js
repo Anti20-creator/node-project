@@ -43,7 +43,7 @@ function checkRestaurantOpen(infos, givenDate) {
 
 router.post('/book', catchErrors(async(req, res) => {
 
-    const { email, date, restaurantId, tableId, peopleCount, lang } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', restaurantId: 'string', tableId: 'string', peopleCount: 'number', lang: 'string'})
+    const { email, date, restaurantId, tableId, peopleCount, lang } = RequestValidator.destructureBody(req, {email: 'string', date: 'string', restaurantId: 'string', tableId: 'string', peopleCount: 'number', lang: 'string'})
 
     const formattedDate = AppointmentsController.checkDate(date)
     await AppointmentsController.checkTable(tableId, restaurantId, peopleCount)
@@ -72,7 +72,7 @@ router.post('/book', catchErrors(async(req, res) => {
 
 router.post('/booking-conflicts', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { date, tableId, peopleCount } = RequestValidator.destructureBody(req, res, {date: 'string', tableId: 'string', peopleCount: 'number'})
+    const { date, tableId, peopleCount } = RequestValidator.destructureBody(req, {date: 'string', tableId: 'string', peopleCount: 'number'})
     
     const startDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() - 3_600_000 * 12)
     const endDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() + 3_600_000 * 12)
@@ -85,7 +85,7 @@ router.post('/booking-conflicts', authenticateAccessToken, catchErrors(async(req
 
 router.post('/search-tables', catchErrors(async(req, res) => {
 
-    const { date, peopleCount, restaurantId } = RequestValidator.destructureBody(req, res, {date: 'string', peopleCount: 'number', restaurantId: 'string'})
+    const { date, peopleCount, restaurantId } = RequestValidator.destructureBody(req, {date: 'string', peopleCount: 'number', restaurantId: 'string'})
     
     AppointmentsController.checkPeoplecount(peopleCount)
     const startDate = new Date(new Date(date) - 60_000 * new Date().getTimezoneOffset() - 3_600_000 * 12)
@@ -155,7 +155,7 @@ router.put('/accept-appointment', authenticateAccessToken, catchErrors(async(req
 
 router.delete('/disclaim', catchErrors(async(req, res) => {
 
-    const { id, email, pin, lang } = RequestValidator.destructureBody(req, res, {id: 'string', email: 'string', pin: 'string', lang: 'string'})
+    const { id, email, pin, lang } = RequestValidator.destructureBody(req, {id: 'string', email: 'string', pin: 'string', lang: 'string'})
 
     
     const appointment = await Appointments.findOne({
@@ -187,7 +187,7 @@ router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 
 router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { lang } = RequestValidator.destructureBody(req, res, {lang: 'string'})
+    const { lang } = RequestValidator.destructureBody(req, {lang: 'string'})
     const appointment = await Appointments.findById(req.params.id).exec()
     const email = appointment.email
 
@@ -199,7 +199,7 @@ router.delete('/delete-appointment/:id', authenticateAccessToken, catchErrors(as
 
 router.post('/book-for-guest', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { email, date, tableId, peopleCount, lang } = RequestValidator.destructureBody(req, res, {email: 'string', date: 'string', tableId: 'string', peopleCount: 'number', lang: 'string'})
+    const { email, date, tableId, peopleCount, lang } = RequestValidator.destructureBody(req, {email: 'string', date: 'string', tableId: 'string', peopleCount: 'number', lang: 'string'})
 
     const formattedDate = AppointmentsController.checkDate(date)
     await AppointmentsController.checkTable(tableId, req.user.restaurantId, peopleCount)
@@ -228,7 +228,7 @@ router.post('/book-for-guest', authenticateAccessToken, catchErrors(async(req, r
 
 router.post('/is-open', catchErrors(async(req, res) => {
 
-    const {date, restaurantId} = RequestValidator.destructureBody(req, res, {date: 'string', restaurantId: 'string'})
+    const {date, restaurantId} = RequestValidator.destructureBody(req, {date: 'string', restaurantId: 'string'})
 
     const formattedDate =  AppointmentsController.checkDate(date)
 

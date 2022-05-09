@@ -29,7 +29,7 @@ router.get('/restaurant-id', authenticateAccessToken, catchErrors((req, res) => 
 
 router.post('/register-admin', catchErrors(async(req, res) => {
 
-    const { name, email, password, restaurantName, lang } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', restaurantName: 'string', lang: 'string'})
+    const { name, email, password, restaurantName, lang } = RequestValidator.destructureBody(req, {name: 'string', email: 'string', password: 'string', restaurantName: 'string', lang: 'string'})
 
     if(password.length < 5) {
         return Httpresponse.BadRequest(res, "short-password")
@@ -85,11 +85,11 @@ router.post('/register-admin', catchErrors(async(req, res) => {
 
 router.post('/register-employee/:id', catchErrors(async(req, res) => {
     
-    const { name, email, password, secretPin, lang } = RequestValidator.destructureBody(req, res, {name: 'string', email: 'string', password: 'string', secretPin: 'string', lang: 'string'})
+    const { name, email, password, secretPin, lang } = RequestValidator.destructureBody(req, {name: 'string', email: 'string', password: 'string', secretPin: 'string', lang: 'string'})
     if(password.length < 5) {
         return Httpresponse.BadRequest(res, "short-password")
     }
-    const {id: restaurantId} = RequestValidator.destructureParams(req, res, {id: 'string'})
+    const {id: restaurantId} = RequestValidator.destructureParams(req, {id: 'string'})
 
     const restaurant = await Restaurant.findById(restaurantId).exec()
 
@@ -139,7 +139,7 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
 * */
 router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res) => {
 
-    const { emailTo, lang } = RequestValidator.destructureBody(req, res, {emailTo: 'string', lang: 'string'})
+    const { emailTo, lang } = RequestValidator.destructureBody(req, {emailTo: 'string', lang: 'string'})
 
     const restaurant = await RestaurantController.findById(req.user.restaurantId)
     const conflictingUser = await User.countDocuments({email: emailTo}).exec()
@@ -158,7 +158,7 @@ router.post('/send-invite', authenticateAccessToken, catchErrors(async (req, res
 
 router.post('/login', catchErrors(async(req, res) => {
 
-    const {email, password} = RequestValidator.destructureBody(req, res, {email: 'string', password: 'string'})
+    const {email, password} = RequestValidator.destructureBody(req, {email: 'string', password: 'string'})
 
     User.findOne({email: email}, (err, data) => {
         /* Case: User existst with the given email */
@@ -210,7 +210,7 @@ router.post('/refresh-token', authenticateRefreshToken, catchErrors(async(req, r
 
 router.post('/update-rank', authenticateAdminAccessToken, catchErrors(async (req, res) => {
 
-    const { promote, email } = RequestValidator.destructureBody(req, res, {promote: 'boolean', email: 'string'})
+    const { promote, email } = RequestValidator.destructureBody(req, {promote: 'boolean', email: 'string'})
 
     const user = await User.findOne({email, restaurantId: req.user.restaurantId}).exec()
 
@@ -247,7 +247,7 @@ router.get('/logout', catchErrors(async(req, res) => {
 
 router.delete('/delete', authenticateAdminAccessToken, catchErrors(async(req, res) => {
 
-    const { email } = RequestValidator.destructureBody(req, res, {email: 'string'})
+    const { email } = RequestValidator.destructureBody(req, {email: 'string'})
 
     if(req.user.email === email) {
 	    return Httpresponse.BadRequest(res, "user-delete-yourself")

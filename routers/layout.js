@@ -15,7 +15,7 @@ const { catchErrors }                                         = require('../util
 
 router.post('/save', authenticateAdminAccessToken, catchErrors(async (req, res) => {
 
-    const {newTables, removedTables, updatedTables} = RequestValidator.destructureBody(req, res, {newTables: 'object', removedTables: 'object', updatedTables: 'object'})
+    const {newTables, removedTables, updatedTables} = RequestValidator.destructureBody(req, {newTables: 'object', removedTables: 'object', updatedTables: 'object'})
 
     if(newTables.some(table => table.tableCount < 1) || updatedTables.some(table => table.tableCount < 1)) {
         return Httpresponse.BadRequest(res, "bad-layout-tables")
@@ -107,7 +107,7 @@ router.get('/image', authenticateAccessToken, catchErrors(async(req, res) => {
 
 router.get('/:id/data', catchErrors(async(req, res) => {
 
-    const { id } = RequestValidator.destructureParams(req, res, {id: 'string'})
+    const { id } = RequestValidator.destructureParams(req, {id: 'string'})
     const layout = await LayoutController.findById(id)
 
     return Httpresponse.OK(res, {sizeX: layout.sizeX, sizeY: layout.sizeY, image: layout.backgroundImage})
@@ -115,7 +115,7 @@ router.get('/:id/data', catchErrors(async(req, res) => {
 
 router.get('/:id', catchErrors(async(req, res) => {
 
-    const { id } = RequestValidator.destructureParams(req, res, {id: 'string'})
+    const { id } = RequestValidator.destructureParams(req, {id: 'string'})
     const layout = await LayoutController.findById(id)
 
     return Httpresponse.OK(res, layout.tables)
@@ -149,7 +149,7 @@ var upload = multer({
 
 router.post('/update', authenticateAdminAccessToken, upload.single('image'), catchErrors(async(req, res) => {
 
-    const { sizeX, sizeY, sentImage, deleteImage, extName } = RequestValidator.destructureBody(req, res, {sizeX: 'string', sizeY: 'string', sentImage: 'string', deleteImage: 'string', extName: 'string'})
+    const { sizeX, sizeY, sentImage, deleteImage, extName } = RequestValidator.destructureBody(req, {sizeX: 'string', sizeY: 'string', sentImage: 'string', deleteImage: 'string', extName: 'string'})
 
     const layout = await LayoutController.findById(req.user.restaurantId)
 

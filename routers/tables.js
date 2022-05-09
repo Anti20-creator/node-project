@@ -17,7 +17,7 @@ router.get('/', authenticateAccessToken, catchErrors(async(req, res) => {
 
 router.post('/book', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { tableId } = RequestValidator.destructureBody(req, res, {tableId: 'string'})
+    const { tableId } = RequestValidator.destructureBody(req, {tableId: 'string'})
     
     const table = await TableController.findById(tableId)
     TableController.checkIsTableInUse(table, true)
@@ -28,7 +28,7 @@ router.post('/book', authenticateAccessToken, catchErrors(async(req, res) => {
 
 router.post('/free-table', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { tableId } = RequestValidator.destructureBody(req, res, {tableId: 'string'})
+    const { tableId } = RequestValidator.destructureBody(req, {tableId: 'string'})
 
     const table = await TableController.findById(tableId)
     if(table.liveOrders.length > 0) {
@@ -42,7 +42,7 @@ router.post('/free-table', authenticateAccessToken, catchErrors(async(req, res) 
 
 router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { item, tableId, socketId } = RequestValidator.destructureBody(req, res, {item: 'object', tableId: 'string', socketId: 'string'})
+    const { item, tableId, socketId } = RequestValidator.destructureBody(req, {item: 'object', tableId: 'string', socketId: 'string'})
 
     const table = await TableController.findById(tableId)
     const menu = await MenuController.findById(req.user.restaurantId)
@@ -73,7 +73,7 @@ router.post('/order', authenticateAccessToken, catchErrors(async(req, res) => {
 
 router.delete('/remove-order', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { name, tableId, socketId } = RequestValidator.destructureBody(req, res, {name: 'string', tableId: 'string', socketId: 'string'})
+    const { name, tableId, socketId } = RequestValidator.destructureBody(req, {name: 'string', tableId: 'string', socketId: 'string'})
     const table = await TableController.findById(tableId)
 
     TableController.checkIsTableInUse(table)
@@ -87,7 +87,7 @@ router.delete('/remove-order', authenticateAccessToken, catchErrors(async(req, r
 
 router.post('/increase-order', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { name, tableId, socketId } = RequestValidator.destructureBody(req, res, {name: 'string', tableId: 'string', socketId: 'string'})
+    const { name, tableId, socketId } = RequestValidator.destructureBody(req, {name: 'string', tableId: 'string', socketId: 'string'})
     const table = await TableController.findById(tableId)
 
     TableController.checkIsTableInUse(table)
@@ -103,7 +103,7 @@ router.post('/increase-order', authenticateAccessToken, catchErrors(async(req, r
 
 router.post('/decrease-order', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { name, tableId, socketId } = RequestValidator.destructureBody(req, res, {name: 'string', tableId: 'string', socketId: 'string'})
+    const { name, tableId, socketId } = RequestValidator.destructureBody(req, {name: 'string', tableId: 'string', socketId: 'string'})
     const table = await TableController.findById(tableId)
 
     TableController.checkIsTableInUse(table)
@@ -123,7 +123,7 @@ router.post('/decrease-order', authenticateAccessToken, catchErrors(async(req, r
 
 router.get('/orders/:tableId', authenticateAccessToken, catchErrors(async(req, res) => {
     
-    const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
+    const { tableId } = RequestValidator.destructureParams(req, {tableId: 'string'})
 
     const table = await TableController.findById(tableId)
     TableController.checkIsTableInUse(table)
@@ -148,8 +148,8 @@ const validateLanguage = (lang) => {
 
 router.post('/:tableId', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
-    const { lang } = RequestValidator.destructureBody(req, res, {lang: 'string'})
+    const { tableId } = RequestValidator.destructureParams(req, {tableId: 'string'})
+    const { lang } = RequestValidator.destructureBody(req, {lang: 'string'})
     validateLanguage(lang)
 
     const table = await TableController.findById(tableId)
@@ -173,8 +173,8 @@ router.post('/:tableId', authenticateAccessToken, catchErrors(async(req, res) =>
 
 router.post('/:tableId/split', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
-    const { items, lang } = RequestValidator.destructureBody(req, res, {items: 'object', lang: 'string'})
+    const { tableId } = RequestValidator.destructureParams(req, {tableId: 'string'})
+    const { items, lang } = RequestValidator.destructureBody(req, {items: 'object', lang: 'string'})
     validateLanguage(lang)
 
     const table = await TableController.findById(tableId)
@@ -210,8 +210,8 @@ router.post('/:tableId/split', authenticateAccessToken, catchErrors(async(req, r
 
 router.post('/:tableId/split-equal', authenticateAccessToken, catchErrors(async(req, res) => {
 
-    const { tableId } = RequestValidator.destructureParams(req, res, {tableId: 'string'})
-    const { peopleCount, lang } = RequestValidator.destructureBody(req, res, {peopleCount: 'number', lang: 'string'})
+    const { tableId } = RequestValidator.destructureParams(req, {tableId: 'string'})
+    const { peopleCount, lang } = RequestValidator.destructureBody(req, {peopleCount: 'number', lang: 'string'})
     validateLanguage(lang)
 
     if(peopleCount < 1) {

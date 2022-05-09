@@ -12,7 +12,7 @@ class FieldTypeError extends Error {
     }
 }
 
-const destructureBody = (req, res, items) => {
+const destructureBody = (req, items) => {
     const response = {}
     for (const key in items) {
         const bodyItem = req.body[key]
@@ -28,7 +28,7 @@ const destructureBody = (req, res, items) => {
     
 }
 
-const destructureParams = (req, res, items) => {
+const destructureParams = (req, items) => {
     const response = {}
     for (const key in items) {
         const bodyItem = req.params[key]
