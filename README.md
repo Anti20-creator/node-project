@@ -11,13 +11,13 @@ Mivel a Socket.IO szerver megfelelő működéséhez szükséges egy Redis szerv
 
 .env paramétereinek beállítása: \
 PORT=ezen a porton fog futni a backend \
-NODEMAILER_USER=e-mail fiók felhasználóneve \
-NODEMAILER_PWD=e-mail fiók jelszava \
+NODEMAILER_USER=e-mail fiók felhasználóneve (zoho mail) \
+NODEMAILER_PWD=e-mail fiók jelszava (zoho mail) \
 ACCESS_TOKEN_SECRET=tetszőleges legalább 1 hosszú karaktersorozat \
 REFRESH_TOKEN_SECRET=tetszőleges legalább 1 hosszú karaktersorozat \
 MONGODB_URI=mongodb kapcsolódási URL-je \
 APPOINTMENT_PIN_LENGTH=időpontok PIN kódjának hossza (alapértelmezetten 6-ra van állítva a frontenden való ellenőrzése, így eltérés esetén ott is frissíteni kell) \
-NODEMAILER_SENDER=e-mail küldőjének neve \
+NODEMAILER_SENDER=e-mail küldőjének neve (végére be kell illeszteni a megfelelő e-mail címet) \
 PRODUCTION=0 esetén garantáltan "123456" lesz minden étterem PIN kódja \
 TESTING=1 esetén nem fogja előállítani a .pdf fileokat a számlák generálásánál \
 REDIS_HOST=a cím, melyen fut a redis szerver \

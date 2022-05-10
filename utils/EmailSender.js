@@ -1,9 +1,8 @@
-const nodemailer = require('nodemailer')
+﻿const nodemailer = require('nodemailer')
 const moment     = require('moment-timezone')
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    host: 'smtp.gmail.com',
+    host: 'smtp.zoho.eu',
     port: 465,
     secure: true,
     auth: {
@@ -11,7 +10,11 @@ const transporter = nodemailer.createTransport({
         pass: process.env.NODEMAILER_PWD, // generated ethereal password
     },
     pool: true,
-    maxMessages: Infinity
+    maxMessages: Infinity,
+    tls: {
+        rejectUnauthorized: false,
+        //servername: 'pepipost.com'
+    }
 })
 
 async function sendMail(emailTo, subject, htmlContent, fileName) {
