@@ -83,7 +83,7 @@ function generateHeader(doc, invoiceId, restaurant, informations, language) {
         .text(`${informations.address ?? ''}`, 200, 65, { align: "right" })
         .text(`${informations.postalCode ?? ''} ${informations.city ?? ''}`, 200, 80, { align: "right" })
         .text(`${informations.phoneNumber ?? ''}`, 200, 95, { align: "right" })
-        .moveDown();
+        .moveDown()
 
     doc
         .fontSize(20)
@@ -93,28 +93,21 @@ function generateHeader(doc, invoiceId, restaurant, informations, language) {
 function generateInvoiceTable(doc, items, divisor=1, currency, language) {
     let invoiceTableTop = 190;
 
-    generateTableRow(
-        doc,
-        invoiceTableTop,
-        translations['product-name'][language],
-        translations['unit-price'][language],
-        translations['quantity'][language],
-        translations['subtotal'][language],
-    );
-    generateHr(doc, invoiceTableTop + 20);
+    generateInvoiceRow(doc, invoiceTableTop, translations['product-name'][language], translations['unit-price'][language], translations['quantity'][language], translations['subtotal'][language])
+    generateHr(doc, invoiceTableTop + 20)
 
-    let i = 0;
+    let i = 0
     let offset = 0
     for (const item of items) {
-        let position = invoiceTableTop + (i + 1) * 30 + offset;
+        let position = invoiceTableTop + (i + 1) * 30 + offset
         if(position > 730) {
             doc.addPage()
-            invoiceTableTop = 0;
-            i = 0;
-            offset = 0;
+            invoiceTableTop = 0
+            i = 0
+            offset = 0
         }
-        position = invoiceTableTop + (i + 1) * 30 + offset;
-        generateTableRow(
+        position = invoiceTableTop + (i + 1) * 30 + offset
+        generateInvoiceRow(
             doc,
             position,
             item.name,
@@ -123,16 +116,16 @@ function generateInvoiceTable(doc, items, divisor=1, currency, language) {
             formatCurrency(item.quantity * item.price, currency)
         );
         if(item.name.length >= 65) {
-            generateHr(doc, position + 30);
-            offset += 10
+            generateHr(doc, position + 20 + Math.floor(item.name.length / 65) * 10)
+            offset += Math.floor(item.name.length / 65) * 10
         }else{
-            generateHr(doc, position + 20);
+            generateHr(doc, position + 20)
         }
         i++
     }
 
-    const subtotalPosition = invoiceTableTop + (i + 1) * 30 + offset;
-    generateTableRow(
+    const subtotalPosition = invoiceTableTop + (i + 1) * 30 + offset
+    generateInvoiceRow(
         doc,
         subtotalPosition,
         "",
@@ -143,13 +136,13 @@ function generateInvoiceTable(doc, items, divisor=1, currency, language) {
 
 }
 
-function generateTableRow(doc, y, item, unitCost, quantity, lineTotal) {
+function generateInvoiceRow(doc, y, item, unitCost, quantity, lineTotal) {
     doc
         .fontSize(10)
         .text(item, 50, y, {width: 290})
         .text(unitCost, 280, y, { width: 90, align: "right" })
         .text(quantity, 370, y, { width: 90, align: "right" })
-        .text(lineTotal, 0, y, { align: "right" });
+        .text(lineTotal, 0, y, { align: "right" })
 }
 
 function generateHr(doc, y) {
@@ -158,7 +151,7 @@ function generateHr(doc, y) {
         .lineWidth(1)
         .moveTo(50, y)
         .lineTo(550, y)
-        .stroke();
+        .stroke()
 }
 
 function formatCurrency(forints, currency) {
@@ -169,11 +162,11 @@ function formatCurrency(forints, currency) {
 }
 
 function formatDate(date) {
-    const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate();
-    const month = date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1);
-    const year = date.getFullYear();
+    const day = date.getDate() < 10 ? '0' + date.getDate() : date.getDate()
+    const month = date.getMonth() < 9 ? '0' + (date.getMonth() + 1) : (date.getMonth() + 1)
+    const year = date.getFullYear()
 
-    return year + "-" + month + "-" + day;
+    return year + "-" + month + "-" + day
 }
 
 module.exports = {createInvoice, createMultiInvoice}
