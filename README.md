@@ -28,15 +28,26 @@ FRONTEND_URL=a frontend címe, melyen fut, ez kerül majd kiküldésre a felhasz
 
 Az `npm run normal` parancs kiadás hatására elindul a backend a Redis szerver nélkül.
 Az `npm start` parancs kiadás hatására elindul a backend a Redis szerverrel együtt.
+Frontenddel való használat esetén ajánlott .env paraméter beállítások:
+PRODUCTION=0 \
+TESTING=0
 
 # Tesztelés
 
 Az `npm run test` parancs hatására lefutnak a tesztek, melyek előtte teljesen törlik a MongoDB adatbázis objektumait.
 .env fájl megkötései a backenden a tesztek megfelelő futásához: \
-- TESTING: 1 \
-- PRODUCTION: 0 \
+- TESTING=1 \
+- PRODUCTION=0 \
 
 # Adatbázis feltöltése adatokkal
 
-Az `npm run populate {COUNT}` parancs segítségével mintaadatokkal tölthető fel az adatbázis. A paraméter helyére tetszőleges egész szám kerülhet, annak üresen hagyása esetén egyetlen étterem regisztrálása szimulálódik. A felhasználói fiókok admin{x}@gmail.com alakú e-mail címmel és 123456 jelszóval jönnek létre.
-Az `npm run generate-invoices` parancs kiadásával pedig számlák is generálhatók az éttermekhez.
+Az `npm run populate {COUNT}` parancs segítségével mintaadatokkal tölthető fel az adatbázis. A paraméter helyére tetszőleges egész szám kerülhet, annak üresen hagyása esetén egyetlen étterem regisztrálása szimulálódik. A felhasználói fiókok admin{x}@gmail.com alakú e-mail címmel és `123456` jelszóval jönnek létre.
+
+# SSL kulcsok újragenerálása
+
+Szükséges parancsok kiadása egymás után:
+- openssl genrsa -out key.pem
+- openssl req -new -key key.pem -out csr.pem
+- openssl x509 -req -days 365 -in csr.pem -signkey key.pem -out cert.pem
+
+A `server.js` állományban a `privateKey` változó így majd a `key.pem`-et fogja olvasni a megfelelő helyről, míg a `certificate` nevű változó a `cert.pem`-et fogja olvasni.
