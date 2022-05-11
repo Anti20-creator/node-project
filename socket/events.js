@@ -11,7 +11,6 @@ const events = io => {
 			socket.join('restaurant:' + restaurantId)
 		}
         
-		// User is joining to the live session and will be notified
         socket.on('join-restaurant', () => {
 			const cookies = cookie.parse(socket.handshake.headers.cookie)
 			const restaurantId = jwt.decode(cookies['Authorization'].split(' ')[1]).restaurantId

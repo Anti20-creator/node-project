@@ -16,13 +16,6 @@ const { catchErrors } = require('../utils/ErrorHandler')
 const RequestValidator = require('../controller/bodychecker')
 const RestaurantController = require('../controller/restaurantController')
 
-class MongooseOwnTypeError extends Error {
-    constructor(message) {
-        super(message)
-        this.name = 'MongooseOwnTypeError'
-    }
-}
-
 router.get('/restaurant-id', authenticateAccessToken, catchErrors((req, res) => {
 	return Httpresponse.OK(res, req.user.restaurantId)
 }))
@@ -50,7 +43,16 @@ router.post('/register-admin', catchErrors(async(req, res) => {
     await newUser.save(catchErrors(async (err, document) => {
         if(err){
             if(err.name === 'ValidationError') {
-                return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
+                let message = 'unexpected-error'
+                if(err.errors) {
+                    if(Object.keys(err.errors).length > 0) {
+                        const errResponse = err.errors[Object.keys(err.errors)[0]].message 
+                        if(errResponse.split(' ').length === 1 && errResponse.split('-').length > 1) {
+                            message = errResponse
+                        }
+                    }
+                }
+                return Httpresponse.BadRequest(res, message)
             }else{
                 return Httpresponse.Conflict(res, "user-email-conflict")
             }
@@ -118,7 +120,16 @@ router.post('/register-employee/:id', catchErrors(async(req, res) => {
         await newUser.save(catchErrors(async (err) => {
             if(err) {
                 if(err.name === 'ValidationError') {
-                    return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
+                    let message = 'unexpected-error'
+                    if(err.errors) {
+                        if(Object.keys(err.errors).length > 0) {
+                            const errResponse = err.errors[Object.keys(err.errors)[0]].message 
+                            if(errResponse.split(' ').length === 1 && errResponse.split('-').length > 1) {
+                                message = errResponse
+                            }
+                        }
+                    }
+                    return Httpresponse.BadRequest(res, message)
                 }else{
                     return Httpresponse.Conflict(res, "user-email-conflict")
                 }

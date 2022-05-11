@@ -18,7 +18,7 @@ cluster.schedulingPolicy = cluster.SCHED_RR
 if (cluster.isMaster) {
   console.log(`Primary ${prcs.pid} is running`);
   
-  cron.schedule('* 0 0 2 * *', () => {
+  cron.schedule('0 0 0 2 */1 *', () => {
     InvoiceController.sendReports()
   });
 

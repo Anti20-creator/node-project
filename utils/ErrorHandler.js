@@ -39,11 +39,13 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
         }
 
         case 'ValidationError': {
-            return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
-        }
-
-        case 'MongooseOwnTypeError': {
-            return Httpresponse.BadRequest(res, err.errors[Object.keys(err.errors)[0]].message)
+            let message = 'unexpected-error'
+            if(err.errors) {
+                if(Object.keys(err.errors).length > 0) {
+                    message = err.errors[Object.keys(err.errors)[0]].message
+                }
+            }
+            return Httpresponse.BadRequest(res, message)
         }
 
         case 'DateError': {
@@ -67,7 +69,6 @@ const catchErrors = action => (req, res, next) => action(req, res).catch((err) =
         }
 
         default: {
-            console.warn(err)
             return Httpresponse.BadRequest(res, "unexpected-error")
         }
     }

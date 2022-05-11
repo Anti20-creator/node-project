@@ -12,10 +12,10 @@ const findAllInvoiceToRestaurant = async (id) => {
 
 const exportToZip = async(id) => {
     const now = new Date()
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const firstDayOfMonth = new Date(new Date(now.getFullYear(), now.getMonth(), 1).setUTCHours(0, 0, 0, 0))
 
     let invoices = await findAllInvoiceToRestaurant(id)
-    //invoices = invoices.filter(invoice => invoice._id.getTimestamp() < firstDayOfMonth)
+    invoices = invoices.filter(invoice => invoice._id.getTimestamp() < firstDayOfMonth)
 
     await AppointmentController.createXLS(id)
 
@@ -33,17 +33,16 @@ const exportToZip = async(id) => {
     return id
 }
 
-const sendExportedInMail = async(id) => {
+const sendExportedInMail = async(id, email) => {
     const zipName = await exportToZip(id)
 
-    sendMail("amtmannkristof@gmail.com", "Zip", "No content", zipName)
+    sendMail(email, "Report / Riport", "", zipName)
 }
 
 const sendReports = async() => {
-    const restaurantIds = await Restaurant.find({}, {projection: {_id: 1}}).exec()
-    
-    for(const id of restaurantIds) {
-        await sendExportedInMail(id._id.toString())
+    const restaurants = await Restaurant.find({}, '_id ownerEmail').exec()
+    for(const restaurant of restaurants) {
+        await sendExportedInMail(restaurant._id.toString(), restaurant.ownerEmail)
     }
 }
 

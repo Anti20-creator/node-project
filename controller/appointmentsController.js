@@ -4,6 +4,7 @@ const LayoutController = require('../controller/layoutController')
 const Layouts          = require('../models/LayoutModel')
 const path             = require('path')
 const fs               = require('fs')
+const moment           = require('moment-timezone')
 
 class DateError extends Error {
     constructor(message) {
@@ -89,7 +90,7 @@ const checkPeoplecount = (peopleCount) => {
 const createXLS = async (id) => {
 
     const now = new Date()
-    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const firstDayOfMonth = new Date(new Date(now.getFullYear(), now.getMonth(), 1).setUTCHours(0, 0, 0, 0))
 
     const layout = await Layouts.findOne({RestaurantId: id}).exec()
     const appointments = await Appointments.collection.find({
@@ -98,20 +99,26 @@ const createXLS = async (id) => {
         },
         date: {
             $lt: firstDayOfMonth
+        },
+        confirmed: {
+            $eq: true
         }
     }).toArray()
 
     const workbook = new excel.Workbook()
     const worksheet = workbook.addWorksheet('Sheet 1')
 
+    worksheet.cell(1, 1).string('E-mail')
+    worksheet.cell(1, 2).string('Date / Dátum')
+    worksheet.cell(1, 3).string('Number of guests / Vendégek száma')
     let i = 2
     for(const appointment of appointments) {
 
         const localId = layout.tables.find(table => table.TableId === appointment.TableId)
 
         worksheet.cell(i, 1).string(appointment.email.toString())
-        worksheet.cell(i, 2).string(appointment.date.toString())
-        worksheet.cell(i, 3).string(localId ? localId.localId.toString() : '')
+        worksheet.cell(i, 2).string(moment.utc(appointment.date).format('L HH:mm'))
+        worksheet.cell(i, 3).string(localId ? localId.localId.toString() : '-')
         worksheet.cell(i, 3).string(appointment.peopleCount.toString())
 
         i++
