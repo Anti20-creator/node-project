@@ -6,14 +6,13 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: process.env.NODEMAILER_USER, // generated ethereal user
-        pass: process.env.NODEMAILER_PWD, // generated ethereal password
+        user: process.env.NODEMAILER_USER,
+        pass: process.env.NODEMAILER_PWD,
     },
     pool: true,
     maxMessages: Infinity,
     tls: {
-        rejectUnauthorized: false,
-        //servername: 'pepipost.com'
+        rejectUnauthorized: false
     }
 })
 
